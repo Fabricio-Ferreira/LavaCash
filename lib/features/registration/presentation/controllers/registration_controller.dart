@@ -11,7 +11,7 @@ import '../../domain/usecases/register_client_and_vehicle.dart';
 
 class RegistrationController extends GetxController {
   RegistrationController({required RegisterClientAndVehicle register})
-      : _register = register;
+    : _register = register;
 
   final RegisterClientAndVehicle _register;
 

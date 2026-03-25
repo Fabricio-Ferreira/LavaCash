@@ -13,7 +13,7 @@ import '../../domain/repositories/service_repository.dart';
 
 class ServiceController extends GetxController {
   ServiceController({required ServiceRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final ServiceRepository _repository;
 
@@ -36,14 +36,14 @@ class ServiceController extends GetxController {
       errorMessage.value = 'Veículo inválido';
       return;
     }
-    final Either<Failure, VehicleWithClient> vehicleResult =
-        await _repository.getVehicleWithClient(vehicleId);
+    final Either<Failure, VehicleWithClient> vehicleResult = await _repository
+        .getVehicleWithClient(vehicleId);
     vehicleResult.fold(
       (Failure failure) => errorMessage.value = failure.message,
       (VehicleWithClient value) => vehicle.value = value,
     );
-    final Either<Failure, ServiceRecord> serviceResult =
-        await _repository.startService(vehicleId);
+    final Either<Failure, ServiceRecord> serviceResult = await _repository
+        .startService(vehicleId);
     serviceResult.fold(
       (Failure failure) => errorMessage.value = failure.message,
       (ServiceRecord record) {

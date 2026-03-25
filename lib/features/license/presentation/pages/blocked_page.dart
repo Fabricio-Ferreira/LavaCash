@@ -46,9 +46,7 @@ class _BlockedPageState extends State<BlockedPage> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'WhatsApp de suporte não configurado (AppConstants).',
-          ),
+          content: Text('WhatsApp de suporte não configurado (AppConstants).'),
         ),
       );
       return;
@@ -101,8 +99,7 @@ class _BlockedPageState extends State<BlockedPage> {
                                 activationKeyController:
                                     _activationKeyController,
                                 onActivate: _retryLicenseCheck,
-                                onWhatsApp: () =>
-                                    _openWhatsAppSupport(global),
+                                onWhatsApp: () => _openWhatsAppSupport(global),
                               ),
                             ],
                           ),

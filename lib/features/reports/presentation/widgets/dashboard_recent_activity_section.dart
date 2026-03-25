@@ -26,10 +26,7 @@ class DashboardRecentActivitySection extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            TextButton(
-              onPressed: onVerTudo,
-              child: const Text('VER TUDO'),
-            ),
+            TextButton(onPressed: onVerTudo, child: const Text('VER TUDO')),
           ],
         ),
         const SizedBox(height: 8),

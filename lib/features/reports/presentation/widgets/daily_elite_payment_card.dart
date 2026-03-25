@@ -30,31 +30,32 @@ class DailyElitePaymentCard extends StatelessWidget {
           ),
         ],
       ),
-      child: isLoading
-          ? const Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          : entries.isEmpty
+      child:
+          isLoading
+              ? const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              )
+              : entries.isEmpty
               ? Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'Nenhum recebimento hoje',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Nenhum recebimento hoje',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.onSurfaceVariant,
                   ),
-                )
-              : Column(
-                  children: entries
-                      .map(
-                        (MapEntry<String, double> e) => DashboardPaymentTile(
-                          entry: e,
-                        ),
-                      )
-                      .toList(),
                 ),
+              )
+              : Column(
+                children:
+                    entries
+                        .map(
+                          (MapEntry<String, double> e) =>
+                              DashboardPaymentTile(entry: e),
+                        )
+                        .toList(),
+              ),
     );
   }
 }

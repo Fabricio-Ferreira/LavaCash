@@ -6,7 +6,7 @@ import '../repositories/search_repository.dart';
 
 class SearchVehicle {
   SearchVehicle({required SearchRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final SearchRepository _repository;
 

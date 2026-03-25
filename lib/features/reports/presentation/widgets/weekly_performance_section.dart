@@ -94,49 +94,43 @@ class _WeeklyPerformanceSectionState extends State<WeeklyPerformanceSection> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  height: 168,
-                  child: _buildChartArea(textTheme),
-                ),
+                SizedBox(height: 168, child: _buildChartArea(textTheme)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List<Widget>.generate(
-                    _weekLabels.length,
-                    (int i) {
-                      final bool isActive = i == _activeWeekIndex;
-                      return Expanded(
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _activeWeekIndex = i;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
-                            child: AnimatedDefaultTextStyle(
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeOutCubic,
-                              style: textTheme.labelMedium!.copyWith(
-                                fontWeight: isActive
-                                    ? FontWeight.w800
-                                    : FontWeight.w600,
-                                color: isActive
-                                    ? AppColors.primary
-                                    : AppColors.onSurfaceVariant.withValues(
+                  children: List<Widget>.generate(_weekLabels.length, (int i) {
+                    final bool isActive = i == _activeWeekIndex;
+                    return Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _activeWeekIndex = i;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOutCubic,
+                            style: textTheme.labelMedium!.copyWith(
+                              fontWeight:
+                                  isActive ? FontWeight.w800 : FontWeight.w600,
+                              color:
+                                  isActive
+                                      ? AppColors.primary
+                                      : AppColors.onSurfaceVariant.withValues(
                                         alpha: 0.45,
                                       ),
-                              ),
-                              child: Text(
-                                _weekLabels[i],
-                                textAlign: TextAlign.center,
-                              ),
+                            ),
+                            child: Text(
+                              _weekLabels[i],
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -183,9 +177,10 @@ class _WeeklyPerformanceSectionState extends State<WeeklyPerformanceSection> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(6),
                 ),
-                color: i == _activeWeekIndex
-                    ? AppColors.primary
-                    : AppColors.outlineVariant.withValues(alpha: 0.4),
+                color:
+                    i == _activeWeekIndex
+                        ? AppColors.primary
+                        : AppColors.outlineVariant.withValues(alpha: 0.4),
                 fromY: 0,
               ),
             ],
@@ -196,8 +191,7 @@ class _WeeklyPerformanceSectionState extends State<WeeklyPerformanceSection> {
         borderData: FlBorderData(show: false),
         barTouchData: BarTouchData(
           touchCallback: (FlTouchEvent event, BarTouchResponse? response) {
-            if (!event.isInterestedForInteractions ||
-                response?.spot == null) {
+            if (!event.isInterestedForInteractions || response?.spot == null) {
               return;
             }
             setState(() {
@@ -205,8 +199,7 @@ class _WeeklyPerformanceSectionState extends State<WeeklyPerformanceSection> {
             });
           },
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (_) =>
-                AppColors.onSurface.withValues(alpha: 0.92),
+            getTooltipColor: (_) => AppColors.onSurface.withValues(alpha: 0.92),
             tooltipRoundedRadius: 8,
             getTooltipItem: (
               BarChartGroupData group,

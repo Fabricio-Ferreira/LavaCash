@@ -17,11 +17,12 @@ class LicenseRepositoryImpl implements LicenseRepository {
       return const Left(ServerFailure('Supabase not configured'));
     }
     try {
-      final Map<String, dynamic>? row = await _client
-          .from('licencas')
-          .select()
-          .eq('device_id', deviceId)
-          .maybeSingle();
+      final Map<String, dynamic>? row =
+          await _client
+              .from('licencas')
+              .select()
+              .eq('device_id', deviceId)
+              .maybeSingle();
       if (row == null) {
         return const Left(LicenseFailure('No license for this device'));
       }

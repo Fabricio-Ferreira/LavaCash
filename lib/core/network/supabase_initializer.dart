@@ -27,10 +27,7 @@ abstract class SupabaseInitializer {
     if (_resolvedUrl.isEmpty || _resolvedAnonKey.isEmpty) {
       return;
     }
-    await Supabase.initialize(
-      url: _resolvedUrl,
-      anonKey: _resolvedAnonKey,
-    );
+    await Supabase.initialize(url: _resolvedUrl, anonKey: _resolvedAnonKey);
   }
 
   static bool get isConfigured {

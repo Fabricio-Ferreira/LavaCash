@@ -44,12 +44,11 @@ class NavPill extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      fontWeight:
-                          selected ? FontWeight.w800 : FontWeight.w600,
-                      fontSize: 10,
-                      letterSpacing: 0.8,
-                      color: selected ? active : AppColors.onSurfaceVariant,
-                    ),
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  fontSize: 10,
+                  letterSpacing: 0.8,
+                  color: selected ? active : AppColors.onSurfaceVariant,
+                ),
               ),
             ],
           ),

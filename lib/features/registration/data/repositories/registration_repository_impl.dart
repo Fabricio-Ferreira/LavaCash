@@ -8,7 +8,8 @@ import '../../../../domain/entities/vehicle.dart';
 import '../../domain/repositories/registration_repository.dart';
 
 class RegistrationRepositoryImpl implements RegistrationRepository {
-  RegistrationRepositoryImpl({required SupabaseClient? client}) : _client = client;
+  RegistrationRepositoryImpl({required SupabaseClient? client})
+    : _client = client;
 
   final SupabaseClient? _client;
 
@@ -23,23 +24,25 @@ class RegistrationRepositoryImpl implements RegistrationRepository {
     }
     final String normalizedPlate = AppFormatters.formatPlate(placa);
     try {
-      final Map<String, dynamic> clientInsert = await _client
-          .from('clientes')
-          .insert(<String, dynamic>{
-            'nome': nome.trim(),
-            'telefone': telefone.trim(),
-          })
-          .select()
-          .single();
+      final Map<String, dynamic> clientInsert =
+          await _client
+              .from('clientes')
+              .insert(<String, dynamic>{
+                'nome': nome.trim(),
+                'telefone': telefone.trim(),
+              })
+              .select()
+              .single();
       final ClientModel clientModel = ClientModel.fromJson(clientInsert);
-      final Map<String, dynamic> vehicleInsert = await _client
-          .from('veiculos')
-          .insert(<String, dynamic>{
-            'placa': normalizedPlate,
-            'cliente_id': clientModel.id,
-          })
-          .select('*, clientes(*)')
-          .single();
+      final Map<String, dynamic> vehicleInsert =
+          await _client
+              .from('veiculos')
+              .insert(<String, dynamic>{
+                'placa': normalizedPlate,
+                'cliente_id': clientModel.id,
+              })
+              .select('*, clientes(*)')
+              .single();
       return Right(
         Vehicle(
           id: vehicleInsert['id'] as String,

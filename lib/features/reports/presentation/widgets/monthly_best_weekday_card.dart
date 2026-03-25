@@ -18,9 +18,10 @@ class MonthlyBestWeekdayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final BestWeekdayReport? safeReport = report;
-    final String valueText = safeReport == null
-        ? '—'
-        : AppFormatters.formatCurrency(safeReport.faturamento);
+    final String valueText =
+        safeReport == null
+            ? '—'
+            : AppFormatters.formatCurrency(safeReport.faturamento);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -37,54 +38,55 @@ class MonthlyBestWeekdayCard extends StatelessWidget {
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      child: isLoading
-          ? const SizedBox(
-              height: 52,
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+      child:
+          isLoading
+              ? const SizedBox(
+                height: 52,
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                 ),
+              )
+              : Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          'MELHOR DIA DE VENDAS',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          safeReport?.diaSemana ?? '—',
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    valueText,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
               ),
-            )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        'MELHOR DIA DE VENDAS',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        safeReport?.diaSemana ?? '—',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  valueText,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
     );
   }
 }

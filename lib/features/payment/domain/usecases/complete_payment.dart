@@ -6,7 +6,7 @@ import '../repositories/payment_repository.dart';
 
 class CompletePayment {
   CompletePayment({required PaymentRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final PaymentRepository _repository;
 

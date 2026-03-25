@@ -106,10 +106,7 @@ class BlockedActivationCard extends StatelessWidget {
                 horizontal: 16,
                 vertical: 18,
               ),
-              suffixIcon: Icon(
-                Icons.vpn_key,
-                color: AppColors.outline,
-              ),
+              suffixIcon: Icon(Icons.vpn_key, color: AppColors.outline),
             ),
           ),
           const SizedBox(height: 24),
@@ -119,10 +116,7 @@ class BlockedActivationCard extends StatelessWidget {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: <Color>[
-                  AppColors.primary,
-                  AppColors.primaryContainer,
-                ],
+                colors: <Color>[AppColors.primary, AppColors.primaryContainer],
               ),
               boxShadow: [
                 BoxShadow(
@@ -150,11 +144,7 @@ class BlockedActivationCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(
-                        Icons.verified,
-                        color: Colors.white,
-                        size: 22,
-                      ),
+                      const Icon(Icons.verified, color: Colors.white, size: 22),
                     ],
                   ),
                 ),

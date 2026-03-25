@@ -9,7 +9,7 @@ import '../../domain/usecases/complete_payment.dart';
 
 class PaymentController extends GetxController {
   PaymentController({required CompletePayment completePayment})
-      : _completePayment = completePayment;
+    : _completePayment = completePayment;
 
   final CompletePayment _completePayment;
 
@@ -60,8 +60,9 @@ class PaymentController extends GetxController {
       return 0;
     }
     if (trimmed.contains(',')) {
-      final String normalized =
-          trimmed.replaceAll('.', '').replaceAll(',', '.');
+      final String normalized = trimmed
+          .replaceAll('.', '')
+          .replaceAll(',', '.');
       return double.tryParse(normalized) ?? 0;
     }
     return double.tryParse(trimmed) ?? 0;

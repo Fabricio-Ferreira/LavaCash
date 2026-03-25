@@ -12,9 +12,7 @@ abstract class WhatsAppService {
       return false;
     }
     final String encoded = Uri.encodeComponent(message);
-    final Uri url = Uri.parse(
-      'https://wa.me/55$normalized?text=$encoded',
-    );
+    final Uri url = Uri.parse('https://wa.me/55$normalized?text=$encoded');
     if (!await canLaunchUrl(url)) {
       return false;
     }
@@ -33,9 +31,7 @@ abstract class WhatsAppService {
     final String message = Uri.encodeComponent(
       'Olá $name! Seu veículo de placa $plate está pronto para retirada.',
     );
-    final Uri url = Uri.parse(
-      'https://wa.me/55$normalizedPhone?text=$message',
-    );
+    final Uri url = Uri.parse('https://wa.me/55$normalizedPhone?text=$message');
     if (!await canLaunchUrl(url)) {
       return false;
     }

@@ -45,23 +45,24 @@ class SplashPage extends GetView<LicenseController> {
                   ),
                   const Spacer(flex: 1),
                   Obx(
-                    () => controller.isChecking.value
-                        ? Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SplashLoadingDots(),
-                              const SizedBox(height: 18),
-                              Text(
-                                'Sincronizando Fluxo',
-                                style: textTheme.labelMedium?.copyWith(
-                                  color: SplashPalette.textTertiary,
-                                  letterSpacing: 2.2,
-                                  fontWeight: FontWeight.w600,
+                    () =>
+                        controller.isChecking.value
+                            ? Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SplashLoadingDots(),
+                                const SizedBox(height: 18),
+                                Text(
+                                  'Sincronizando Fluxo',
+                                  style: textTheme.labelMedium?.copyWith(
+                                    color: SplashPalette.textTertiary,
+                                    letterSpacing: 2.2,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          )
-                        : const SizedBox.shrink(),
+                              ],
+                            )
+                            : const SizedBox.shrink(),
                   ),
                   const Spacer(flex: 3),
                 ],

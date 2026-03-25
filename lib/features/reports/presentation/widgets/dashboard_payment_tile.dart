@@ -4,10 +4,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 
 class DashboardPaymentTile extends StatelessWidget {
-  const DashboardPaymentTile({
-    super.key,
-    required this.entry,
-  });
+  const DashboardPaymentTile({super.key, required this.entry});
 
   final MapEntry<String, double> entry;
 
@@ -43,17 +40,17 @@ class DashboardPaymentTile extends StatelessWidget {
                 child: Text(
                   DashboardPaymentTile.labelForPayment(entry.key).toUpperCase(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: AppColors.onSurfaceVariant,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Text(
                 AppFormatters.formatCurrency(entry.value),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.primary,
-                    ),
+                ),
               ),
             ],
           ),

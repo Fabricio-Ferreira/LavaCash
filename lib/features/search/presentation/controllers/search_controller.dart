@@ -10,7 +10,7 @@ import '../../domain/usecases/search_vehicle.dart';
 
 class VehicleSearchController extends GetxController {
   VehicleSearchController({required SearchVehicle searchVehicle})
-      : _searchVehicle = searchVehicle;
+    : _searchVehicle = searchVehicle;
 
   final SearchVehicle _searchVehicle;
 

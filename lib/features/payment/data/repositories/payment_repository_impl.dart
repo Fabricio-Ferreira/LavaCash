@@ -20,23 +20,27 @@ class PaymentRepositoryImpl implements PaymentRepository {
       return const Left(ServerFailure('Supabase not configured'));
     }
     try {
-      final Map<String, dynamic> row = await _client
-          .from('atendimentos')
-          .select('hora_entrada')
-          .eq('id', serviceId)
-          .single();
+      final Map<String, dynamic> row =
+          await _client
+              .from('atendimentos')
+              .select('hora_entrada')
+              .eq('id', serviceId)
+              .single();
       final DateTime entrada =
           DateTime.parse(row['hora_entrada'] as String).toUtc();
       final DateTime saida = DateTime.now().toUtc();
       final int duracao = saida.difference(entrada).inMinutes;
-      await _client.from('atendimentos').update(<String, dynamic>{
-        'valor': valor,
-        'forma_pagamento': formaPagamento.dbValue,
-        'hora_saida': saida.toIso8601String(),
-        'duracao_minutos': duracao,
-        'status': 'finalizado',
-        'updated_at': saida.toIso8601String(),
-      }).eq('id', serviceId);
+      await _client
+          .from('atendimentos')
+          .update(<String, dynamic>{
+            'valor': valor,
+            'forma_pagamento': formaPagamento.dbValue,
+            'hora_saida': saida.toIso8601String(),
+            'duracao_minutos': duracao,
+            'status': 'finalizado',
+            'updated_at': saida.toIso8601String(),
+          })
+          .eq('id', serviceId);
       return const Right(unit);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));

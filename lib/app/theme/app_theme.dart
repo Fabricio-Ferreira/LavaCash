@@ -16,10 +16,7 @@ abstract class AppTheme {
       onSurface: AppColors.onSurface,
       tertiary: AppColors.tertiary,
     );
-    final ThemeData base = ThemeData(
-      colorScheme: scheme,
-      useMaterial3: true,
-    );
+    final ThemeData base = ThemeData(colorScheme: scheme, useMaterial3: true);
     final TextTheme textTheme = base.textTheme.apply(
       fontFamily: fontFamily,
       bodyColor: scheme.onSurface,
@@ -45,9 +42,7 @@ abstract class AppTheme {
       cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

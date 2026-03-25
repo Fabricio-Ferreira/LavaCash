@@ -6,7 +6,7 @@ import '../repositories/license_repository.dart';
 
 class CheckLicense {
   CheckLicense({required LicenseRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final LicenseRepository _repository;
 

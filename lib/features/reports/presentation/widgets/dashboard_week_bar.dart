@@ -18,9 +18,10 @@ class DashboardWeekBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color fill = highlight
-        ? const Color(0xFF10B981)
-        : AppColors.primary.withValues(alpha: 0.35);
+    final Color fill =
+        highlight
+            ? const Color(0xFF10B981)
+            : AppColors.primary.withValues(alpha: 0.35);
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -30,10 +31,10 @@ class DashboardWeekBar extends StatelessWidget {
             child: Text(
               'ATUAL',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF10B981),
-                  ),
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF10B981),
+              ),
             ),
           ),
         Expanded(
@@ -62,16 +63,18 @@ class DashboardWeekBar extends StatelessWidget {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(6),
                       ),
-                      boxShadow: highlight
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFF10B981)
-                                    .withValues(alpha: 0.45),
-                                blurRadius: 16,
-                                offset: const Offset(0, -4),
-                              ),
-                            ]
-                          : null,
+                      boxShadow:
+                          highlight
+                              ? [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF10B981,
+                                  ).withValues(alpha: 0.45),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, -4),
+                                ),
+                              ]
+                              : null,
                     ),
                   ),
                 ],
@@ -83,12 +86,13 @@ class DashboardWeekBar extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontSize: 9,
-                fontWeight: highlight ? FontWeight.w900 : FontWeight.w700,
-                color: highlight
+            fontSize: 9,
+            fontWeight: highlight ? FontWeight.w900 : FontWeight.w700,
+            color:
+                highlight
                     ? const Color(0xFF10B981)
                     : AppColors.onSurfaceVariant.withValues(alpha: 0.45),
-              ),
+          ),
         ),
       ],
     );

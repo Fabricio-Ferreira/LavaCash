@@ -6,7 +6,7 @@ import '../repositories/report_repository.dart';
 
 class GetWeeklyReport {
   GetWeeklyReport({required ReportRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final ReportRepository _repository;
 

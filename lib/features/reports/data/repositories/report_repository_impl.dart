@@ -5,6 +5,8 @@ import '../../../../core/error/failures.dart';
 import '../../../../domain/entities/best_weekday_report.dart';
 import '../../../../domain/entities/daily_report.dart';
 import '../../../../domain/entities/monthly_report.dart';
+import '../../../../domain/entities/service_status.dart';
+import '../../../../domain/entities/service_summary.dart';
 import '../../../../domain/entities/weekly_report.dart';
 import '../../domain/repositories/report_repository.dart';
 
@@ -58,6 +60,77 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
+  Future<Either<Failure, List<ServiceSummary>>> getTodayServices(
+    DateTime day, {
+    int? limit,
+  }) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final DateTime start = DateTime(day.year, day.month, day.day);
+      final DateTime end = start.add(const Duration(days: 1));
+      final int effectiveLimit = limit ?? 100;
+      final List<dynamic> rows = await _client
+          .from('atendimentos')
+          .select(
+            'id, hora_entrada, valor, status, '
+            'veiculos(placa, clientes(nome))',
+          )
+          .gte('hora_entrada', start.toUtc().toIso8601String())
+          .lt('hora_entrada', end.toUtc().toIso8601String())
+          .order('hora_entrada', ascending: false)
+          .limit(effectiveLimit);
+      final List<ServiceSummary> list = <ServiceSummary>[];
+      for (final dynamic row in rows) {
+        final ServiceSummary? item = _mapRowToServiceSummary(
+          row as Map<String, dynamic>,
+        );
+        if (item != null) {
+          list.add(item);
+        }
+      }
+      return Right(list);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  ServiceSummary? _mapRowToServiceSummary(Map<String, dynamic> map) {
+    final String? id = map['id']?.toString();
+    final String? horaRaw = map['hora_entrada'] as String?;
+    final String? statusRaw = map['status'] as String?;
+    if (id == null || horaRaw == null || statusRaw == null) {
+      return null;
+    }
+    final ServiceStatus? status = ServiceStatusX.fromDb(statusRaw);
+    if (status == null) {
+      return null;
+    }
+    final DateTime horaEntrada = DateTime.parse(horaRaw).toLocal();
+    String placa = '';
+    String clienteNome = '';
+    final dynamic veiculos = map['veiculos'];
+    if (veiculos is Map<String, dynamic>) {
+      placa = veiculos['placa'] as String? ?? '';
+      final dynamic clientes = veiculos['clientes'];
+      if (clientes is Map<String, dynamic>) {
+        clienteNome = clientes['nome'] as String? ?? '';
+      }
+    }
+    return ServiceSummary(
+      id: id,
+      clienteNome: clienteNome.isEmpty ? '—' : clienteNome,
+      placa: placa.isEmpty ? '—' : placa,
+      horaEntrada: horaEntrada,
+      valor: _toDouble(map['valor']),
+      status: status,
+    );
+  }
+
+  @override
   Future<Either<Failure, List<MonthlyReport>>> getMonthlyReports() async {
     if (_client == null) {
       return const Left(ServerFailure('Supabase not configured'));
@@ -75,24 +148,26 @@ class ReportRepositoryImpl implements ReportRepository {
             DateTime.parse(map['hora_entrada'] as String).toLocal();
         final String key = '${entrada.year}-${entrada.month}';
         final double valor = _toDouble(map['valor']) ?? 0;
-        final _MonthAgg current = agg[key] ?? _MonthAgg(
-          mes: DateTime(entrada.year, entrada.month),
-        );
+        final _MonthAgg current =
+            agg[key] ?? _MonthAgg(mes: DateTime(entrada.year, entrada.month));
         current.totalAtendimentos += 1;
         current.faturamento += valor;
         agg[key] = current;
       }
-      final List<MonthlyReport> list = agg.values
-          .map(
-            (final _MonthAgg a) => MonthlyReport(
-              mes: a.mes,
-              totalAtendimentos: a.totalAtendimentos,
-              faturamento: a.faturamento,
-            ),
-          )
-          .toList();
-      list.sort((final MonthlyReport a, final MonthlyReport b) =>
-          b.mes.compareTo(a.mes));
+      final List<MonthlyReport> list =
+          agg.values
+              .map(
+                (final _MonthAgg a) => MonthlyReport(
+                  mes: a.mes,
+                  totalAtendimentos: a.totalAtendimentos,
+                  faturamento: a.faturamento,
+                ),
+              )
+              .toList();
+      list.sort(
+        (final MonthlyReport a, final MonthlyReport b) =>
+            b.mes.compareTo(a.mes),
+      );
       return Right(list);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -130,18 +205,11 @@ class ReportRepositoryImpl implements ReportRepository {
           faturamento: _toDouble(map['faturamento']) ?? 0,
         );
       }
-      final List<WeeklyReport> filled = List<WeeklyReport>.generate(
-        4,
-        (int i) {
-          final int semana = i + 1;
-          return byWeek[semana] ??
-              WeeklyReport(
-                semana: semana,
-                totalAtendimentos: 0,
-                faturamento: 0,
-              );
-        },
-      );
+      final List<WeeklyReport> filled = List<WeeklyReport>.generate(4, (int i) {
+        final int semana = i + 1;
+        return byWeek[semana] ??
+            WeeklyReport(semana: semana, totalAtendimentos: 0, faturamento: 0);
+      });
       return Right(filled);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));

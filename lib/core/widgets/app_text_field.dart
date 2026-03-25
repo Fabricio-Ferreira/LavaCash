@@ -32,9 +32,9 @@ class AppTextField extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
         ],
@@ -45,10 +45,7 @@ class AppTextField extends StatelessWidget {
           textInputAction: textInputAction,
           maxLines: maxLines,
           onChanged: onChanged,
-          decoration: InputDecoration(
-            hintText: hint,
-            errorText: errorText,
-          ),
+          decoration: InputDecoration(hintText: hint, errorText: errorText),
         ),
       ],
     );

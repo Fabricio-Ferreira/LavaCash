@@ -12,6 +12,7 @@ import '../../domain/repositories/report_repository.dart';
 import '../../domain/usecases/get_best_weekday_report.dart';
 import '../../domain/usecases/get_daily_report.dart';
 import '../../domain/usecases/get_monthly_reports.dart';
+import '../../domain/usecases/get_today_services.dart';
 import '../../domain/usecases/get_weekly_report.dart';
 import '../controllers/home_tab_controller.dart';
 import '../controllers/report_controller.dart';
@@ -40,6 +41,10 @@ class HomeBinding extends Bindings {
       () => GetDailyReport(repository: Get.find<ReportRepository>()),
       fenix: true,
     );
+    Get.lazyPut<GetTodayServices>(
+      () => GetTodayServices(repository: Get.find<ReportRepository>()),
+      fenix: true,
+    );
     Get.lazyPut<GetMonthlyReports>(
       () => GetMonthlyReports(repository: Get.find<ReportRepository>()),
       fenix: true,
@@ -55,15 +60,13 @@ class HomeBinding extends Bindings {
     Get.lazyPut<ReportController>(
       () => ReportController(
         getDailyReport: Get.find<GetDailyReport>(),
+        getTodayServices: Get.find<GetTodayServices>(),
         getMonthlyReports: Get.find<GetMonthlyReports>(),
         getWeeklyReport: Get.find<GetWeeklyReport>(),
         getBestWeekdayReport: Get.find<GetBestWeekdayReport>(),
       ),
       fenix: true,
     );
-    Get.lazyPut<HomeTabController>(
-      () => HomeTabController(),
-      fenix: true,
-    );
+    Get.lazyPut<HomeTabController>(() => HomeTabController(), fenix: true);
   }
 }

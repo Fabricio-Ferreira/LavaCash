@@ -9,18 +9,21 @@ class MonthlyGrowthPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String pctText = growthPercent.abs() < 10 && growthPercent != 0
-        ? growthPercent.toStringAsFixed(1)
-        : growthPercent.round().toString();
-    final String sign = growthPercent > 0
-        ? '+'
-        : growthPercent < 0
+    final String pctText =
+        growthPercent.abs() < 10 && growthPercent != 0
+            ? growthPercent.toStringAsFixed(1)
+            : growthPercent.round().toString();
+    final String sign =
+        growthPercent > 0
+            ? '+'
+            : growthPercent < 0
             ? ''
             : '';
     final String label = '$sign$pctText% vs mês anterior';
-    final IconData icon = growthPercent > 0
-        ? Icons.trending_up_rounded
-        : growthPercent < 0
+    final IconData icon =
+        growthPercent > 0
+            ? Icons.trending_up_rounded
+            : growthPercent < 0
             ? Icons.trending_down_rounded
             : Icons.trending_flat_rounded;
     return ClipRRect(
@@ -41,11 +44,7 @@ class MonthlyGrowthPill extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: Colors.white,
-                ),
+                Icon(icon, size: 18, color: Colors.white),
                 const SizedBox(width: 8),
                 Text(
                   label,

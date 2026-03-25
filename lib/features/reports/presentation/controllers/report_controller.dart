@@ -5,32 +5,40 @@ import '../../../../core/error/failures.dart';
 import '../../../../domain/entities/best_weekday_report.dart';
 import '../../../../domain/entities/daily_report.dart';
 import '../../../../domain/entities/monthly_report.dart';
+import '../../../../domain/entities/service_summary.dart';
 import '../../../../domain/entities/weekly_report.dart';
 import '../../domain/usecases/get_best_weekday_report.dart';
 import '../../domain/usecases/get_daily_report.dart';
 import '../../domain/usecases/get_monthly_reports.dart';
+import '../../domain/usecases/get_today_services.dart';
 import '../../domain/usecases/get_weekly_report.dart';
 
 class ReportController extends GetxController {
   ReportController({
     required GetDailyReport getDailyReport,
+    required GetTodayServices getTodayServices,
     required GetMonthlyReports getMonthlyReports,
     required GetWeeklyReport getWeeklyReport,
     required GetBestWeekdayReport getBestWeekdayReport,
-  })  : _getDailyReport = getDailyReport,
-        _getMonthlyReports = getMonthlyReports,
-        _getWeeklyReport = getWeeklyReport,
-        _getBestWeekdayReport = getBestWeekdayReport;
+  }) : _getDailyReport = getDailyReport,
+       _getTodayServices = getTodayServices,
+       _getMonthlyReports = getMonthlyReports,
+       _getWeeklyReport = getWeeklyReport,
+       _getBestWeekdayReport = getBestWeekdayReport;
 
   final GetDailyReport _getDailyReport;
+  final GetTodayServices _getTodayServices;
   final GetMonthlyReports _getMonthlyReports;
   final GetWeeklyReport _getWeeklyReport;
   final GetBestWeekdayReport _getBestWeekdayReport;
 
   final RxBool isDailyLoading = false.obs;
+  final RxBool isTodayServicesLoading = false.obs;
   final RxBool isMonthlyLoading = false.obs;
   final RxBool isWeeklyLoading = false.obs;
   final Rxn<DailyReport> dailyReport = Rxn<DailyReport>();
+  final RxList<ServiceSummary> todayServices = <ServiceSummary>[].obs;
+  final RxString todayServicesError = ''.obs;
   final RxList<MonthlyReport> monthlyReports = <MonthlyReport>[].obs;
   final RxList<WeeklyReport> weeklyReports = <WeeklyReport>[].obs;
   final Rxn<BestWeekdayReport> bestWeekday = Rxn<BestWeekdayReport>();
@@ -58,9 +66,17 @@ class ReportController extends GetxController {
 
   Future<void> loadDaily() async {
     isDailyLoading.value = true;
-    final Either<Failure, DailyReport> result =
-        await _getDailyReport(DateTime.now());
-    result.fold(
+    isTodayServicesLoading.value = true;
+    final DateTime now = DateTime.now();
+    final List<dynamic> parallel = await Future.wait<dynamic>(<Future<dynamic>>[
+      _getDailyReport(now),
+      _getTodayServices(now),
+    ]);
+    final Either<Failure, DailyReport> dailyEither =
+        parallel[0] as Either<Failure, DailyReport>;
+    final Either<Failure, List<ServiceSummary>> servicesEither =
+        parallel[1] as Either<Failure, List<ServiceSummary>>;
+    dailyEither.fold(
       (Failure failure) {
         errorMessage.value = failure.message;
         dailyReport.value = null;
@@ -70,7 +86,35 @@ class ReportController extends GetxController {
         dailyReport.value = report;
       },
     );
+    servicesEither.fold(
+      (Failure failure) {
+        todayServices.clear();
+        todayServicesError.value = failure.message;
+      },
+      (List<ServiceSummary> list) {
+        todayServicesError.value = '';
+        todayServices.assignAll(list);
+      },
+    );
     isDailyLoading.value = false;
+    isTodayServicesLoading.value = false;
+  }
+
+  Future<void> loadTodayServices() async {
+    isTodayServicesLoading.value = true;
+    final Either<Failure, List<ServiceSummary>> result =
+        await _getTodayServices(DateTime.now());
+    result.fold(
+      (Failure failure) {
+        todayServices.clear();
+        todayServicesError.value = failure.message;
+      },
+      (List<ServiceSummary> list) {
+        todayServicesError.value = '';
+        todayServices.assignAll(list);
+      },
+    );
+    isTodayServicesLoading.value = false;
   }
 
   Future<void> loadMonthly() async {

@@ -1,9 +1,4 @@
-enum PaymentMethod {
-  dinheiro,
-  pix,
-  debito,
-  credito,
-}
+enum PaymentMethod { dinheiro, pix, debito, credito }
 
 extension PaymentMethodX on PaymentMethod {
   String get dbValue {

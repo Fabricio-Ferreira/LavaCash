@@ -63,30 +63,32 @@ class DashboardRecebimentoSection extends StatelessWidget {
               ),
             ],
           ),
-          child: daily.isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : daily.paymentEntries.isEmpty
+          child:
+              daily.isLoading
+                  ? const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                  : daily.paymentEntries.isEmpty
                   ? Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(
-                        'Nenhum recebimento hoje',
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'Nenhum recebimento hoje',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.onSurfaceVariant,
                       ),
-                    )
-                  : Column(
-                      children: daily.paymentEntries
-                          .map(
-                            (MapEntry<String, double> e) =>
-                                DashboardPaymentTile(entry: e),
-                          )
-                          .toList(),
                     ),
+                  )
+                  : Column(
+                    children:
+                        daily.paymentEntries
+                            .map(
+                              (MapEntry<String, double> e) =>
+                                  DashboardPaymentTile(entry: e),
+                            )
+                            .toList(),
+                  ),
         ),
       ],
     );

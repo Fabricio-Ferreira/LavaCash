@@ -14,6 +14,10 @@ class DailyReport extends Equatable {
   final int emAndamento;
 
   @override
-  List<Object?> get props =>
-      [totalCarros, totalRecebido, totalPorFormaPagamento, emAndamento];
+  List<Object?> get props => [
+    totalCarros,
+    totalRecebido,
+    totalPorFormaPagamento,
+    emAndamento,
+  ];
 }

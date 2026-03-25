@@ -42,11 +42,7 @@ class MonthlyEliteHeroCard extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF003816),
-                Color(0xFF006E2F),
-                AppColors.primary,
-              ],
+              colors: [Color(0xFF003816), Color(0xFF006E2F), AppColors.primary],
             ),
             boxShadow: [
               BoxShadow(
@@ -113,9 +109,7 @@ class MonthlyEliteHeroCard extends StatelessWidget {
                       Text(
                         AppFormatters.formatMonthYear(report.mes).toUpperCase(),
                         style: TextStyle(
-                          color: AppColors.primaryFixed.withValues(
-                            alpha: 0.82,
-                          ),
+                          color: AppColors.primaryFixed.withValues(alpha: 0.82),
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),

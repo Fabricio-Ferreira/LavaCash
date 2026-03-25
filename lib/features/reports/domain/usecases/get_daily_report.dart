@@ -6,7 +6,7 @@ import '../repositories/report_repository.dart';
 
 class GetDailyReport {
   GetDailyReport({required ReportRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final ReportRepository _repository;
 

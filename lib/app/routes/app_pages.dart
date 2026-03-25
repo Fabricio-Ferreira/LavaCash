@@ -20,10 +20,7 @@ abstract class AppPages {
       page: () => const SplashPage(),
       binding: LicenseBinding(),
     ),
-    GetPage<void>(
-      name: AppRoutes.blocked,
-      page: () => const BlockedPage(),
-    ),
+    GetPage<void>(name: AppRoutes.blocked, page: () => const BlockedPage()),
     GetPage<void>(
       name: AppRoutes.home,
       page: () => const HomePage(),

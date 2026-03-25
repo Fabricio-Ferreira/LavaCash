@@ -21,144 +21,145 @@ class MonthlyReportTab extends GetView<ReportController> {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    return Obx(
-      () {
-        final bool isMonthlyLoading = controller.isMonthlyLoading.value;
-        final String errorMessage = controller.errorMessage.value;
-        final List<MonthlyReport> monthlyList =
-            controller.monthlyReports.toList();
-        return ThemedRefreshIndicator(
-          onRefresh: () async {
-            await controller.loadMonthly();
-          },
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints c) {
-              final double pad = c.maxWidth > 600 ? 24 : 16;
-              if (isMonthlyLoading) {
-                return ListView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
+    return Obx(() {
+      final bool isMonthlyLoading = controller.isMonthlyLoading.value;
+      final String errorMessage = controller.errorMessage.value;
+      final List<MonthlyReport> monthlyList =
+          controller.monthlyReports.toList();
+      return ThemedRefreshIndicator(
+        onRefresh: () async {
+          await controller.loadMonthly();
+        },
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints c) {
+            final double pad = c.maxWidth > 600 ? 24 : 16;
+            if (isMonthlyLoading) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
+                children: const [
+                  SizedBox(
+                    height: 240,
+                    child: Center(child: CircularProgressIndicator()),
                   ),
-                  padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
-                  children: const [
-                    SizedBox(
-                      height: 240,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                  ],
-                );
-              }
-              if (errorMessage.isNotEmpty && monthlyList.isEmpty) {
-                return ListView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
-                  children: [
-                    SelectableText.rich(
-                      TextSpan(
-                        text: errorMessage,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              final MonthlyReport? highlight =
-                  ReportController.resolveHighlightMonth(monthlyList);
-              final double? growthPct = computeGrowthPercentVsPreviousMonth(
-                monthlyList,
-                highlight,
+                ],
               );
-              final int totalMeses = monthlyList.length;
+            }
+            if (errorMessage.isNotEmpty && monthlyList.isEmpty) {
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
                 padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
                 children: [
-                  MonthlyReportHeader(textTheme: textTheme),
-                  const SizedBox(height: 16),
-                  MonthlyEliteHeroCard(
-                    highlight: highlight,
-                    growthPercentVsPrevious: growthPct,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DashboardStatCard(
-                          icon: Icons.local_car_wash_outlined,
-                          iconColor: AppColors.primary,
-                          label: 'ATENDIMENTOS',
-                          value: highlight == null
-                              ? '0'
-                              : '${highlight.totalAtendimentos}',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DashboardStatCard(
-                          icon: Icons.calendar_month_outlined,
-                          iconColor: AppColors.primary,
-                          label: 'MESES REGISTRADOS',
-                          value: '$totalMeses',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  WeeklyPerformanceSection(
-                    key: ValueKey<String>(
-                      highlight == null
-                          ? 'none'
-                          : '${highlight.mes.year}-${highlight.mes.month}',
-                    ),
-                    monthLabel: highlight == null
-                        ? '—'
-                        : DateFormat('MMMM', 'pt_BR')
-                            .format(highlight.mes)
-                            .toUpperCase(),
-                    weeklyData: controller.weeklyReports.toList(),
-                    isLoading: controller.isWeeklyLoading.value,
-                  ),
-                  const SizedBox(height: 12),
-                  MonthlyBestWeekdayCard(
-                    isLoading: controller.isWeeklyLoading.value,
-                    report: controller.bestWeekday.value,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Histórico por mês',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
+                  SelectableText.rich(
+                    TextSpan(
+                      text: errorMessage,
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  if (monthlyList.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      child: Text(
-                        'Sem dados',
-                        textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                    )
-                  else
-                    ...monthlyList.map(
-                      (MonthlyReport item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: MonthlyListCard(item: item),
-                      ),
-                    ),
                 ],
               );
-            },
-          ),
-        );
-      },
-    );
+            }
+            final MonthlyReport? highlight =
+                ReportController.resolveHighlightMonth(monthlyList);
+            final double? growthPct = computeGrowthPercentVsPreviousMonth(
+              monthlyList,
+              highlight,
+            );
+            final int totalMeses = monthlyList.length;
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
+              children: [
+                MonthlyReportHeader(textTheme: textTheme),
+                const SizedBox(height: 16),
+                MonthlyEliteHeroCard(
+                  highlight: highlight,
+                  growthPercentVsPrevious: growthPct,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DashboardStatCard(
+                        icon: Icons.local_car_wash_outlined,
+                        iconColor: AppColors.primary,
+                        label: 'ATENDIMENTOS',
+                        value:
+                            highlight == null
+                                ? '0'
+                                : '${highlight.totalAtendimentos}',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DashboardStatCard(
+                        icon: Icons.calendar_month_outlined,
+                        iconColor: AppColors.primary,
+                        label: 'MESES REGISTRADOS',
+                        value: '$totalMeses',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                WeeklyPerformanceSection(
+                  key: ValueKey<String>(
+                    highlight == null
+                        ? 'none'
+                        : '${highlight.mes.year}-${highlight.mes.month}',
+                  ),
+                  monthLabel:
+                      highlight == null
+                          ? '—'
+                          : DateFormat(
+                            'MMMM',
+                            'pt_BR',
+                          ).format(highlight.mes).toUpperCase(),
+                  weeklyData: controller.weeklyReports.toList(),
+                  isLoading: controller.isWeeklyLoading.value,
+                ),
+                const SizedBox(height: 12),
+                MonthlyBestWeekdayCard(
+                  isLoading: controller.isWeeklyLoading.value,
+                  report: controller.bestWeekday.value,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Histórico por mês',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (monthlyList.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Text(
+                      'Sem dados',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                else
+                  ...monthlyList.map(
+                    (MonthlyReport item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: MonthlyListCard(item: item),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      );
+    });
   }
 }

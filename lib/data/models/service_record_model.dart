@@ -28,9 +28,10 @@ class ServiceRecordModel {
       id: json['id'] as String,
       veiculoId: json['veiculo_id'] as String,
       horaEntrada: DateTime.parse(json['hora_entrada'] as String),
-      horaSaida: json['hora_saida'] == null
-          ? null
-          : DateTime.parse(json['hora_saida'] as String),
+      horaSaida:
+          json['hora_saida'] == null
+              ? null
+              : DateTime.parse(json['hora_saida'] as String),
       duracaoMinutos: json['duracao_minutos'] as int?,
       valor: _parseDouble(json['valor']),
       formaPagamento: json['forma_pagamento'] as String?,

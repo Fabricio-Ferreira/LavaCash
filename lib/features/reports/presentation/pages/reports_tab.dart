@@ -66,10 +66,7 @@ class _ReportsTabState extends State<ReportsTab>
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
-                tabs: const [
-                  Tab(text: 'Diário'),
-                  Tab(text: 'Mensal'),
-                ],
+                tabs: const [Tab(text: 'Diário'), Tab(text: 'Mensal')],
               ),
             ),
           ),
@@ -78,10 +75,7 @@ class _ReportsTabState extends State<ReportsTab>
           child: TabBarView(
             controller: _tabController,
             physics: const BouncingScrollPhysics(),
-            children: const [
-              DailyReportTab(),
-              MonthlyReportTab(),
-            ],
+            children: const [DailyReportTab(), MonthlyReportTab()],
           ),
         ),
       ],

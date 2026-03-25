@@ -14,9 +14,7 @@ class DailyAttendimentosPlaceholder extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
-        border: Border(
-          left: BorderSide(color: AppColors.primary, width: 4),
-        ),
+        border: Border(left: BorderSide(color: AppColors.primary, width: 4)),
       ),
       child: Text(
         'Lista detalhada de atendimentos será exibida quando os dados '

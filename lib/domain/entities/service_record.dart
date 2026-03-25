@@ -26,13 +26,13 @@ class ServiceRecord extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        veiculoId,
-        horaEntrada,
-        horaSaida,
-        duracaoMinutos,
-        valor,
-        formaPagamento,
-        status,
-      ];
+    id,
+    veiculoId,
+    horaEntrada,
+    horaSaida,
+    duracaoMinutos,
+    valor,
+    formaPagamento,
+    status,
+  ];
 }

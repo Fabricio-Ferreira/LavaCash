@@ -22,11 +22,12 @@ class ServiceRepositoryImpl implements ServiceRepository {
       return const Left(ServerFailure('Supabase not configured'));
     }
     try {
-      final Map<String, dynamic> row = await _client
-          .from('veiculos')
-          .select('*, clientes(*)')
-          .eq('id', vehicleId)
-          .single();
+      final Map<String, dynamic> row =
+          await _client
+              .from('veiculos')
+              .select('*, clientes(*)')
+              .eq('id', vehicleId)
+              .single();
       final dynamic rawClient = row['clientes'];
       final ClientModel clientModel = _parseClient(rawClient);
       final Vehicle vehicle = Vehicle(
@@ -36,10 +37,7 @@ class ServiceRepositoryImpl implements ServiceRepository {
         client: clientModel.toDomain(),
       );
       return Right(
-        VehicleWithClient(
-          vehicle: vehicle,
-          client: clientModel.toDomain(),
-        ),
+        VehicleWithClient(vehicle: vehicle, client: clientModel.toDomain()),
       );
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -54,14 +52,15 @@ class ServiceRepositoryImpl implements ServiceRepository {
       return const Left(ServerFailure('Supabase not configured'));
     }
     try {
-      final Map<String, dynamic> row = await _client
-          .from('atendimentos')
-          .insert(<String, dynamic>{
-            'veiculo_id': vehicleId,
-            'status': 'em_andamento',
-          })
-          .select()
-          .single();
+      final Map<String, dynamic> row =
+          await _client
+              .from('atendimentos')
+              .insert(<String, dynamic>{
+                'veiculo_id': vehicleId,
+                'status': 'em_andamento',
+              })
+              .select()
+              .single();
       return Right(ServiceRecordModel.fromJson(row).toDomain());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -76,10 +75,13 @@ class ServiceRepositoryImpl implements ServiceRepository {
       return const Left(ServerFailure('Supabase not configured'));
     }
     try {
-      await _client.from('atendimentos').update(<String, dynamic>{
-        'status': 'cancelado',
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', serviceId);
+      await _client
+          .from('atendimentos')
+          .update(<String, dynamic>{
+            'status': 'cancelado',
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', serviceId);
       return const Right(unit);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));

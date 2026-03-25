@@ -49,12 +49,11 @@ class HomeTopBar extends StatelessWidget {
                       const SizedBox(width: 12),
                       Text(
                         'LavaCash',
-                        style:
-                            Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.primary,
-                                  letterSpacing: -0.5,
-                                ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                          letterSpacing: -0.5,
+                        ),
                       ),
                     ],
                   ),
@@ -62,9 +61,7 @@ class HomeTopBar extends StatelessWidget {
                     onPressed: () {},
                     icon: Icon(
                       Icons.notifications_outlined,
-                      color: AppColors.onSurfaceVariant.withValues(
-                        alpha: 0.7,
-                      ),
+                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.7),
                     ),
                   ),
                 ],

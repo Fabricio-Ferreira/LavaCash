@@ -6,7 +6,7 @@ import '../repositories/registration_repository.dart';
 
 class RegisterClientAndVehicle {
   RegisterClientAndVehicle({required RegistrationRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final RegistrationRepository _repository;
 

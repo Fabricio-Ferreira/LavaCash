@@ -20,10 +20,6 @@ class ClientModel {
   }
 
   Client toDomain() {
-    return Client(
-      id: id,
-      nome: nome,
-      telefone: telefone,
-    );
+    return Client(id: id, nome: nome, telefone: telefone);
   }
 }

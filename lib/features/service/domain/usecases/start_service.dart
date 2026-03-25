@@ -6,7 +6,7 @@ import '../repositories/service_repository.dart';
 
 class StartService {
   StartService({required ServiceRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final ServiceRepository _repository;
 

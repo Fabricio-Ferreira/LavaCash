@@ -4,10 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
 
 class DashboardGreetingHeader extends StatelessWidget {
-  const DashboardGreetingHeader({
-    super.key,
-    required this.textTheme,
-  });
+  const DashboardGreetingHeader({super.key, required this.textTheme});
 
   final TextTheme textTheme;
 
@@ -15,7 +12,8 @@ class DashboardGreetingHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
     final String greeting = greetingForHour(now.hour);
-    final String dateLine = toBeginningOfSentenceCase(
+    final String dateLine =
+        toBeginningOfSentenceCase(
           DateFormat("EEEE, d 'de' MMMM", 'pt_BR').format(now),
         ) ??
         DateFormat("EEEE, d 'de' MMMM", 'pt_BR').format(now);

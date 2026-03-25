@@ -11,7 +11,7 @@ import '../../domain/usecases/check_license.dart';
 
 class LicenseController extends GetxController {
   LicenseController({required CheckLicense checkLicense})
-      : _checkLicense = checkLicense;
+    : _checkLicense = checkLicense;
 
   final CheckLicense _checkLicense;
 

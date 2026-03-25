@@ -31,9 +31,10 @@ class SearchRepositoryImpl implements SearchRepository {
           .from('clientes')
           .select('id')
           .ilike('nome', pattern);
-      final List<String> clientIds = clientRows
-          .map((dynamic e) => (e as Map<String, dynamic>)['id'] as String)
-          .toList();
+      final List<String> clientIds =
+          clientRows
+              .map((dynamic e) => (e as Map<String, dynamic>)['id'] as String)
+              .toList();
       List<dynamic> byClient = <dynamic>[];
       if (clientIds.isNotEmpty) {
         final String orFilter = clientIds
@@ -54,9 +55,10 @@ class SearchRepositoryImpl implements SearchRepository {
         final Map<String, dynamic> map = row as Map<String, dynamic>;
         merged[map['id'] as String] = map;
       }
-      final List<VehicleWithClient> results = merged.values
-          .map((Map<String, dynamic> json) => _mapVehicleWithClient(json))
-          .toList();
+      final List<VehicleWithClient> results =
+          merged.values
+              .map((Map<String, dynamic> json) => _mapVehicleWithClient(json))
+              .toList();
       return Right(results);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -74,10 +76,7 @@ class SearchRepositoryImpl implements SearchRepository {
       clienteId: json['cliente_id'] as String,
       client: clientModel.toDomain(),
     );
-    return VehicleWithClient(
-      vehicle: vehicle,
-      client: clientModel.toDomain(),
-    );
+    return VehicleWithClient(vehicle: vehicle, client: clientModel.toDomain());
   }
 
   ClientModel _parseClient(dynamic raw) {

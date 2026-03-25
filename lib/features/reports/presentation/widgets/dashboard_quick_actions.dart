@@ -21,10 +21,7 @@ class DashboardQuickActions extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: const LinearGradient(
-              colors: [
-                AppColors.primary,
-                AppColors.primaryContainer,
-              ],
+              colors: [AppColors.primary, AppColors.primaryContainer],
             ),
             boxShadow: [
               BoxShadow(

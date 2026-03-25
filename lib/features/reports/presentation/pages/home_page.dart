@@ -17,42 +17,37 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final HomeTabController tabs = Get.find<HomeTabController>();
     final ReportController reports = Get.find<ReportController>();
-    return Obx(
-      () {
-        final int index = tabs.currentTab.value;
-        return Scaffold(
-          extendBody: true,
-          backgroundColor: AppColors.surface,
-          body: Column(
-            children: [
-              const HomeTopBar(),
-              Expanded(
-                child: IndexedStack(
-                  index: index,
-                  children: const [
-                    DashboardTab(),
-                    ReportsTab(),
-                  ],
-                ),
+    return Obx(() {
+      final int index = tabs.currentTab.value;
+      return Scaffold(
+        extendBody: true,
+        backgroundColor: AppColors.surface,
+        body: Column(
+          children: [
+            const HomeTopBar(),
+            Expanded(
+              child: IndexedStack(
+                index: index,
+                children: const [DashboardTab(), ReportsTab()],
               ),
-            ],
-          ),
-          bottomNavigationBar: StitchBottomNav(
-            currentIndex: index,
-            onSelect: (int i) {
-              if (i == 2) {
-                Get.toNamed(AppRoutes.registration);
-                return;
-              }
-              tabs.setTab(i);
-              if (i == 0 || i == 1) {
-                reports.loadDaily();
-                reports.loadMonthly();
-              }
-            },
-          ),
-        );
-      },
-    );
+            ),
+          ],
+        ),
+        bottomNavigationBar: StitchBottomNav(
+          currentIndex: index,
+          onSelect: (int i) {
+            if (i == 2) {
+              Get.toNamed(AppRoutes.registration);
+              return;
+            }
+            tabs.setTab(i);
+            if (i == 0 || i == 1) {
+              reports.loadDaily();
+              reports.loadMonthly();
+            }
+          },
+        ),
+      );
+    });
   }
 }

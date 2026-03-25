@@ -1,8 +1,4 @@
-enum ServiceStatus {
-  emAndamento,
-  finalizado,
-  cancelado,
-}
+enum ServiceStatus { emAndamento, finalizado, cancelado }
 
 extension ServiceStatusX on ServiceStatus {
   String get dbValue {

@@ -41,112 +41,108 @@ class DashboardMonthlyPerformanceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () {
-        if (reports.isMonthlyLoading.value) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-        final List<MonthlyReport> list = reports.monthlyReports.toList();
-        final List<MonthlyReport> last6 = list.length > 6
-            ? list.sublist(0, 6)
-            : List<MonthlyReport>.from(list);
-        last6.sort(
-          (MonthlyReport a, MonthlyReport b) => a.mes.compareTo(b.mes),
+    return Obx(() {
+      if (reports.isMonthlyLoading.value) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: CircularProgressIndicator(),
+          ),
         );
-        final double maxFat = last6.isEmpty
-            ? 1
-            : last6
-                .map((MonthlyReport m) => m.faturamento)
-                .reduce((double a, double b) => a > b ? a : b);
-        final double? pct = _monthlyPercentVersusPrevious(list);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
+      }
+      final List<MonthlyReport> list = reports.monthlyReports.toList();
+      final List<MonthlyReport> last6 =
+          list.length > 6 ? list.sublist(0, 6) : List<MonthlyReport>.from(list);
+      last6.sort((MonthlyReport a, MonthlyReport b) => a.mes.compareTo(b.mes));
+      final double maxFat =
+          last6.isEmpty
+              ? 1
+              : last6
+                  .map((MonthlyReport m) => m.faturamento)
+                  .reduce((double a, double b) => a > b ? a : b);
+      final double? pct = _monthlyPercentVersusPrevious(list);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Desempenho Mensal',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (pct != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                  ),
                   child: Text(
-                    'Desempenho Mensal',
-                    style: textTheme.titleMedium?.copyWith(
+                    '${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(0)}% vs mês anterior',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: const Color(0xFF16A34A),
                       fontWeight: FontWeight.w800,
+                      fontSize: 10,
                     ),
                   ),
                 ),
-                if (pct != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: const Color(0xFFBBF7D0),
-                      ),
-                    ),
-                    child: Text(
-                      '${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(0)}% vs mês anterior',
-                      style: textTheme.labelSmall?.copyWith(
-                        color: const Color(0xFF16A34A),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Material(
-              color: Colors.white,
+            ],
+          ),
+          const SizedBox(height: 12),
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            child: InkWell(
               borderRadius: BorderRadius.circular(24),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(24),
-                onTap: onOpenMonthly,
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: AppColors.outlineVariant.withValues(alpha: 0.2),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+              onTap: onOpenMonthly,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.2),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'FATURAMENTO TOTAL',
-                        style: textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2,
-                          fontSize: 10,
-                          color: AppColors.onSurfaceVariant,
-                        ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'FATURAMENTO TOTAL',
+                      style: textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                        fontSize: 10,
+                        color: AppColors.onSurfaceVariant,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _monthlyTotalLabel(last6),
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _monthlyTotalLabel(last6),
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
                       ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 120,
-                        child: last6.isEmpty
-                            ? Center(
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 120,
+                      child:
+                          last6.isEmpty
+                              ? Center(
                                 child: Text(
                                   'Sem dados mensais',
                                   style: textTheme.bodyMedium?.copyWith(
@@ -154,52 +150,50 @@ class DashboardMonthlyPerformanceSection extends StatelessWidget {
                                   ),
                                 ),
                               )
-                            : Row(
+                              : Row(
                                 crossAxisAlignment: CrossAxisAlignment.end,
-                                children: List<Widget>.generate(
-                                  last6.length,
-                                  (int i) {
-                                    final MonthlyReport m = last6[i];
-                                    final double h = maxFat > 0
-                                        ? (m.faturamento / maxFat)
-                                            .clamp(0.08, 1.0)
-                                            .toDouble()
-                                        : 0.1;
-                                    final bool isLast =
-                                        i == last6.length - 1;
-                                    return Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 3,
-                                        ),
-                                        child: DashboardWeekBar(
-                                          heightFactor: h,
-                                          highlight: isLast,
-                                          label: 'S${i + 1}',
-                                          showAtual: isLast,
-                                        ),
+                                children: List<Widget>.generate(last6.length, (
+                                  int i,
+                                ) {
+                                  final MonthlyReport m = last6[i];
+                                  final double h =
+                                      maxFat > 0
+                                          ? (m.faturamento / maxFat)
+                                              .clamp(0.08, 1.0)
+                                              .toDouble()
+                                          : 0.1;
+                                  final bool isLast = i == last6.length - 1;
+                                  return Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 3,
                                       ),
-                                    );
-                                  },
-                                ),
+                                      child: DashboardWeekBar(
+                                        heightFactor: h,
+                                        highlight: isLast,
+                                        label: 'S${i + 1}',
+                                        showAtual: isLast,
+                                      ),
+                                    ),
+                                  );
+                                }),
                               ),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: onOpenMonthly,
+                        child: const Text('Ver relatório mensal'),
                       ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: onOpenMonthly,
-                          child: const Text('Ver relatório mensal'),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        );
-      },
-    );
+          ),
+        ],
+      );
+    });
   }
 }

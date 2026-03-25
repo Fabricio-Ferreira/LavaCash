@@ -11,74 +11,70 @@ class ServicePage extends GetView<ServiceController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Atendimento'),
-      ),
+      appBar: AppBar(title: const Text('Atendimento')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Obx(
-          () {
-            if (controller.errorMessage.value.isNotEmpty &&
-                controller.vehicle.value == null) {
-              return SelectableText.rich(
-                TextSpan(
-                  text: controller.errorMessage.value,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            }
-            final vehicle = controller.vehicle.value;
-            if (vehicle == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  vehicle.client.nome,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text('Placa: ${vehicle.vehicle.placa}'),
-                const SizedBox(height: 8),
-                Text('Telefone: ${vehicle.client.telefone}'),
-                const SizedBox(height: 24),
-                Obx(
-                  () => Text(
-                    controller.formattedElapsed,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+        child: Obx(() {
+          if (controller.errorMessage.value.isNotEmpty &&
+              controller.vehicle.value == null) {
+            return SelectableText.rich(
+              TextSpan(
+                text: controller.errorMessage.value,
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
+          }
+          final vehicle = controller.vehicle.value;
+          if (vehicle == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                vehicle.client.nome,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text('Placa: ${vehicle.vehicle.placa}'),
+              const SizedBox(height: 8),
+              Text('Telefone: ${vehicle.client.telefone}'),
+              const SizedBox(height: 24),
+              Obx(
+                () => Text(
+                  controller.formattedElapsed,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Status: ${controller.serviceRecord.value?.status.labelPt ?? '—'}',
-                  textAlign: TextAlign.center,
-                ),
-                const Spacer(),
-                OutlinedButton.icon(
-                  onPressed: controller.openWhatsApp,
-                  icon: const Icon(Icons.chat),
-                  label: const Text('WhatsApp'),
-                ),
-                const SizedBox(height: 12),
-                AppButton(
-                  label: 'Finalizar e pagar',
-                  onPressed: controller.goToPayment,
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: controller.cancelService,
-                  child: const Text('Cancelar atendimento'),
-                ),
-              ],
-            );
-          },
-        ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Status: ${controller.serviceRecord.value?.status.labelPt ?? '—'}',
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(),
+              OutlinedButton.icon(
+                onPressed: controller.openWhatsApp,
+                icon: const Icon(Icons.chat),
+                label: const Text('WhatsApp'),
+              ),
+              const SizedBox(height: 12),
+              AppButton(
+                label: 'Finalizar e pagar',
+                onPressed: controller.goToPayment,
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: controller.cancelService,
+                child: const Text('Cancelar atendimento'),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }

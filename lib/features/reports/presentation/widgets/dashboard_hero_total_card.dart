@@ -6,10 +6,7 @@ import '../../../../core/utils/formatters.dart';
 import '../models/daily_report_state.dart';
 
 class DashboardHeroTotalCard extends StatelessWidget {
-  const DashboardHeroTotalCard({
-    super.key,
-    required this.daily,
-  });
+  const DashboardHeroTotalCard({super.key, required this.daily});
 
   final DailyReportState daily;
 
@@ -39,11 +36,7 @@ class DashboardHeroTotalCard extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF003816),
-                Color(0xFF006E2F),
-                AppColors.primary,
-              ],
+              colors: [Color(0xFF003816), Color(0xFF006E2F), AppColors.primary],
             ),
             boxShadow: [
               BoxShadow(
@@ -91,9 +84,7 @@ class DashboardHeroTotalCard extends StatelessWidget {
                         ),
                         Icon(
                           Icons.water_drop_outlined,
-                          color: AppColors.primaryFixed.withValues(
-                            alpha: 0.55,
-                          ),
+                          color: AppColors.primaryFixed.withValues(alpha: 0.55),
                           size: 22,
                         ),
                       ],

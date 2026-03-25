@@ -11,9 +11,7 @@ class RegistrationPage extends GetView<RegistrationController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Novo cadastro'),
-      ),
+      appBar: AppBar(title: const Text('Novo cadastro')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -43,9 +41,10 @@ class RegistrationPage extends GetView<RegistrationController> {
             Obx(
               () => SelectableText.rich(
                 TextSpan(
-                  text: controller.errorMessage.value.isEmpty
-                      ? ''
-                      : controller.errorMessage.value,
+                  text:
+                      controller.errorMessage.value.isEmpty
+                          ? ''
+                          : controller.errorMessage.value,
                   style: const TextStyle(color: Colors.red),
                 ),
               ),

@@ -36,11 +36,7 @@ class DailyEliteHeroCard extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF003816),
-                Color(0xFF006E2F),
-                AppColors.primary,
-              ],
+              colors: [Color(0xFF003816), Color(0xFF006E2F), AppColors.primary],
             ),
             boxShadow: [
               BoxShadow(

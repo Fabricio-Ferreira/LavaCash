@@ -8,12 +8,14 @@ import '../controllers/report_controller.dart';
 import '../models/daily_report_state.dart';
 import '../widgets/dashboard_greeting_header.dart';
 import '../widgets/dashboard_hero_total_card.dart';
+import '../widgets/dashboard_atendimentos_section.dart';
 import '../widgets/dashboard_monthly_performance_section.dart';
 import '../widgets/dashboard_quick_actions.dart';
 import '../widgets/dashboard_recebimento_section.dart';
 import '../widgets/dashboard_stats_row.dart';
 import 'daily_report_tab.dart';
 import 'monthly_report_tab.dart';
+import 'today_services_page.dart';
 
 /// Stitch "Dashboard — Versão Elite Suprema" layout with live report data.
 /// When [AppConstants.useMockReportData] is true, data comes from
@@ -38,7 +40,7 @@ class _DashboardTabState extends State<DashboardTab>
       vsync: this,
     );
     _fadeAnimations = List<Animation<double>>.generate(
-      6,
+      7,
       (int i) => Tween<double>(begin: 0, end: 1).animate(
         CurvedAnimation(
           parent: _animationController,
@@ -68,96 +70,98 @@ class _DashboardTabState extends State<DashboardTab>
   Widget build(BuildContext context) {
     final ReportController reports = Get.find<ReportController>();
     final TextTheme textTheme = Theme.of(context).textTheme;
-    return Obx(
-      () {
-        final DailyReportState daily = DailyReportState.fromController(
-          reports,
-        );
-        return LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final double maxW = constraints.maxWidth;
-            final double horizontalPad = maxW > 600 ? 32 : 24;
-            final double contentMax = maxW > 900 ? 560 : maxW;
-            return ThemedRefreshIndicator(
-              onRefresh: () async {
-                await reports.loadDaily();
-                await reports.loadMonthly();
-              },
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                slivers: [
-                  SliverPadding(
-                    padding: EdgeInsets.fromLTRB(
-                      horizontalPad,
-                      8,
-                      horizontalPad,
-                      120,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: contentMax),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _fade(
-                                0,
-                                DashboardGreetingHeader(textTheme: textTheme),
+    return Obx(() {
+      final DailyReportState daily = DailyReportState.fromController(reports);
+      return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double maxW = constraints.maxWidth;
+          final double horizontalPad = maxW > 600 ? 32 : 24;
+          final double contentMax = maxW > 900 ? 560 : maxW;
+          return ThemedRefreshIndicator(
+            onRefresh: () async {
+              await reports.loadDaily();
+              await reports.loadMonthly();
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPad,
+                    8,
+                    horizontalPad,
+                    120,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: contentMax),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _fade(
+                              0,
+                              DashboardGreetingHeader(textTheme: textTheme),
+                            ),
+                            const SizedBox(height: 24),
+                            _fade(1, DashboardHeroTotalCard(daily: daily)),
+                            const SizedBox(height: 16),
+                            _fade(
+                              2,
+                              DashboardStatsRow(
+                                cars: daily.totalCarros,
+                                inProgress: daily.emAndamento,
                               ),
-                              const SizedBox(height: 24),
-                              _fade(1, DashboardHeroTotalCard(daily: daily)),
-                              const SizedBox(height: 16),
-                              _fade(
-                                2,
-                                DashboardStatsRow(
-                                  cars: daily.totalCarros,
-                                  inProgress: daily.emAndamento,
-                                ),
+                            ),
+                            const SizedBox(height: 12),
+                            _fade(
+                              3,
+                              DashboardQuickActions(
+                                onNovoAtendimento:
+                                    () => Get.toNamed(AppRoutes.registration),
+                                onRelatorioDiario:
+                                    () => _openDailyReport(context),
                               ),
-                              const SizedBox(height: 12),
-                              _fade(
-                                3,
-                                DashboardQuickActions(
-                                  onNovoAtendimento: () => Get.toNamed(
-                                    AppRoutes.registration,
-                                  ),
-                                  onRelatorioDiario: () => _openDailyReport(
-                                    context,
-                                  ),
-                                ),
+                            ),
+                            const SizedBox(height: 28),
+                            _fade(
+                              4,
+                              DashboardRecebimentoSection(
+                                daily: daily,
+                                textTheme: textTheme,
                               ),
-                              const SizedBox(height: 28),
-                              _fade(
-                                4,
-                                DashboardRecebimentoSection(
-                                  daily: daily,
-                                  textTheme: textTheme,
-                                ),
+                            ),
+                            const SizedBox(height: 28),
+                            _fade(
+                              6,
+                              DashboardMonthlyPerformanceSection(
+                                reports: reports,
+                                textTheme: textTheme,
+                                onOpenMonthly: () => _openMonthlyReport(),
                               ),
-                              const SizedBox(height: 28),
-                              _fade(
-                                5,
-                                DashboardMonthlyPerformanceSection(
-                                  reports: reports,
-                                  textTheme: textTheme,
-                                  onOpenMonthly: () => _openMonthlyReport(),
-                                ),
+                            ),
+                            const SizedBox(height: 28),
+                            _fade(
+                              5,
+                              DashboardAtendimentosSection(
+                                textTheme: textTheme,
+                                onVerTodos: _openTodayServices,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ],
+                ),
+              ],
             ),
-            );
-          },
-        );
-      },
-    );
+          );
+        },
+      );
+    });
   }
 
   Widget _fade(int index, Widget child) {
@@ -178,9 +182,7 @@ class _DashboardTabState extends State<DashboardTab>
     r.loadDaily();
     Get.to<void>(
       () => Scaffold(
-        appBar: AppBar(
-          title: const Text('Relatório diário'),
-        ),
+        appBar: AppBar(title: const Text('Relatório diário')),
         body: const DailyReportTab(),
       ),
     );
@@ -191,10 +193,19 @@ class _DashboardTabState extends State<DashboardTab>
     r.loadMonthly();
     Get.to<void>(
       () => Scaffold(
-        appBar: AppBar(
-          title: const Text('Relatório mensal'),
-        ),
+        appBar: AppBar(title: const Text('Relatório mensal')),
         body: const MonthlyReportTab(),
+      ),
+    );
+  }
+
+  void _openTodayServices() {
+    final ReportController r = Get.find<ReportController>();
+    r.loadTodayServices();
+    Get.to<void>(
+      () => Scaffold(
+        appBar: AppBar(title: const Text('Atendimentos do dia')),
+        body: const TodayServicesPage(),
       ),
     );
   }

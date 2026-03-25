@@ -36,11 +36,10 @@ class DailyReportState {
       );
     }
     final List<MapEntry<String, double>> entries =
-        report.totalPorFormaPagamento.entries.toList()
-          ..sort(
-            (MapEntry<String, double> a, MapEntry<String, double> b) =>
-                b.value.compareTo(a.value),
-          );
+        report.totalPorFormaPagamento.entries.toList()..sort(
+          (MapEntry<String, double> a, MapEntry<String, double> b) =>
+              b.value.compareTo(a.value),
+        );
     return DailyReportState(
       totalRecebido: report.totalRecebido,
       totalCarros: report.totalCarros,
