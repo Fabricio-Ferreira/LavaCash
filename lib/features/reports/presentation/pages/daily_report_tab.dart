@@ -1,126 +1,142 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
+import '../../../search/presentation/widgets/search_tab_body.dart';
 import '../controllers/report_controller.dart';
+import '../models/daily_report_state.dart';
+import '../widgets/daily_attendimentos_placeholder.dart';
+import '../widgets/daily_elite_hero_card.dart';
+import '../widgets/daily_elite_payment_card.dart';
+import '../widgets/daily_report_day_header.dart';
+import '../widgets/dashboard_stat_card.dart';
 
+/// Stitch "Relatório Diário — Nível Elite Final" layout.
 class DailyReportTab extends GetView<ReportController> {
   const DailyReportTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ThemedRefreshIndicator(
-        onRefresh: () async {
-          await controller.loadDaily();
-        },
-        child: Obx(
-          () {
-            if (controller.isDailyLoading.value) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    return Obx(
+      () {
+        final DailyReportState daily = DailyReportState.fromController(
+          controller,
+        );
+        final String errorMessage = controller.errorMessage.value;
+        final double ticketMedio = daily.totalCarros > 0
+            ? daily.totalRecebido / daily.totalCarros
+            : 0;
+        return ThemedRefreshIndicator(
+          onRefresh: () async {
+            await controller.loadDaily();
+          },
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints c) {
+              final double pad = c.maxWidth > 600 ? 24 : 16;
               return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(
-                    height: 240,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                ],
-              );
-            }
-            final report = controller.dailyReport.value;
-            if (report == null) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(
-                    height: 200,
-                    child: Center(child: Text('Sem dados')),
-                  ),
-                ],
-              );
-            }
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                Text(
-                  'Hoje',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
-                const SizedBox(height: 16),
-                _SummaryCard(
-                  label: 'Carros lavados',
-                  value: '${report.totalCarros}',
-                ),
-                const SizedBox(height: 12),
-                _SummaryCard(
-                  label: 'Total recebido',
-                  value: AppFormatters.formatCurrency(report.totalRecebido),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Por forma de pagamento',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                ...report.totalPorFormaPagamento.entries.map(
-                  (MapEntry<String, double> e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Card(
-                      child: ListTile(
-                        title: Text(e.key),
-                        trailing: Text(
-                          AppFormatters.formatCurrency(e.value),
-                          style: Theme.of(context).textTheme.titleMedium,
+                padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
+                children: [
+                  DailyReportDayHeader(textTheme: textTheme),
+                  if (errorMessage.isNotEmpty &&
+                      !daily.isLoading &&
+                      controller.dailyReport.value == null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: SelectableText.rich(
+                        TextSpan(
+                          text: errorMessage,
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
                     ),
+                  const SizedBox(height: 8),
+                  DailyEliteHeroCard(daily: daily),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DashboardStatCard(
+                          icon: Icons.directions_car_outlined,
+                          iconColor: AppColors.primary,
+                          label: 'CARROS',
+                          value: daily.isLoading
+                              ? '—'
+                              : '${daily.totalCarros}',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DashboardStatCard(
+                          icon: Icons.payments_outlined,
+                          iconColor: AppColors.primary,
+                          label: 'TICKET MÉDIO',
+                          value: daily.isLoading
+                              ? '—'
+                              : AppFormatters.formatCurrency(ticketMedio),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 24),
+                  Text(
+                    'Formas de Pagamento',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-            ),
-          ],
-        ),
-      ),
+                  const SizedBox(height: 12),
+                  DailyElitePaymentCard(
+                    entries: daily.paymentEntries,
+                    isLoading: daily.isLoading,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Atendimentos do dia',
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Get.to<void>(
+                            () => Scaffold(
+                              appBar: AppBar(
+                                title: const Text('Buscar'),
+                              ),
+                              body: const SearchTabBody(),
+                            ),
+                          );
+                        },
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('VER TODOS'),
+                            SizedBox(width: 4),
+                            Icon(Icons.arrow_forward, size: 16),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  DailyAttendimentosPlaceholder(textTheme: textTheme),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

@@ -3,12 +3,12 @@ import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../../search/presentation/widgets/search_tab_body.dart';
 import '../controllers/home_tab_controller.dart';
 import '../controllers/report_controller.dart';
 import '../widgets/home_top_bar.dart';
 import '../widgets/stitch_bottom_nav.dart';
 import 'dashboard_tab.dart';
+import 'reports_tab.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -31,7 +31,7 @@ class HomePage extends StatelessWidget {
                   index: index,
                   children: const [
                     DashboardTab(),
-                    SearchTabBody(),
+                    ReportsTab(),
                   ],
                 ),
               ),
@@ -45,7 +45,7 @@ class HomePage extends StatelessWidget {
                 return;
               }
               tabs.setTab(i);
-              if (i == 0) {
+              if (i == 0 || i == 1) {
                 reports.loadDaily();
                 reports.loadMonthly();
               }

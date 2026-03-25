@@ -43,8 +43,8 @@ class StitchBottomNav extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               NavPill(
-                icon: Icons.receipt_long_outlined,
-                label: 'Atividade',
+                icon: Icons.bar_chart,
+                label: 'Relatórios',
                 selected: currentIndex == 1,
                 onTap: () => onSelect(1),
               ),

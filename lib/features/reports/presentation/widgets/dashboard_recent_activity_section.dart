@@ -43,7 +43,8 @@ class DashboardRecentActivitySection extends StatelessWidget {
             ),
           ),
           child: Text(
-            'Abra a aba Atividade para buscar clientes e veículos.',
+            'Em Relatórios › Diário, toque em VER TODOS para buscar veículos, '
+            'ou use Novo na barra inferior.',
             style: textTheme.bodyMedium?.copyWith(
               color: AppColors.onSurfaceVariant,
             ),

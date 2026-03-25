@@ -41,18 +41,18 @@ class DashboardPaymentTile extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
-                  DashboardPaymentTile.labelForPayment(entry.key),
+                  DashboardPaymentTile.labelForPayment(entry.key).toUpperCase(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
                       ),
                 ),
               ),
               Text(
                 AppFormatters.formatCurrency(entry.value),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onSurface,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
                     ),
               ),
             ],

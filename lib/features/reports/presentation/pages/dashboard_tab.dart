@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/utils/constants.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
-import '../controllers/home_tab_controller.dart';
 import '../controllers/report_controller.dart';
 import '../models/daily_report_state.dart';
 import '../widgets/dashboard_greeting_header.dart';
@@ -12,7 +11,6 @@ import '../widgets/dashboard_hero_total_card.dart';
 import '../widgets/dashboard_monthly_performance_section.dart';
 import '../widgets/dashboard_quick_actions.dart';
 import '../widgets/dashboard_recebimento_section.dart';
-import '../widgets/dashboard_recent_activity_section.dart';
 import '../widgets/dashboard_stats_row.dart';
 import 'daily_report_tab.dart';
 import 'monthly_report_tab.dart';
@@ -69,7 +67,6 @@ class _DashboardTabState extends State<DashboardTab>
   @override
   Widget build(BuildContext context) {
     final ReportController reports = Get.find<ReportController>();
-    final HomeTabController tabs = Get.find<HomeTabController>();
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Obx(
       () {
@@ -145,15 +142,8 @@ class _DashboardTabState extends State<DashboardTab>
                                 DashboardMonthlyPerformanceSection(
                                   reports: reports,
                                   textTheme: textTheme,
-                                  onOpenMonthly: () => _openMonthlyReport(
-                                    context,
-                                  ),
+                                  onOpenMonthly: () => _openMonthlyReport(),
                                 ),
-                              ),
-                              const SizedBox(height: 28),
-                              DashboardRecentActivitySection(
-                                textTheme: textTheme,
-                                onVerTudo: () => tabs.setTab(1),
                               ),
                             ],
                           ),
@@ -196,7 +186,7 @@ class _DashboardTabState extends State<DashboardTab>
     );
   }
 
-  void _openMonthlyReport(BuildContext context) {
+  void _openMonthlyReport() {
     final ReportController r = Get.find<ReportController>();
     r.loadMonthly();
     Get.to<void>(

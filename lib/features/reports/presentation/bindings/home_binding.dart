@@ -9,8 +9,10 @@ import '../../../search/presentation/controllers/search_controller.dart'
     show VehicleSearchController;
 import '../../data/repositories/report_repository_impl.dart';
 import '../../domain/repositories/report_repository.dart';
+import '../../domain/usecases/get_best_weekday_report.dart';
 import '../../domain/usecases/get_daily_report.dart';
 import '../../domain/usecases/get_monthly_reports.dart';
+import '../../domain/usecases/get_weekly_report.dart';
 import '../controllers/home_tab_controller.dart';
 import '../controllers/report_controller.dart';
 
@@ -42,10 +44,20 @@ class HomeBinding extends Bindings {
       () => GetMonthlyReports(repository: Get.find<ReportRepository>()),
       fenix: true,
     );
+    Get.lazyPut<GetWeeklyReport>(
+      () => GetWeeklyReport(repository: Get.find<ReportRepository>()),
+      fenix: true,
+    );
+    Get.lazyPut<GetBestWeekdayReport>(
+      () => GetBestWeekdayReport(repository: Get.find<ReportRepository>()),
+      fenix: true,
+    );
     Get.lazyPut<ReportController>(
       () => ReportController(
         getDailyReport: Get.find<GetDailyReport>(),
         getMonthlyReports: Get.find<GetMonthlyReports>(),
+        getWeeklyReport: Get.find<GetWeeklyReport>(),
+        getBestWeekdayReport: Get.find<GetBestWeekdayReport>(),
       ),
       fenix: true,
     );

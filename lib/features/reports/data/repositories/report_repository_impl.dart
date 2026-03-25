@@ -2,8 +2,10 @@ import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/error/failures.dart';
+import '../../../../domain/entities/best_weekday_report.dart';
 import '../../../../domain/entities/daily_report.dart';
 import '../../../../domain/entities/monthly_report.dart';
+import '../../../../domain/entities/weekly_report.dart';
 import '../../domain/repositories/report_repository.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
@@ -97,6 +99,105 @@ class ReportRepositoryImpl implements ReportRepository {
     } on Exception catch (e) {
       return Left(ServerFailure(e.toString()));
     }
+  }
+
+  @override
+  Future<Either<Failure, List<WeeklyReport>>> getWeeklyReport(
+    DateTime month,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final DateTime anchor = DateTime(month.year, month.month);
+      final List<dynamic> rows = await _client.rpc(
+        'get_weekly_report',
+        params: <String, dynamic>{
+          'p_year': anchor.year,
+          'p_month': anchor.month,
+        },
+      );
+      final Map<int, WeeklyReport> byWeek = <int, WeeklyReport>{};
+      for (final dynamic row in rows) {
+        final Map<String, dynamic> map = row as Map<String, dynamic>;
+        final int? semana = _toInt(map['semana']);
+        if (semana == null || semana < 1 || semana > 4) {
+          continue;
+        }
+        byWeek[semana] = WeeklyReport(
+          semana: semana,
+          totalAtendimentos: _toInt(map['total_atendimentos']) ?? 0,
+          faturamento: _toDouble(map['faturamento']) ?? 0,
+        );
+      }
+      final List<WeeklyReport> filled = List<WeeklyReport>.generate(
+        4,
+        (int i) {
+          final int semana = i + 1;
+          return byWeek[semana] ??
+              WeeklyReport(
+                semana: semana,
+                totalAtendimentos: 0,
+                faturamento: 0,
+              );
+        },
+      );
+      return Right(filled);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BestWeekdayReport?>> getBestWeekdayReport(
+    DateTime month,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final DateTime anchor = DateTime(month.year, month.month);
+      final List<dynamic> rows = await _client.rpc(
+        'get_best_weekday_report',
+        params: <String, dynamic>{
+          'p_year': anchor.year,
+          'p_month': anchor.month,
+        },
+      );
+      if (rows.isEmpty) {
+        return const Right(null);
+      }
+      final Map<String, dynamic> map = rows.first as Map<String, dynamic>;
+      final String? dia = map['dia_semana'] as String?;
+      if (dia == null) {
+        return const Right(null);
+      }
+      return Right(
+        BestWeekdayReport(
+          diaSemana: dia,
+          faturamento: _toDouble(map['faturamento']) ?? 0,
+        ),
+      );
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  int? _toInt(Object? value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return int.tryParse(value.toString());
   }
 
   double? _toDouble(Object? value) {
