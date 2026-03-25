@@ -1,51 +1,74 @@
 # LavaCash
 
-MVP de operação para lavagem de veículos: faturamento, atendimentos e fluxo de serviço na palma da mão.  
-Stack: **Flutter**, **GetX**, **Supabase**, **Clean Architecture** (camadas *domain* → *data* → *presentation*).
+App Flutter para operação de lavagem de veículos: cadastro, atendimento com serviços e pagamento, **dashboard** com visão do dia e **relatórios** diário e mensal (incluindo desempenho por semana do mês e melhor dia da semana). Backend **Supabase**; arquitetura em camadas (*domain* → *data* → *presentation*) com **GetX** e **Either** (dartz).
 
-**Identidade visual (referência):** tipografia **Inter**, verde principal **#006B2C** (ver também `lib/app/theme/app_colors.dart`).
+**Identidade visual:** tipografia **Inter**, verde principal **#006B2C** — ver `lib/app/theme/app_colors.dart`.
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|--------|------------|
+| UI | Flutter (Material), `fl_chart` para gráficos |
+| Estado / rotas | GetX (`Controller`, `Binding`, `GetPage`) |
+| Backend | Supabase (Postgres + RPC) |
+| Erros | `Either<Failure, T>` (dartz), `Failure` em `core/error/` |
+| Datas / locale | `intl`, formatação `pt_BR` |
+
+---
+
+## Visão geral do produto
+
+1. **Splash** — checagem de licença por dispositivo antes de entrar no app.  
+2. **Home** — duas áreas principais:
+   - **Dashboard** — resumo do dia (total, carros, em andamento), recebimento por forma de pagamento, atalhos para novo atendimento e relatório diário, e seção de **desempenho mensal** (semanas do mês + tendência).  
+   - **Relatórios** — sub-abas **Diário** e **Mensal**: métricas detalhadas, lista de meses com destaque e crescimento vs. mês anterior, **melhor dia da semana** no mês, e performance semanal (`get_weekly_report` / `get_best_weekday_report` no Supabase).  
+3. **Barra inferior** — **Relatórios** | **Dashboard** | **Novo** (abre cadastro de cliente/veículo).  
+4. **Busca** — acesso a partir do relatório diário (**VER TODOS** ao lado de “Atendimentos do dia”), em tela dedicada com `SearchTabBody`.  
+5. **Fluxo operacional** — cadastro → atendimento (por veículo) → pagamento (Pix, dinheiro, débito, crédito).  
+6. **Licença bloqueada** — dispositivo sem licença ativa no Supabase.
 
 ---
 
 ## Referência de telas (UI)
 
-Fluxo principal do produto (busca → cadastro → atendimento → pagamento) e visão de faturamento:
+Fluxo e visão geral das principais superfícies:
 
 ![Referência de telas LavaCash](docs/ui_reference.png)
 
-| Tela | Descrição |
+| Área | Descrição |
 |------|-----------|
-| **Splash** | Logo, nome *LavaCash*, tagline e sincronização inicial (licença / fluxo). |
-| **Início** | Navegação inferior: **Busca**, **Diário**, **Mensal** — busca de cliente/veículo e relatórios. |
-| **Novo atendimento (busca)** | Pesquisa por nome ou placa; opção de cadastrar novo cliente e iniciar atendimento. |
-| **Cadastro de cliente** | Nome, telefone e placa do veículo; segue para o atendimento. |
-| **Gerenciar atendimento** | Serviços no pedido, total, timer de andamento e finalização. |
-| **Finalizar / pagamento** | Valor total e escolha do meio de pagamento (Pix, dinheiro, débito, crédito). |
-| **Licença bloqueada** | Dispositivo sem licença ativa no Supabase (mensagem + dados do aparelho). |
+| **Splash** | Marca LavaCash, sincronização inicial e validação de licença. |
+| **Dashboard** | Hero do dia, estatísticas, recebimento, atalhos e performance mensal (semanas + link para relatório mensal). |
+| **Relatórios → Diário** | Relatório do dia, formas de pagamento, atendimentos; busca completa via **VER TODOS**. |
+| **Relatórios → Mensal** | Histórico de meses, crescimento, gráfico semanal, melhor dia da semana. |
+| **Novo atendimento** | Cadastro cliente/veículo e sequência serviço → pagamento. |
+| **Licença bloqueada** | Dispositivo sem licença ativa (dados do aparelho + suporte). |
 
 ---
 
-## Funcionalidades principais
+## Funcionalidades
 
-- **Licenciamento por dispositivo** — validação na entrada (`features/license`), lista de bloqueio se inativo.
-- **Busca de cliente / veículo** — `SearchTabBody` + casos de uso em `features/search`.
-- **Cadastro** — cliente + veículo (`features/registration`).
-- **Serviço em andamento** — itens, total e status (`features/service`).
-- **Pagamento** — conclusão com método (`features/payment`, entidade `PaymentMethod`).
-- **Relatórios** — visão **diária** e **mensal** (`features/reports`, abas no `HomePage`).
-- **Backend** — Supabase (repositórios em `features/*/data/repositories`).
-- **Utilitários** — formatação/validação (`core/utils`), serviços como WhatsApp e ID do dispositivo (`core/services`).
+- **Licenciamento por dispositivo** — `features/license`; bloqueio se inativo.  
+- **Busca cliente/veículo** — `features/search`; debounce e uso no fluxo do relatório diário.  
+- **Cadastro** — cliente + veículo (`features/registration`).  
+- **Serviço** — itens, total, status e timer (`features/service`).  
+- **Pagamento** — conclusão com método (`features/payment`).  
+- **Relatórios** — diário e mensal; agregações semanais e melhor dia da semana via RPC (`features/reports`).  
+- **Backend** — repositórios Supabase em `features/*/data/repositories`.  
+- **Core** — `core/utils`, `core/services` (ex.: ID do dispositivo), widgets compartilhados.
 
 ---
 
 ## Arquitetura
 
-- **Regra de dependência:** *presentation* → *domain* ← *data*. O domínio não conhece Flutter nem Supabase.
-- **Domain:** entidades em `lib/domain/entities/`, contratos de repositório e *use cases* por feature (`features/<feature>/domain/`).
-- **Data:** implementações `*RepositoryImpl` chamando Supabase; modelos em `lib/data/models/` quando necessário.
-- **Presentation:** páginas, **GetX** `Controller` + `Binding` por rota (`GetPage` em `app/routes/app_pages.dart`).
-- **Erros funcionais:** `Either` (**dartz**) com `Failure` / exceções mapeadas em `core/error/`.
-- **Núcleo:** inicialização Supabase (`core/network/supabase_initializer.dart`), tema global (`app/theme`), widgets reutilizáveis (`core/widgets`).
+- **Regra de dependência:** *presentation* → *domain* ← *data*. O domínio não depende de Flutter nem Supabase.  
+- **Domain:** entidades em `lib/domain/entities/`, contratos de repositório e casos de uso por feature (`features/<feature>/domain/`).  
+- **Data:** `*RepositoryImpl` com Supabase; modelos em `lib/data/models/` quando aplicável.  
+- **Presentation:** páginas, `Controller` + `Binding` por rota (`app/routes/app_pages.dart`).  
+- **Erros:** `Either` com `Failure` / mapeamento de exceções em `core/error/`.  
+- **Núcleo:** `SupabaseInitializer`, tema (`app/theme`), widgets (`core/widgets`).
 
 ### Rotas nomeadas (GetX)
 
@@ -53,7 +76,7 @@ Fluxo principal do produto (busca → cadastro → atendimento → pagamento) e 
 |------|--------|
 | `/splash` | Splash + licença |
 | `/blocked` | Licença inativa |
-| `/home` | Home (abas busca / diário / mensal) |
+| `/home` | Home (Dashboard + Relatórios) |
 | `/registration` | Cadastro |
 | `/service/:vehicleId` | Atendimento |
 | `/payment/:serviceId` | Pagamento |
@@ -62,16 +85,14 @@ Fluxo principal do produto (busca → cadastro → atendimento → pagamento) e 
 
 ## Executar (com Supabase)
 
-1. Copy `dart_defines.example.json` to `dart_defines.json` and fill URL + key, or create
-   `.env` with `SUPABASE_URL` and `SUPABASE_ANON_KEY` (same values; for tooling only —
-   Flutter still needs `dart_defines.json` or `--dart-define` flags).
-2. Run:
+1. Copie `dart_defines.example.json` para `dart_defines.json` e preencha URL + anon key, ou use `.env` com `SUPABASE_URL` e `SUPABASE_ANON_KEY` (o app Flutter continua precisando de `dart_defines.json` ou `--dart-define`).  
+2. Rode:
 
 ```bash
 flutter run --dart-define-from-file=dart_defines.json
 ```
 
-Or inline:
+Ou inline:
 
 ```bash
 flutter run \
@@ -79,25 +100,43 @@ flutter run \
   --dart-define=SUPABASE_ANON_KEY=YOUR_KEY
 ```
 
-`dart_defines.json` and `.env` are gitignored so secrets are not committed.
+`dart_defines.json` e `.env` estão no `.gitignore`.
 
-## Banco de dados
+---
 
-Aplicar o SQL em `supabase/migrations/001_initial.sql` (editor SQL do Supabase).
+## Banco de dados (Supabase)
 
-Inserir licença para o dispositivo (o ID aparece na tela de bloqueio se estiver inativo):
+Aplicar as migrações na ordem em `supabase/migrations/`:
+
+| Arquivo | Conteúdo (resumo) |
+|---------|-------------------|
+| `001_initial.sql` | Schema base (tabelas, licenças, atendimentos, etc.) |
+| `002_views_security_invoker.sql` | Views com `security_invoker` |
+| `003_weekly_report_fn.sql` | Funções RPC `get_weekly_report` e `get_best_weekday_report` |
+
+**Recomendado:** [Supabase CLI](https://supabase.com/docs/guides/cli) — `supabase link` e `supabase db push`. Alternativa: colar cada arquivo no SQL Editor do dashboard (na ordem).
+
+Detalhes e seed de desenvolvimento: [`supabase/README.md`](supabase/README.md).
+
+### Licença de teste
+
+O ID do dispositivo aparece na tela de bloqueio se estiver inativo. Inserir licença:
 
 ```sql
 INSERT INTO public.licencas (device_id, nome_lavagem, is_active)
 VALUES ('YOUR_DEVICE_ID', 'Minha Lavagem', true);
 ```
 
+---
+
 ## Assets e ícones
 
-- Referência Stitch: `assets/stitch/splash.png`
-- Logo / imagens: `assets/images/` (ex.: `logo.svg`, `launcher_icon.png` para ícone do app)
-- Fonte **Inter** embutida: `fonts/`
-- **Launcher (Android):** `flutter_launcher_icons` — após mudar o ícone-base, rodar `dart run flutter_launcher_icons`
+- Referência Stitch: `assets/stitch/`  
+- Imagens / logo: `assets/images/` (ex.: `logo.svg`, `launcher_icon.png`)  
+- Fonte **Inter:** `fonts/`  
+- **Launcher Android:** `flutter_launcher_icons` — após alterar o ícone base, rodar `dart run flutter_launcher_icons`
+
+---
 
 ## Testes e qualidade
 
