@@ -27,6 +27,8 @@ class VehicleSearchController extends GetxController {
     _debounce = Timer(AppConstants.searchDebounce, _runSearch);
   }
 
+  Future<void> refreshSearch() => _runSearch();
+
   Future<void> _runSearch() async {
     final String trimmed = query.value.trim();
     if (trimmed.isEmpty) {

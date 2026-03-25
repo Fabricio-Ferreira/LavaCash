@@ -13,9 +13,7 @@ abstract class _SplashPalette {
   static const Color textPrimary = AppColors.onSurface;
   static const Color textSecondary = Color(0xFF475569);
   static const Color textTertiary = Color(0xFF94A3B8);
-  static const Color primaryDark = Color(0xFF047857);
   static const Color shadow = Color(0x33006B2C);
-  static const Color textOnDark = Colors.white;
 }
 
 abstract class _SplashAssets {

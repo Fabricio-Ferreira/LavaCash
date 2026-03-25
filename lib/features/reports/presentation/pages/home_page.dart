@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../app/routes/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../search/presentation/widgets/search_tab_body.dart';
 import '../controllers/home_tab_controller.dart';
 import '../controllers/report_controller.dart';
-import 'daily_report_tab.dart';
-import 'monthly_report_tab.dart';
+import '../widgets/home_top_bar.dart';
+import '../widgets/stitch_bottom_nav.dart';
+import 'dashboard_tab.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -18,42 +21,35 @@ class HomePage extends StatelessWidget {
       () {
         final int index = tabs.currentTab.value;
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Lava Cash'),
-          ),
-          body: IndexedStack(
-            index: index,
-            children: const [
-              SearchTabBody(),
-              DailyReportTab(),
-              MonthlyReportTab(),
+          extendBody: true,
+          backgroundColor: AppColors.surface,
+          body: Column(
+            children: [
+              const HomeTopBar(),
+              Expanded(
+                child: IndexedStack(
+                  index: index,
+                  children: const [
+                    DashboardTab(),
+                    SearchTabBody(),
+                  ],
+                ),
+              ),
             ],
           ),
-          bottomNavigationBar: BottomNavigationBar(
+          bottomNavigationBar: StitchBottomNav(
             currentIndex: index,
-            onTap: (int i) {
-              tabs.setTab(i);
-              if (i == 1) {
-                reports.loadDaily();
-              }
+            onSelect: (int i) {
               if (i == 2) {
+                Get.toNamed(AppRoutes.registration);
+                return;
+              }
+              tabs.setTab(i);
+              if (i == 0) {
+                reports.loadDaily();
                 reports.loadMonthly();
               }
             },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.search),
-                label: 'Busca',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.today),
-                label: 'Diário',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_month),
-                label: 'Mensal',
-              ),
-            ],
           ),
         );
       },

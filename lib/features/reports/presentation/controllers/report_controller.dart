@@ -23,6 +23,13 @@ class ReportController extends GetxController {
   final RxList<MonthlyReport> monthlyReports = <MonthlyReport>[].obs;
   final RxString errorMessage = ''.obs;
 
+  @override
+  void onReady() {
+    super.onReady();
+    loadDaily();
+    loadMonthly();
+  }
+
   Future<void> loadDaily() async {
     isDailyLoading.value = true;
     final Either<Failure, DailyReport> result =

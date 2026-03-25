@@ -1,3 +1,7 @@
+# Secrets (copy from .env.example)
+.env
+dart_defines.json
+
 # Miscellaneous
 *.class
 *.log

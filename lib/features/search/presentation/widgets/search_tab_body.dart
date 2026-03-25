@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/app_global_controller.dart';
+import '../../../../core/widgets/themed_refresh_indicator.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/utils/formatters.dart';
 import '../controllers/search_controller.dart';
@@ -52,50 +53,75 @@ class SearchTabBody extends GetView<VehicleSearchController> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: Obx(
-              () {
-                if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (controller.errorMessage.value.isNotEmpty) {
-                  return SelectableText.rich(
-                    TextSpan(
-                      text: controller.errorMessage.value,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  );
-                }
-                if (controller.results.isEmpty) {
-                  return Text(
-                    controller.query.value.trim().isEmpty
-                        ? 'Digite para buscar.'
-                        : 'Nenhum veículo encontrado.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  );
-                }
-                return ListView.separated(
-                  itemCount: controller.results.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (BuildContext context, int index) {
-                    final item = controller.results[index];
-                    return Card(
-                      child: ListTile(
-                        title: Text(item.client.nome),
-                        subtitle: Text(
-                          '${AppFormatters.formatPlate(item.vehicle.placa)} · '
-                          '${item.client.telefone}',
+            child: ThemedRefreshIndicator(
+              onRefresh: () => controller.refreshSearch(),
+              child: Obx(
+                () {
+                  if (controller.isLoading.value) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
                         ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          Get.toNamed<void>(
-                            '${AppRoutes.service}/${item.vehicle.id}',
-                          );
-                        },
-                      ),
+                      ],
                     );
-                  },
-                );
-              },
+                  }
+                  if (controller.errorMessage.value.isNotEmpty) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SelectableText.rich(
+                          TextSpan(
+                            text: controller.errorMessage.value,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  if (controller.results.isEmpty) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 24),
+                          child: Text(
+                            controller.query.value.trim().isEmpty
+                                ? 'Digite para buscar.'
+                                : 'Nenhum veículo encontrado.',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: controller.results.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (BuildContext context, int index) {
+                      final item = controller.results[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(item.client.nome),
+                          subtitle: Text(
+                            '${AppFormatters.formatPlate(item.vehicle.placa)} · '
+                            '${item.client.telefone}',
+                          ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () {
+                            Get.toNamed<void>(
+                              '${AppRoutes.service}/${item.vehicle.id}',
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
         ],

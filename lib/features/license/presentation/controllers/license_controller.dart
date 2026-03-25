@@ -32,6 +32,7 @@ class LicenseController extends GetxController {
       Get.offNamed<void>(AppRoutes.blocked);
       return;
     }
+    await Future<void>.delayed(const Duration(seconds: 3));
     final Either<Failure, License> result = await _checkLicense(deviceId);
     result.fold(
       (Failure failure) {

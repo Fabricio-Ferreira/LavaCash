@@ -1,28 +1,40 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class SupabaseInitializer {
-  static const String _url = String.fromEnvironment(
+  /// Paste from Supabase Dashboard → Project Settings → API (Project URL).
+  static const String _url = '';
+
+  /// Paste the anon (public) key here.
+  static const String _anonKey = '';
+
+  static const String _urlFromDefine = String.fromEnvironment(
     'SUPABASE_URL',
     defaultValue: '',
   );
 
-  static const String _anonKey = String.fromEnvironment(
+  static const String _anonKeyFromDefine = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
     defaultValue: '',
   );
 
+  static String get _resolvedUrl =>
+      _urlFromDefine.isNotEmpty ? _urlFromDefine : _url;
+
+  static String get _resolvedAnonKey =>
+      _anonKeyFromDefine.isNotEmpty ? _anonKeyFromDefine : _anonKey;
+
   static Future<void> ensureInitialized() async {
-    if (_url.isEmpty || _anonKey.isEmpty) {
+    if (_resolvedUrl.isEmpty || _resolvedAnonKey.isEmpty) {
       return;
     }
     await Supabase.initialize(
-      url: _url,
-      anonKey: _anonKey,
+      url: _resolvedUrl,
+      anonKey: _resolvedAnonKey,
     );
   }
 
   static bool get isConfigured {
-    return _url.isNotEmpty && _anonKey.isNotEmpty;
+    return _resolvedUrl.isNotEmpty && _resolvedAnonKey.isNotEmpty;
   }
 
   static SupabaseClient? get clientOrNull {

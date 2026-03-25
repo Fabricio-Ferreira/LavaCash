@@ -62,11 +62,24 @@ Fluxo principal do produto (busca → cadastro → atendimento → pagamento) e 
 
 ## Executar (com Supabase)
 
+1. Copy `dart_defines.example.json` to `dart_defines.json` and fill URL + key, or create
+   `.env` with `SUPABASE_URL` and `SUPABASE_ANON_KEY` (same values; for tooling only —
+   Flutter still needs `dart_defines.json` or `--dart-define` flags).
+2. Run:
+
+```bash
+flutter run --dart-define-from-file=dart_defines.json
+```
+
+Or inline:
+
 ```bash
 flutter run \
   --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
+  --dart-define=SUPABASE_ANON_KEY=YOUR_KEY
 ```
+
+`dart_defines.json` and `.env` are gitignored so secrets are not committed.
 
 ## Banco de dados
 

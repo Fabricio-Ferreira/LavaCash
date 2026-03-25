@@ -45,6 +45,7 @@ class ReportRepositoryImpl implements ReportRepository {
           totalCarros: count,
           totalRecebido: total,
           totalPorFormaPagamento: byForm,
+          emAndamento: 0,
         ),
       );
     } on PostgrestException catch (e) {

@@ -66,18 +66,27 @@ CREATE POLICY "allow_all" ON public.veiculos FOR ALL USING (true);
 DROP POLICY IF EXISTS "allow_all" ON public.atendimentos;
 CREATE POLICY "allow_all" ON public.atendimentos FOR ALL USING (true);
 
-CREATE OR REPLACE VIEW public.vw_relatorio_diario AS
+CREATE OR REPLACE VIEW public.vw_relatorio_diario
+WITH (security_invoker = true) AS
 SELECT
-  COUNT(*) AS total_carros,
-  COALESCE(SUM(valor), 0) AS total_recebido,
+  SUM(COUNT(*)) OVER () AS total_carros,
+  COALESCE(SUM(SUM(valor)) OVER (), 0) AS total_recebido,
   forma_pagamento,
-  COUNT(*) AS total_por_forma
+  COUNT(*) AS total_por_forma,
+  (
+    SELECT COUNT(*)
+    FROM public.atendimentos a2
+    WHERE a2.status = 'em_andamento'
+      AND (a2.hora_entrada AT TIME ZONE 'UTC')::date
+          = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date
+  ) AS total_em_andamento
 FROM public.atendimentos
 WHERE status = 'finalizado'
   AND (hora_entrada AT TIME ZONE 'UTC')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date
 GROUP BY forma_pagamento;
 
-CREATE OR REPLACE VIEW public.vw_relatorio_mensal AS
+CREATE OR REPLACE VIEW public.vw_relatorio_mensal
+WITH (security_invoker = true) AS
 SELECT
   DATE_TRUNC('month', hora_entrada) AS mes,
   COUNT(*) AS total_atendimentos,

@@ -8,7 +8,10 @@
         {
             "name": "LavaCash",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "toolArgs": [
+                "--dart-define-from-file=dart_defines.json"
+            ]
         },
         {
             "name": "LavaCash (profile mode)",
