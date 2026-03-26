@@ -2,7 +2,9 @@
 
 App Flutter para operação de lavagem de veículos: cadastro, atendimento com serviços e pagamento, **dashboard** com visão do dia e **relatórios** diário e mensal (incluindo desempenho por semana do mês e melhor dia da semana). Backend **Supabase**; arquitetura em camadas (*domain* → *data* → *presentation*) com **GetX** e **Either** (dartz).
 
-**Identidade visual:** tipografia **Inter**, verde principal **#006B2C** — ver `lib/app/theme/app_colors.dart`.
+**Identidade visual:** tipografia **Inter**, verde principal **#006B2C** — ver [`lib/app/theme/app_colors.dart`](lib/app/theme/app_colors.dart).
+
+**SDK:** Dart `>=3.7.0 <4.0.0` (ver `pubspec.yaml`).
 
 ---
 
@@ -13,20 +15,26 @@ App Flutter para operação de lavagem de veículos: cadastro, atendimento com s
 | UI | Flutter (Material), `fl_chart` para gráficos |
 | Estado / rotas | GetX (`Controller`, `Binding`, `GetPage`) |
 | Backend | Supabase (Postgres + RPC) |
-| Erros | `Either<Failure, T>` (dartz), `Failure` em `core/error/` |
+| Erros | `Either<Failure, T>` (dartz); falhas em [`lib/core/error/failures.dart`](lib/core/error/failures.dart) |
 | Datas / locale | `intl`, formatação `pt_BR` |
+
+---
+
+## Bootstrap (`main.dart`)
+
+Inicialização assíncrona roda dentro de **`runZonedGuarded`**, com **`WidgetsFlutterBinding.ensureInitialized()`** na mesma zona que **`runApp`** (evita *zone mismatch* do Flutter). Ordem: `ensureInitialized` → `initializeDateFormatting('pt_BR')` → Supabase → orientação retrato → `AppGlobalController` → `runApp`.
 
 ---
 
 ## Visão geral do produto
 
-1. **Splash** — checagem de licença por dispositivo antes de entrar no app.  
+1. **Splash** — checagem de licença por dispositivo antes de entrar no app.
 2. **Home** — duas áreas principais:
-   - **Dashboard** — resumo do dia (total, carros, em andamento), recebimento por forma de pagamento, atalhos para novo atendimento e relatório diário, e seção de **desempenho mensal** (semanas do mês + tendência).  
-   - **Relatórios** — sub-abas **Diário** e **Mensal**: métricas detalhadas, lista de meses com destaque e crescimento vs. mês anterior, **melhor dia da semana** no mês, e performance semanal (`get_weekly_report` / `get_best_weekday_report` no Supabase).  
-3. **Barra inferior** — **Relatórios** | **Dashboard** | **Novo** (abre cadastro de cliente/veículo).  
-4. **Busca** — acesso a partir do relatório diário (**VER TODOS** ao lado de “Atendimentos do dia”), em tela dedicada com `SearchTabBody`.  
-5. **Fluxo operacional** — cadastro → atendimento (por veículo) → pagamento (Pix, dinheiro, débito, crédito).  
+   - **Dashboard** — resumo do dia (total, carros, em andamento), recebimento por forma de pagamento, atalhos para novo atendimento e relatório diário, e seção de **desempenho mensal** (semanas do mês + tendência).
+   - **Relatórios** — sub-abas **Diário** e **Mensal**: métricas detalhadas, lista de meses com destaque e crescimento vs. mês anterior, **melhor dia da semana** no mês, e performance semanal (`get_weekly_report` / `get_best_weekday_report` no Supabase).
+3. **Barra inferior** — **Relatórios** | **Dashboard** | **Novo** (abre **Novo atendimento**: busca por placa/nome, clientes recentes e fluxo para atendimento).
+4. **Busca** — `VehicleSearchController` + repositório em `features/search`; UI principal em **Novo atendimento**; no relatório diário, lista ampliada via **VER TODOS** ao lado de “Atendimentos do dia”.
+5. **Fluxo operacional** — cadastro (rota dedicada) → atendimento por veículo → pagamento (Pix, dinheiro, débito, crédito).
 6. **Licença bloqueada** — dispositivo sem licença ativa no Supabase.
 
 ---
@@ -41,33 +49,33 @@ Fluxo e visão geral das principais superfícies:
 |------|-----------|
 | **Splash** | Marca LavaCash, sincronização inicial e validação de licença. |
 | **Dashboard** | Hero do dia, estatísticas, recebimento, atalhos e performance mensal (semanas + link para relatório mensal). |
-| **Relatórios → Diário** | Relatório do dia, formas de pagamento, atendimentos; busca completa via **VER TODOS**. |
+| **Relatórios → Diário** | Relatório do dia, formas de pagamento, atendimentos; busca ampliada via **VER TODOS**. |
 | **Relatórios → Mensal** | Histórico de meses, crescimento, gráfico semanal, melhor dia da semana. |
-| **Novo atendimento** | Cadastro cliente/veículo e sequência serviço → pagamento. |
+| **Novo atendimento** | Busca, recentes e sequência serviço → pagamento; cadastro acessível a partir da mesma tela. |
 | **Licença bloqueada** | Dispositivo sem licença ativa (dados do aparelho + suporte). |
 
 ---
 
 ## Funcionalidades
 
-- **Licenciamento por dispositivo** — `features/license`; bloqueio se inativo.  
-- **Busca cliente/veículo** — `features/search`; debounce e uso no fluxo do relatório diário.  
-- **Cadastro** — cliente + veículo (`features/registration`).  
-- **Serviço** — itens, total, status e timer (`features/service`).  
-- **Pagamento** — conclusão com método (`features/payment`).  
-- **Relatórios** — diário e mensal; agregações semanais e melhor dia da semana via RPC (`features/reports`).  
-- **Backend** — repositórios Supabase em `features/*/data/repositories`.  
-- **Core** — `core/utils`, `core/services` (ex.: ID do dispositivo), widgets compartilhados.
+- **Licenciamento por dispositivo** — `features/license`; bloqueio se inativo.
+- **Busca cliente/veículo** — `features/search`; debounce e uso em **Novo atendimento** e relatório diário.
+- **Cadastro** — cliente + veículo (`features/registration`).
+- **Serviço** — detalhes, total, status e timer; caso de uso `StartService` no binding (`features/service`).
+- **Pagamento** — conclusão com método (`features/payment`).
+- **Relatórios** — diário e mensal; agregações semanais e melhor dia da semana via RPC (`features/reports`).
+- **Backend** — repositórios Supabase em `features/*/data/repositories`.
+- **Core** — `core/utils`, `core/services` (ex.: ID do dispositivo, cache de recentes), widgets compartilhados.
 
 ---
 
 ## Arquitetura
 
-- **Regra de dependência:** *presentation* → *domain* ← *data*. O domínio não depende de Flutter nem Supabase.  
-- **Domain:** entidades em `lib/domain/entities/`, contratos de repositório e casos de uso por feature (`features/<feature>/domain/`).  
-- **Data:** `*RepositoryImpl` com Supabase; modelos em `lib/data/models/` quando aplicável.  
-- **Presentation:** páginas, `Controller` + `Binding` por rota (`app/routes/app_pages.dart`).  
-- **Erros:** `Either` com `Failure` / mapeamento de exceções em `core/error/`.  
+- **Regra de dependência:** *presentation* → *domain* ← *data*. O domínio não depende de Flutter nem Supabase.
+- **Domain:** entidades em `lib/domain/entities/`, contratos de repositório e casos de uso por feature (`features/<feature>/domain/`).
+- **Data:** `*RepositoryImpl` com Supabase; modelos em `lib/data/models/` quando aplicável.
+- **Presentation:** páginas, `Controller` + `Binding` por rota (`app/routes/app_pages.dart`).
+- **Erros:** `Either` com `Failure`; tratamento nas camadas de dados e UI.
 - **Núcleo:** `SupabaseInitializer`, tema (`app/theme`), widgets (`core/widgets`).
 
 ### Rotas nomeadas (GetX)
@@ -77,7 +85,9 @@ Fluxo e visão geral das principais superfícies:
 | `/splash` | Splash + licença |
 | `/blocked` | Licença inativa |
 | `/home` | Home (Dashboard + Relatórios) |
-| `/registration` | Cadastro |
+| `/registration` | Cadastro cliente/veículo |
+| `/novo-atendimento` | Novo atendimento (busca + recentes) |
+| `/in-progress-services` | Lista de atendimentos em andamento (filtro opcional via `arguments`) |
 | `/service/:vehicleId` | Atendimento |
 | `/payment/:serviceId` | Pagamento |
 
@@ -85,7 +95,7 @@ Fluxo e visão geral das principais superfícies:
 
 ## Executar (com Supabase)
 
-1. Copie `dart_defines.example.json` para `dart_defines.json` e preencha URL + anon key, ou use `.env` com `SUPABASE_URL` e `SUPABASE_ANON_KEY` (o app Flutter continua precisando de `dart_defines.json` ou `--dart-define`).  
+1. Copie `dart_defines.example.json` para `dart_defines.json` e preencha URL + anon key, ou use `.env` com `SUPABASE_URL` e `SUPABASE_ANON_KEY` (o app Flutter continua precisando de `dart_defines.json` ou `--dart-define`).
 2. Rode:
 
 ```bash
@@ -144,9 +154,9 @@ VALUES ('YOUR_DEVICE_ID', 'Minha Lavagem', true);
 
 ## Assets e ícones
 
-- Referência Stitch: `assets/stitch/`  
-- Imagens / logo: `assets/images/` (ex.: `logo.svg`, `launcher_icon.png`)  
-- Fonte **Inter:** `fonts/`  
+- Referência Stitch: `assets/stitch/`
+- Imagens / logo: `assets/images/` (ex.: `logo.svg`, `launcher_icon.png`)
+- Fonte **Inter:** `fonts/`
 - **Launcher Android:** `flutter_launcher_icons` — após alterar o ícone base, rodar `dart run flutter_launcher_icons`
 
 ---
@@ -154,6 +164,7 @@ VALUES ('YOUR_DEVICE_ID', 'Minha Lavagem', true);
 ## Testes e qualidade
 
 ```bash
+dart analyze
 flutter analyze
 flutter test
 ```
