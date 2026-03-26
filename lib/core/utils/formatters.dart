@@ -25,12 +25,16 @@ abstract class AppFormatters {
     return _currencyInputMask.format(safe / 100.0);
   }
 
+  /// Full or partial plate (Mercosul / old): hyphen after third character when
+  /// length is greater than 3 (matches input mask while typing).
   static String formatPlate(String raw) {
-    final carPlate = AppStringUtils.stripWhitespace(raw).toUpperCase();
-    if (carPlate.length == 7) {
-      return '${carPlate.substring(0, 3)}-${carPlate.substring(3)}';
+    final String carPlate = AppStringUtils.stripWhitespace(raw).toUpperCase();
+    if (carPlate.length <= 3) {
+      return carPlate;
     }
-    return carPlate;
+    final String core =
+        carPlate.length > 7 ? carPlate.substring(0, 7) : carPlate;
+    return '${core.substring(0, 3)}-${core.substring(3)}';
   }
 
   static String formatDurationFromSeconds(int totalSeconds) {

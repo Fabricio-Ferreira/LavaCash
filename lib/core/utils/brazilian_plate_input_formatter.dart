@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 
+import 'formatters.dart';
+
 /// Mercosul or old plate: up to 7 alphanumeric characters, uppercase, with a
 /// hyphen after the third character (e.g. `ABC-1D23`, `ABC-1234`).
 class BrazilianPlateInputFormatter extends TextInputFormatter {
@@ -17,17 +19,10 @@ class BrazilianPlateInputFormatter extends TextInputFormatter {
       }
     }
     final String alnum = buffer.toString();
-    final String formatted = _formatPlateDisplay(alnum);
+    final String formatted = AppFormatters.formatPlate(alnum);
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
     );
-  }
-
-  static String _formatPlateDisplay(String alnum) {
-    if (alnum.length <= 3) {
-      return alnum;
-    }
-    return '${alnum.substring(0, 3)}-${alnum.substring(3)}';
   }
 }

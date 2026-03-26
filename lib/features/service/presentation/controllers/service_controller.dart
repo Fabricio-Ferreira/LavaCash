@@ -15,12 +15,17 @@ import '../../../../domain/entities/service_status.dart';
 import '../../../../domain/entities/vehicle_with_client.dart';
 import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../domain/repositories/service_repository.dart';
+import '../../domain/usecases/start_service.dart';
 
 class ServiceController extends GetxController {
-  ServiceController({required ServiceRepository repository})
-    : _repository = repository;
+  ServiceController({
+    required ServiceRepository repository,
+    required StartService startService,
+  }) : _repository = repository,
+       _startService = startService;
 
   final ServiceRepository _repository;
+  final StartService _startService;
 
   final Rxn<VehicleWithClient> vehicle = Rxn<VehicleWithClient>();
   final Rxn<ServiceRecord> serviceRecord = Rxn<ServiceRecord>();
@@ -117,8 +122,8 @@ class ServiceController extends GetxController {
       );
       return;
     }
-    final Either<Failure, ServiceRecord> serviceResult = await _repository
-        .startService(vehicleId);
+    final Either<Failure, ServiceRecord> serviceResult =
+        await _startService(vehicleId);
     serviceResult.fold(
       (Failure failure) => errorMessage.value = failure.message,
       (ServiceRecord record) {
