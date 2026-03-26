@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lava_cash/app/routes/app_routes.dart';
 import 'package:lava_cash/domain/entities/service_status.dart';
 import 'package:lava_cash/domain/entities/service_summary.dart';
 
@@ -89,7 +90,25 @@ class InProgressServicesRoutePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Atendimentos do dia')),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_outlined, color: AppColors.primary),
+          tooltip: 'Voltar',
+          onPressed: () {
+            final ReportController reports = Get.find<ReportController>();
+            reports.loadDaily();
+            reports.loadMonthly();
+
+            Get.back<void>();
+          },
+        ),
+        title: Text(
+          'Atendimentos do dia',
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ),
       body: InProgressServicesPage(status: status),
     );
   }

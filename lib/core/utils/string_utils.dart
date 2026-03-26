@@ -1,3 +1,7 @@
+import 'package:intl/intl.dart';
+
+import 'formatters.dart';
+
 abstract class AppStringUtils {
   static String digitsOnly(String value) {
     final StringBuffer buffer = StringBuffer();
@@ -23,5 +27,33 @@ abstract class AppStringUtils {
         r == 0x0D ||
         r == 0x0C ||
         r == 0x0B;
+  }
+
+  static String formatNomeServico(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return '—';
+    }
+    return raw.trim();
+  }
+
+  static String formatVeiculo(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return '—';
+    }
+    return AppFormatters.formatPlate(raw.trim());
+  }
+
+  static String formatDataHora(DateTime? dt) {
+    if (dt == null) {
+      return '—';
+    }
+    final DateTime local = dt.toLocal();
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    final DateTime day = DateTime(local.year, local.month, local.day);
+    if (day == today) {
+      return 'Hoje, ${DateFormat('HH:mm').format(local)}';
+    }
+    return DateFormat("dd/MM/yyyy 'às' HH:mm").format(local);
   }
 }

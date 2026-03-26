@@ -14,11 +14,37 @@ class PaymentController extends GetxController {
   final CompletePayment _completePayment;
 
   final TextEditingController valorController = TextEditingController();
+
+  @override
+  void onInit() {
+    super.onInit();
+    final Map<String, dynamic>? args = _arguments;
+    final String? valorFmt = args?['valorFormatted'] as String?;
+    if (valorFmt != null && valorFmt.isNotEmpty) {
+      valorController.text = valorFmt;
+    }
+  }
+
   final Rxn<PaymentMethod> selectedMethod = Rxn<PaymentMethod>();
   final RxBool isSaving = false.obs;
   final RxString errorMessage = ''.obs;
 
   String? get serviceId => Get.parameters['serviceId'];
+
+  Map<String, dynamic>? get _arguments =>
+      Get.arguments as Map<String, dynamic>?;
+
+  String? get nomeServico => _arguments?['nomeServico'] as String?;
+
+  String? get placa => _arguments?['placa'] as String?;
+
+  DateTime? get horaEntrada {
+    final String? raw = _arguments?['horaEntrada'] as String?;
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+    return DateTime.tryParse(raw);
+  }
 
   Future<void> submit() async {
     errorMessage.value = '';

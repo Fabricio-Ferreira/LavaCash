@@ -34,7 +34,9 @@ class ReportRepositoryImpl implements ReportRepository {
             _client
                 .from('atendimentos')
                 .select('id')
-                .eq('status', 'em_andamento'),
+                .eq('status', 'em_andamento')
+                .gte('hora_entrada', start.toUtc().toIso8601String())
+                .lt('hora_entrada', end.toUtc().toIso8601String()),
           ]);
       final List<dynamic> rows = parallel[0] as List<dynamic>;
       final List<dynamic> emAndamentoRows = parallel[1] as List<dynamic>;
@@ -84,7 +86,7 @@ class ReportRepositoryImpl implements ReportRepository {
       final List<dynamic> rows = await _client
           .from('atendimentos')
           .select(
-            'id, hora_entrada, valor, status, '
+            'id, veiculo_id, hora_entrada, valor, status, '
             'veiculos(placa, clientes(nome))',
           )
           .gte('hora_entrada', start.toUtc().toIso8601String())
@@ -141,9 +143,13 @@ class ReportRepositoryImpl implements ReportRepository {
 
   ServiceSummary? _mapRowToServiceSummary(Map<String, dynamic> map) {
     final String? id = map['id']?.toString();
+    final String? veiculoId = map['veiculo_id']?.toString();
     final String? horaRaw = map['hora_entrada'] as String?;
     final String? statusRaw = map['status'] as String?;
-    if (id == null || horaRaw == null || statusRaw == null) {
+    if (id == null ||
+        veiculoId == null ||
+        horaRaw == null ||
+        statusRaw == null) {
       return null;
     }
     final ServiceStatus? status = ServiceStatusX.fromDb(statusRaw);
@@ -163,6 +169,7 @@ class ReportRepositoryImpl implements ReportRepository {
     }
     return ServiceSummary(
       id: id,
+      veiculoId: veiculoId,
       clienteNome: clienteNome.isEmpty ? '—' : clienteNome,
       placa: placa.isEmpty ? '—' : placa,
       horaEntrada: horaEntrada,

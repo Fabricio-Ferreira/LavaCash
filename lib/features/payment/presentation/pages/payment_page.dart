@@ -1,79 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../domain/entities/payment_method.dart';
-import '../../../../core/widgets/app_button.dart';
-import '../../../../core/widgets/app_text_field.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../controllers/payment_controller.dart';
+import 'widgets/payment_confirm_button.dart';
+import 'widgets/payment_method_grid.dart';
+import 'widgets/payment_service_details_card.dart';
+import 'widgets/payment_total_value_section.dart';
 
 class PaymentPage extends GetView<PaymentController> {
   const PaymentPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme scheme = theme.colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Pagamento')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AppTextField(
-              controller: controller.valorController,
-              label: 'Valor (R\$)',
-              hint: '0,00',
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Forma de pagamento',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            Obx(
-              () => Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children:
-                    PaymentMethod.values.map((PaymentMethod method) {
-                      final bool selected =
-                          controller.selectedMethod.value == method;
-                      return ChoiceChip(
-                        label: Text(method.label),
-                        selected: selected,
-                        onSelected: (_) {
-                          controller.selectedMethod.value = method;
-                        },
-                      );
-                    }).toList(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Obx(
-              () => SelectableText.rich(
-                TextSpan(
-                  text:
-                      controller.errorMessage.value.isEmpty
-                          ? ''
-                          : controller.errorMessage.value,
-                  style: const TextStyle(color: Colors.red),
+      backgroundColor: AppColors.surface,
+      body: Stack(
+        children: <Widget>[
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: <Widget>[
+              SliverAppBar(
+                pinned: true,
+                backgroundColor: AppColors.surface,
+                surfaceTintColor: Colors.transparent,
+                title: Text(
+                  'Finalizar Atendimento',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    color: AppColors.onSurface,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Obx(
-              () => AppButton(
-                label: 'Concluir atendimento',
-                isLoading: controller.isSaving.value,
-                onPressed: controller.submit,
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(<Widget>[
+                    PaymentTotalValueSection(
+                      valorController: controller.valorController,
+                    ),
+                    const SizedBox(height: 32),
+                    Text(
+                      'Selecione o método de pagamento',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                    PaymentMethodGrid(
+                      selectedMethod: controller.selectedMethod,
+                      onSelect: (m) {
+                        controller.selectedMethod.value = m;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    PaymentServiceDetailsCard(
+                      nomeServico: controller.nomeServico,
+                      placa: controller.placa,
+                      horaEntrada: controller.horaEntrada,
+                    ),
+                    const SizedBox(height: 16),
+                    Obx(
+                      () => SelectableText.rich(
+                        TextSpan(
+                          text:
+                              controller.errorMessage.value.isEmpty
+                                  ? ''
+                                  : controller.errorMessage.value,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Obx(
+              () => PaymentConfirmButton(
+                onPressed:
+                    controller.selectedMethod.value != null
+                        ? () => controller.submit()
+                        : null,
+                isLoading: controller.isSaving,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

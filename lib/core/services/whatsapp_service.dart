@@ -1,3 +1,4 @@
+import 'package:lava_cash/core/utils/app_snackbar.dart';
 import 'package:lava_cash/core/utils/string_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,25 +15,24 @@ abstract class WhatsAppService {
     final String encoded = Uri.encodeComponent(message);
     final Uri url = Uri.parse('https://wa.me/55$normalized?text=$encoded');
     if (!await canLaunchUrl(url)) {
+      AppSnackbar.showError('Não foi possível abrir o WhatsApp.');
       return false;
     }
     return launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
-  static Future<bool> sendReadyMessage({
-    required String phone,
-    required String name,
-    required String plate,
+  /// Opens the native phone dialer with [phoneDigitsOnly] (non-digits stripped).
+  static Future<bool> openSystemDialer({
+    required String phoneDigitsOnly,
   }) async {
-    final String normalizedPhone = AppStringUtils.digitsOnly(phone);
-    if (normalizedPhone.isEmpty) {
+    final String normalized = AppStringUtils.digitsOnly(phoneDigitsOnly);
+    if (normalized.isEmpty) {
+      AppSnackbar.showError('Telefone inválido.');
       return false;
     }
-    final String message = Uri.encodeComponent(
-      'Olá $name! Seu veículo de placa $plate está pronto para retirada.',
-    );
-    final Uri url = Uri.parse('https://wa.me/55$normalizedPhone?text=$message');
+    final Uri url = Uri.parse('tel: $normalized');
     if (!await canLaunchUrl(url)) {
+      AppSnackbar.showError('Não foi possível abrir o discador.');
       return false;
     }
     return launchUrl(url, mode: LaunchMode.externalApplication);

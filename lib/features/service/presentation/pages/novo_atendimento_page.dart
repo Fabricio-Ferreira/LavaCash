@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lava_cash/core/utils/app_snackbar.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
@@ -56,6 +57,8 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
     if (vehicle != null) {
       _recentCache.save(vehicle);
     }
+
+    AppSnackbar.showSuccess('Atendimento iniciado com sucesso.');
     Get.toNamed<void>('${AppRoutes.service}/$id');
   }
 

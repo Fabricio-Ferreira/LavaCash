@@ -102,6 +102,19 @@ flutter run \
 
 `dart_defines.json` e `.env` estão no `.gitignore`.
 
+### Onde a URL do Supabase é lida
+
+- **Código:** [`lib/core/network/supabase_initializer.dart`](lib/core/network/supabase_initializer.dart) — usa `SUPABASE_URL` e `SUPABASE_ANON_KEY` via `--dart-define` / `dart_defines.json` (prioridade); constantes `_url` e `_anonKey` no mesmo arquivo servem só como fallback opcional.
+- **Valores corretos:** Supabase Dashboard → **Project Settings** → **API** — copie **Project URL** e a chave **anon** / **publishable**.
+
+### Erro `Failed host lookup: '....supabase.co'`
+
+Isso indica **falha de DNS ou rede** no dispositivo/emulador (o host nem chegou a ser resolvido). Não é um bug típico de código Dart.
+
+- Confirme internet no aparelho/emulador; abra o mesmo URL no navegador no mesmo ambiente.
+- Confira se o **Project URL** no dashboard é exatamente o que está em `dart_defines.json` (espaços no final são ignorados pelo app).
+- Emulador Android: cold boot, ou teste em dispositivo físico; VPN/firewall corporativo pode bloquear DNS.
+
 ---
 
 ## Banco de dados (Supabase)

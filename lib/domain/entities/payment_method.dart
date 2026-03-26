@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 enum PaymentMethod { dinheiro, pix, debito, credito }
 
 extension PaymentMethodX on PaymentMethod {
@@ -24,6 +26,32 @@ extension PaymentMethodX on PaymentMethod {
         return 'Débito';
       case PaymentMethod.credito:
         return 'Crédito';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case PaymentMethod.dinheiro:
+        return Icons.attach_money;
+      case PaymentMethod.pix:
+        return Icons.pix;
+      case PaymentMethod.debito:
+        return Icons.credit_card;
+      case PaymentMethod.credito:
+        return Icons.credit_score;
+    }
+  }
+
+  String get subtitle {
+    switch (this) {
+      case PaymentMethod.dinheiro:
+        return 'À vista';
+      case PaymentMethod.pix:
+        return 'Instantâneo';
+      case PaymentMethod.debito:
+        return 'Imediato';
+      case PaymentMethod.credito:
+        return 'Em até 1x';
     }
   }
 

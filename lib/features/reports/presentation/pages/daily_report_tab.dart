@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lava_cash/domain/entities/service_status.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';

@@ -5,6 +5,7 @@ import 'service_status.dart';
 class ServiceSummary extends Equatable {
   const ServiceSummary({
     required this.id,
+    required this.veiculoId,
     required this.clienteNome,
     required this.placa,
     required this.horaEntrada,
@@ -13,6 +14,7 @@ class ServiceSummary extends Equatable {
   });
 
   final String id;
+  final String veiculoId;
   final String clienteNome;
   final String placa;
   final DateTime horaEntrada;
@@ -22,6 +24,7 @@ class ServiceSummary extends Equatable {
   @override
   List<Object?> get props => [
     id,
+    veiculoId,
     clienteNome,
     placa,
     horaEntrada,

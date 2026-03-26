@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../core/utils/keyboard_utils.dart';
 import 'routes/app_pages.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
@@ -16,6 +17,13 @@ class LavaCashApp extends StatelessWidget {
       initialRoute: AppRoutes.splash,
       getPages: AppPages.pages,
       debugShowCheckedModeBanner: false,
+      builder: (BuildContext context, Widget? child) {
+        return GestureDetector(
+          onTap: AppKeyboardUtils.hideKeyboard,
+          behavior: HitTestBehavior.translucent,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

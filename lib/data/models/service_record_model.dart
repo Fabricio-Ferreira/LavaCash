@@ -10,6 +10,8 @@ class ServiceRecordModel {
     this.horaSaida,
     this.duracaoMinutos,
     this.valor,
+    this.nomeServico,
+    this.observacao,
     this.formaPagamento,
     required this.status,
   });
@@ -20,6 +22,8 @@ class ServiceRecordModel {
   final DateTime? horaSaida;
   final int? duracaoMinutos;
   final double? valor;
+  final String? nomeServico;
+  final String? observacao;
   final String? formaPagamento;
   final String status;
 
@@ -34,6 +38,8 @@ class ServiceRecordModel {
               : DateTime.parse(json['hora_saida'] as String),
       duracaoMinutos: json['duracao_minutos'] as int?,
       valor: _parseDouble(json['valor']),
+      nomeServico: json['nome_servico'] as String?,
+      observacao: json['observacao'] as String?,
       formaPagamento: json['forma_pagamento'] as String?,
       status: json['status'] as String,
     );
@@ -57,6 +63,8 @@ class ServiceRecordModel {
       horaSaida: horaSaida,
       duracaoMinutos: duracaoMinutos,
       valor: valor,
+      nomeServico: nomeServico,
+      observacao: observacao,
       formaPagamento: PaymentMethodX.fromDb(formaPagamento),
       status: ServiceStatusX.fromDb(status) ?? ServiceStatus.emAndamento,
     );

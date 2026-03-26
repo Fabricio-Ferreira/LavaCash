@@ -54,17 +54,23 @@ class AppGradientButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.isLoading = false,
+    this.trailingIcon,
+    this.borderRadius = 16,
+    this.height = 52,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final IconData? trailingIcon;
+  final double borderRadius;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(borderRadius),
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryContainer],
           begin: Alignment.topLeft,
@@ -74,10 +80,10 @@ class AppGradientButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(borderRadius),
           onTap: isLoading ? null : onPressed,
           child: SizedBox(
-            height: 52,
+            height: height,
             width: double.infinity,
             child: Center(
               child:
@@ -90,14 +96,28 @@ class AppGradientButton extends StatelessWidget {
                           color: Colors.white,
                         ),
                       )
-                      : Text(
-                        label,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            label,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (trailingIcon != null) ...<Widget>[
+                            const SizedBox(width: 8),
+                            Icon(
+                              trailingIcon,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ],
+                        ],
                       ),
             ),
           ),

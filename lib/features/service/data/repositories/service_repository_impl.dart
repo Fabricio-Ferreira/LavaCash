@@ -47,6 +47,26 @@ class ServiceRepositoryImpl implements ServiceRepository {
   }
 
   @override
+  Future<Either<Failure, ServiceRecord>> getServiceById(String serviceId) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final Map<String, dynamic> row =
+          await _client
+              .from('atendimentos')
+              .select()
+              .eq('id', serviceId)
+              .single();
+      return Right(ServiceRecordModel.fromJson(row).toDomain());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, ServiceRecord>> startService(String vehicleId) async {
     if (_client == null) {
       return const Left(ServerFailure('Supabase not configured'));
@@ -59,6 +79,37 @@ class ServiceRepositoryImpl implements ServiceRepository {
                 'veiculo_id': vehicleId,
                 'status': 'em_andamento',
               })
+              .select()
+              .single();
+      return Right(ServiceRecordModel.fromJson(row).toDomain());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ServiceRecord>> updateServiceDetails({
+    required String serviceId,
+    required double valor,
+    String? nomeServico,
+    String? observacao,
+  }) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final Map<String, dynamic> row =
+          await _client
+              .from('atendimentos')
+              .update(<String, dynamic>{
+                'valor': valor,
+                'nome_servico': nomeServico,
+                'observacao': observacao,
+                'updated_at': DateTime.now().toUtc().toIso8601String(),
+              })
+              .eq('id', serviceId)
               .select()
               .single();
       return Right(ServiceRecordModel.fromJson(row).toDomain());

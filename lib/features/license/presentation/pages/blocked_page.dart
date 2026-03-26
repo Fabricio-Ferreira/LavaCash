@@ -5,6 +5,7 @@ import '../../../../app/app_global_controller.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/services/whatsapp_service.dart';
+import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/utils/constants.dart';
 import '../widgets/blocked_activation_card.dart';
 import '../widgets/blocked_brand_logo_block.dart';
@@ -41,13 +42,8 @@ class _BlockedPageState extends State<BlockedPage> {
       body.write('\nChave informada: $key');
     }
     if (digits.isEmpty) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('WhatsApp de suporte não configurado (AppConstants).'),
-        ),
+      AppSnackbar.showWarning(
+        'WhatsApp de suporte não configurado (AppConstants).',
       );
       return;
     }

@@ -9,7 +9,16 @@ abstract class ServiceRepository {
     String vehicleId,
   );
 
+  Future<Either<Failure, ServiceRecord>> getServiceById(String serviceId);
+
   Future<Either<Failure, ServiceRecord>> startService(String vehicleId);
+
+  Future<Either<Failure, ServiceRecord>> updateServiceDetails({
+    required String serviceId,
+    required double valor,
+    String? nomeServico,
+    String? observacao,
+  });
 
   Future<Either<Failure, Unit>> cancelService(String serviceId);
 }

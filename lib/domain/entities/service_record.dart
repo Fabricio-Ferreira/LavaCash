@@ -11,6 +11,8 @@ class ServiceRecord extends Equatable {
     this.horaSaida,
     this.duracaoMinutos,
     this.valor,
+    this.nomeServico,
+    this.observacao,
     this.formaPagamento,
     required this.status,
   });
@@ -21,6 +23,8 @@ class ServiceRecord extends Equatable {
   final DateTime? horaSaida;
   final int? duracaoMinutos;
   final double? valor;
+  final String? nomeServico;
+  final String? observacao;
   final PaymentMethod? formaPagamento;
   final ServiceStatus status;
 
@@ -32,6 +36,8 @@ class ServiceRecord extends Equatable {
     horaSaida,
     duracaoMinutos,
     valor,
+    nomeServico,
+    observacao,
     formaPagamento,
     status,
   ];
