@@ -8,10 +8,12 @@ class DashboardStatsRow extends StatelessWidget {
     super.key,
     required this.cars,
     required this.inProgress,
+    this.onInProgressTap,
   });
 
   final int cars;
   final int inProgress;
+  final VoidCallback? onInProgressTap;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +38,7 @@ class DashboardStatsRow extends StatelessWidget {
                 iconColor: AppColors.secondary,
                 label: 'EM ANDAMENTO',
                 value: '$inProgress',
+                onTap: onInProgressTap,
               ),
             ),
           ],

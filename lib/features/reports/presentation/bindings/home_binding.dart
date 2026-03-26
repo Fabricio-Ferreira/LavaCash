@@ -11,6 +11,7 @@ import '../../data/repositories/report_repository_impl.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../../domain/usecases/get_best_weekday_report.dart';
 import '../../domain/usecases/get_daily_report.dart';
+import '../../domain/usecases/get_in_progress_services.dart';
 import '../../domain/usecases/get_monthly_reports.dart';
 import '../../domain/usecases/get_today_services.dart';
 import '../../domain/usecases/get_weekly_report.dart';
@@ -45,6 +46,10 @@ class HomeBinding extends Bindings {
       () => GetTodayServices(repository: Get.find<ReportRepository>()),
       fenix: true,
     );
+    Get.lazyPut<GetInProgressServices>(
+      () => GetInProgressServices(repository: Get.find<ReportRepository>()),
+      fenix: true,
+    );
     Get.lazyPut<GetMonthlyReports>(
       () => GetMonthlyReports(repository: Get.find<ReportRepository>()),
       fenix: true,
@@ -61,6 +66,7 @@ class HomeBinding extends Bindings {
       () => ReportController(
         getDailyReport: Get.find<GetDailyReport>(),
         getTodayServices: Get.find<GetTodayServices>(),
+        getInProgressServices: Get.find<GetInProgressServices>(),
         getMonthlyReports: Get.find<GetMonthlyReports>(),
         getWeeklyReport: Get.find<GetWeeklyReport>(),
         getBestWeekdayReport: Get.find<GetBestWeekdayReport>(),

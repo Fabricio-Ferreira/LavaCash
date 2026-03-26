@@ -15,6 +15,8 @@ abstract class ReportRepository {
     int? limit,
   });
 
+  // Future<Either<Failure, List<ServiceSummary>>> getInProgressServices();
+
   Future<Either<Failure, List<MonthlyReport>>> getMonthlyReports();
 
   Future<Either<Failure, List<WeeklyReport>>> getWeeklyReport(DateTime month);

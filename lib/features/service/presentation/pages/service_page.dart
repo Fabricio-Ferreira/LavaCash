@@ -1,17 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lava_cash/app/theme/app_colors.dart';
 
-import '../../../../domain/entities/service_status.dart';
+import '../../../../app/routes/app_routes.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../domain/entities/service_status.dart';
+import '../../../reports/presentation/controllers/home_tab_controller.dart';
+import '../../../reports/presentation/controllers/report_controller.dart';
 import '../controllers/service_controller.dart';
 
 class ServicePage extends GetView<ServiceController> {
   const ServicePage({super.key});
 
+  void _navigateHomeAndRefresh() {
+    Get.offAllNamed<void>(AppRoutes.home);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<HomeTabController>()) {
+        Get.find<HomeTabController>().setTab(0);
+      }
+      if (Get.isRegistered<ReportController>()) {
+        Get.find<ReportController>().loadDaily();
+        Get.find<ReportController>().loadMonthly();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Atendimento')),
+      appBar: AppBar(
+        title: const Text('Atendimento'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.home_outlined, color: AppColors.primary),
+            tooltip: 'Home',
+            onPressed: _navigateHomeAndRefresh,
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Obx(() {

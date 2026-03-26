@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "fcec8d5e69f914e94ad8ac999b42793fd616af044665feb4af5daa21ca7988d7"
     },
+    "flutter-architecting-apps": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "ac8212aa825c75d468c216ffada34302d0ab6e8ffc8e99d789848aba4acd30ed"
+    },
     "flutter-building-layouts": {
       "source": "flutter/skills",
       "sourceType": "github",

@@ -12,7 +12,11 @@ abstract class AppFormatters {
   }
 
   static String formatPlate(String raw) {
-    return AppStringUtils.stripWhitespace(raw).toUpperCase();
+    final carPlate = AppStringUtils.stripWhitespace(raw).toUpperCase();
+    if (carPlate.length == 7) {
+      return '${carPlate.substring(0, 3)}-${carPlate.substring(3)}';
+    }
+    return carPlate;
   }
 
   static String formatDurationFromSeconds(int totalSeconds) {

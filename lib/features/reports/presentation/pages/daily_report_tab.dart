@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lava_cash/domain/entities/service_status.dart';
 
+import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
@@ -12,7 +14,6 @@ import '../widgets/daily_elite_payment_card.dart';
 import '../widgets/daily_report_day_header.dart';
 import '../widgets/dashboard_atendimentos_section.dart';
 import '../widgets/dashboard_stat_card.dart';
-import 'today_services_page.dart';
 
 /// Stitch "Relatório Diário — Nível Elite Final" layout.
 class DailyReportTab extends GetView<ReportController> {
@@ -126,12 +127,7 @@ class DailyReportTab extends GetView<ReportController> {
 
   void _openTodayServices() {
     final ReportController r = Get.find<ReportController>();
-    r.loadTodayServices();
-    Get.to<void>(
-      () => Scaffold(
-        appBar: AppBar(title: const Text('Atendimentos do dia')),
-        body: const TodayServicesPage(),
-      ),
-    );
+    r.loadInProgressServices();
+    Get.toNamed<void>(AppRoutes.inProgressServices);
   }
 }

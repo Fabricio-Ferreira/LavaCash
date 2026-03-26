@@ -37,7 +37,7 @@ class HomePage extends StatelessWidget {
           currentIndex: index,
           onSelect: (int i) {
             if (i == 2) {
-              Get.toNamed(AppRoutes.registration);
+              Get.toNamed(AppRoutes.novoAtendimento);
               return;
             }
             tabs.setTab(i);

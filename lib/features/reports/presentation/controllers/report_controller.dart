@@ -9,6 +9,7 @@ import '../../../../domain/entities/service_summary.dart';
 import '../../../../domain/entities/weekly_report.dart';
 import '../../domain/usecases/get_best_weekday_report.dart';
 import '../../domain/usecases/get_daily_report.dart';
+import '../../domain/usecases/get_in_progress_services.dart';
 import '../../domain/usecases/get_monthly_reports.dart';
 import '../../domain/usecases/get_today_services.dart';
 import '../../domain/usecases/get_weekly_report.dart';
@@ -17,28 +18,34 @@ class ReportController extends GetxController {
   ReportController({
     required GetDailyReport getDailyReport,
     required GetTodayServices getTodayServices,
+    required GetInProgressServices getInProgressServices,
     required GetMonthlyReports getMonthlyReports,
     required GetWeeklyReport getWeeklyReport,
     required GetBestWeekdayReport getBestWeekdayReport,
   }) : _getDailyReport = getDailyReport,
        _getTodayServices = getTodayServices,
+       _getInProgressServices = getInProgressServices,
        _getMonthlyReports = getMonthlyReports,
        _getWeeklyReport = getWeeklyReport,
        _getBestWeekdayReport = getBestWeekdayReport;
 
   final GetDailyReport _getDailyReport;
   final GetTodayServices _getTodayServices;
+  final GetInProgressServices _getInProgressServices;
   final GetMonthlyReports _getMonthlyReports;
   final GetWeeklyReport _getWeeklyReport;
   final GetBestWeekdayReport _getBestWeekdayReport;
 
   final RxBool isDailyLoading = false.obs;
   final RxBool isTodayServicesLoading = false.obs;
+  final RxBool isInProgressLoading = false.obs;
   final RxBool isMonthlyLoading = false.obs;
   final RxBool isWeeklyLoading = false.obs;
   final Rxn<DailyReport> dailyReport = Rxn<DailyReport>();
   final RxList<ServiceSummary> todayServices = <ServiceSummary>[].obs;
   final RxString todayServicesError = ''.obs;
+  final RxList<ServiceSummary> inProgressServices = <ServiceSummary>[].obs;
+  final RxString inProgressError = ''.obs;
   final RxList<MonthlyReport> monthlyReports = <MonthlyReport>[].obs;
   final RxList<WeeklyReport> weeklyReports = <WeeklyReport>[].obs;
   final Rxn<BestWeekdayReport> bestWeekday = Rxn<BestWeekdayReport>();
@@ -67,15 +74,19 @@ class ReportController extends GetxController {
   Future<void> loadDaily() async {
     isDailyLoading.value = true;
     isTodayServicesLoading.value = true;
+    isInProgressLoading.value = true;
     final DateTime now = DateTime.now();
     final List<dynamic> parallel = await Future.wait<dynamic>(<Future<dynamic>>[
       _getDailyReport(now),
       _getTodayServices(now),
+      _getInProgressServices(),
     ]);
     final Either<Failure, DailyReport> dailyEither =
         parallel[0] as Either<Failure, DailyReport>;
     final Either<Failure, List<ServiceSummary>> servicesEither =
         parallel[1] as Either<Failure, List<ServiceSummary>>;
+    final Either<Failure, List<ServiceSummary>> inProgressEither =
+        parallel[2] as Either<Failure, List<ServiceSummary>>;
     dailyEither.fold(
       (Failure failure) {
         errorMessage.value = failure.message;
@@ -96,8 +107,36 @@ class ReportController extends GetxController {
         todayServices.assignAll(list);
       },
     );
+    inProgressEither.fold(
+      (Failure failure) {
+        inProgressServices.clear();
+        inProgressError.value = failure.message;
+      },
+      (List<ServiceSummary> list) {
+        inProgressError.value = '';
+        inProgressServices.assignAll(list);
+      },
+    );
     isDailyLoading.value = false;
     isTodayServicesLoading.value = false;
+    isInProgressLoading.value = false;
+  }
+
+  Future<void> loadInProgressServices() async {
+    isInProgressLoading.value = true;
+    final Either<Failure, List<ServiceSummary>> result =
+        await _getInProgressServices();
+    result.fold(
+      (Failure failure) {
+        inProgressServices.clear();
+        inProgressError.value = failure.message;
+      },
+      (List<ServiceSummary> list) {
+        inProgressError.value = '';
+        inProgressServices.assignAll(list);
+      },
+    );
+    isInProgressLoading.value = false;
   }
 
   Future<void> loadTodayServices() async {

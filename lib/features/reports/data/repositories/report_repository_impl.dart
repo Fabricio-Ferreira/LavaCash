@@ -23,12 +23,22 @@ class ReportRepositoryImpl implements ReportRepository {
     try {
       final DateTime start = DateTime(day.year, day.month, day.day);
       final DateTime end = start.add(const Duration(days: 1));
-      final List<dynamic> rows = await _client
-          .from('atendimentos')
-          .select('valor, forma_pagamento')
-          .eq('status', 'finalizado')
-          .gte('hora_entrada', start.toUtc().toIso8601String())
-          .lt('hora_entrada', end.toUtc().toIso8601String());
+      final List<dynamic> parallel =
+          await Future.wait<dynamic>(<Future<dynamic>>[
+            _client
+                .from('atendimentos')
+                .select('valor, forma_pagamento')
+                .eq('status', 'finalizado')
+                .gte('hora_entrada', start.toUtc().toIso8601String())
+                .lt('hora_entrada', end.toUtc().toIso8601String()),
+            _client
+                .from('atendimentos')
+                .select('id')
+                .eq('status', 'em_andamento'),
+          ]);
+      final List<dynamic> rows = parallel[0] as List<dynamic>;
+      final List<dynamic> emAndamentoRows = parallel[1] as List<dynamic>;
+      final int emAndamento = emAndamentoRows.length;
       final Map<String, double> byForm = <String, double>{};
       double total = 0;
       int count = 0;
@@ -49,7 +59,7 @@ class ReportRepositoryImpl implements ReportRepository {
           totalCarros: count,
           totalRecebido: total,
           totalPorFormaPagamento: byForm,
-          emAndamento: 0,
+          emAndamento: emAndamento,
         ),
       );
     } on PostgrestException catch (e) {
@@ -97,6 +107,37 @@ class ReportRepositoryImpl implements ReportRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  // @override
+  // Future<Either<Failure, List<ServiceSummary>>> getInProgressServices() async {
+  //   if (_client == null) {
+  //     return const Left(ServerFailure('Supabase not configured'));
+  //   }
+  //   try {
+  //     final List<dynamic> rows = await _client
+  //         .from('atendimentos')
+  //         .select(
+  //           'id, hora_entrada, valor, status, '
+  //           'veiculos(placa, clientes(nome))',
+  //         )
+  //         .eq('status', 'em_andamento')
+  //         .order('hora_entrada', ascending: false);
+  //     final List<ServiceSummary> list = <ServiceSummary>[];
+  //     for (final dynamic row in rows) {
+  //       final ServiceSummary? item = _mapRowToServiceSummary(
+  //         row as Map<String, dynamic>,
+  //       );
+  //       if (item != null) {
+  //         list.add(item);
+  //       }
+  //     }
+  //     return Right(list);
+  //   } on PostgrestException catch (e) {
+  //     return Left(ServerFailure(e.message));
+  //   } on Exception catch (e) {
+  //     return Left(ServerFailure(e.toString()));
+  //   }
+  // }
 
   ServiceSummary? _mapRowToServiceSummary(Map<String, dynamic> map) {
     final String? id = map['id']?.toString();

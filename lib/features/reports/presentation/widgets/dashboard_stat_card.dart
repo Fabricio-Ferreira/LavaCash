@@ -9,12 +9,14 @@ class DashboardStatCard extends StatelessWidget {
     required this.iconColor,
     required this.label,
     required this.value,
+    this.onTap,
   });
 
   final IconData icon;
   final Color iconColor;
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class DashboardStatCard extends StatelessWidget {
       elevation: 0,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        onTap: () {},
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(

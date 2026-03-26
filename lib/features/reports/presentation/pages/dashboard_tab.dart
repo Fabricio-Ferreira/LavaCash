@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:lava_cash/domain/entities/service_status.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/utils/constants.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
@@ -15,7 +15,6 @@ import '../widgets/dashboard_recebimento_section.dart';
 import '../widgets/dashboard_stats_row.dart';
 import 'daily_report_tab.dart';
 import 'monthly_report_tab.dart';
-import 'today_services_page.dart';
 
 /// Stitch "Dashboard — Versão Elite Suprema" layout with live report data.
 /// When [AppConstants.useMockReportData] is true, data comes from
@@ -113,6 +112,10 @@ class _DashboardTabState extends State<DashboardTab>
                               DashboardStatsRow(
                                 cars: daily.totalCarros,
                                 inProgress: daily.emAndamento,
+                                onInProgressTap:
+                                    () => _openInProgressServices(
+                                      status: ServiceStatus.emAndamento,
+                                    ),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -120,7 +123,8 @@ class _DashboardTabState extends State<DashboardTab>
                               3,
                               DashboardQuickActions(
                                 onNovoAtendimento:
-                                    () => Get.toNamed(AppRoutes.registration),
+                                    () =>
+                                        Get.toNamed(AppRoutes.novoAtendimento),
                                 onRelatorioDiario:
                                     () => _openDailyReport(context),
                               ),
@@ -147,7 +151,7 @@ class _DashboardTabState extends State<DashboardTab>
                               5,
                               DashboardAtendimentosSection(
                                 textTheme: textTheme,
-                                onVerTodos: _openTodayServices,
+                                onVerTodos: () => _openInProgressServices(),
                               ),
                             ),
                           ],
@@ -199,14 +203,9 @@ class _DashboardTabState extends State<DashboardTab>
     );
   }
 
-  void _openTodayServices() {
+  void _openInProgressServices({ServiceStatus? status}) {
     final ReportController r = Get.find<ReportController>();
-    r.loadTodayServices();
-    Get.to<void>(
-      () => Scaffold(
-        appBar: AppBar(title: const Text('Atendimentos do dia')),
-        body: const TodayServicesPage(),
-      ),
-    );
+    r.loadInProgressServices();
+    Get.toNamed<void>(AppRoutes.inProgressServices, arguments: status);
   }
 }

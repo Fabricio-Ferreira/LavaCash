@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:lava_cash/domain/entities/service_status.dart';
 
 import '../../features/license/presentation/bindings/license_binding.dart';
 import '../../features/license/presentation/pages/blocked_page.dart';
@@ -9,9 +10,23 @@ import '../../features/registration/presentation/bindings/registration_binding.d
 import '../../features/registration/presentation/pages/registration_page.dart';
 import '../../features/reports/presentation/bindings/home_binding.dart';
 import '../../features/reports/presentation/pages/home_page.dart';
+import '../../features/reports/presentation/pages/in_progress_services_page.dart';
+import '../../features/service/presentation/bindings/novo_atendimento_binding.dart';
 import '../../features/service/presentation/bindings/service_binding.dart';
+import '../../features/service/presentation/pages/novo_atendimento_page.dart';
 import '../../features/service/presentation/pages/service_page.dart';
 import 'app_routes.dart';
+
+ServiceStatus? _inProgressServicesStatusFromArguments() {
+  final Object? raw = Get.arguments;
+  if (raw == null) {
+    return null;
+  }
+  if (raw is ServiceStatus) {
+    return raw;
+  }
+  return null;
+}
 
 abstract class AppPages {
   static final List<GetPage<dynamic>> pages = <GetPage<dynamic>>[
@@ -30,6 +45,18 @@ abstract class AppPages {
       name: AppRoutes.registration,
       page: () => const RegistrationPage(),
       binding: RegistrationBinding(),
+    ),
+    GetPage<void>(
+      name: AppRoutes.novoAtendimento,
+      page: () => const NovoAtendimentoPage(),
+      binding: NovoAtendimentoBinding(),
+    ),
+    GetPage<void>(
+      name: AppRoutes.inProgressServices,
+      page: () {
+        final ServiceStatus? status = _inProgressServicesStatusFromArguments();
+        return InProgressServicesRoutePage(status: status);
+      },
     ),
     GetPage<void>(
       name: '${AppRoutes.service}/:vehicleId',
