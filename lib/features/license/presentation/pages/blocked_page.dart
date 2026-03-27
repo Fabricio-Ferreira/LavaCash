@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/services/whatsapp_service.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/utils/constants.dart';
+import '../controllers/license_controller.dart';
 import '../widgets/blocked_activation_card.dart';
 import '../widgets/blocked_brand_logo_block.dart';
 import '../widgets/blocked_glass_app_header.dart';
@@ -97,6 +98,29 @@ class _BlockedPageState extends State<BlockedPage> {
                                 onActivate: _retryLicenseCheck,
                                 onWhatsApp: () => _openWhatsAppSupport(global),
                               ),
+                              if (Get.isRegistered<LicenseController>())
+                                Obx(() {
+                                  final String reason =
+                                      Get.find<LicenseController>()
+                                          .blockedReason
+                                          .value;
+                                  if (reason.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 16),
+                                    child: Text(
+                                      'Motivo: $reason',
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: AppColors.outline,
+                                          ),
+                                    ),
+                                  );
+                                }),
                             ],
                           ),
                         ),
