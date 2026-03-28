@@ -1,15 +1,5 @@
 -- Lava Cash MVP schema (apply in Supabase SQL editor or CLI)
-
-CREATE TABLE IF NOT EXISTS public.licencas (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  device_id TEXT NOT NULL UNIQUE,
-  nome_lavagem TEXT NOT NULL,
-  is_active BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_licencas_device_id ON public.licencas(device_id);
+-- License/auth lives in a separate Supabase project (see app license feature).
 
 CREATE TABLE IF NOT EXISTS public.clientes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -49,13 +39,9 @@ CREATE INDEX IF NOT EXISTS idx_atendimentos_veiculo ON public.atendimentos(veicu
 CREATE INDEX IF NOT EXISTS idx_atendimentos_status ON public.atendimentos(status);
 CREATE INDEX IF NOT EXISTS idx_atendimentos_hora_entrada ON public.atendimentos(hora_entrada);
 
-ALTER TABLE public.licencas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.veiculos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.atendimentos ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "allow_all" ON public.licencas;
-CREATE POLICY "allow_all" ON public.licencas FOR ALL USING (true);
 
 DROP POLICY IF EXISTS "allow_all" ON public.clientes;
 CREATE POLICY "allow_all" ON public.clientes FOR ALL USING (true);

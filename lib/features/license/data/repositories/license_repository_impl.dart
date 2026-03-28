@@ -2,38 +2,58 @@ import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/error/failures.dart';
+import '../../../../core/services/license_encrypted_local_cache.dart';
 import '../../../../data/models/license_model.dart';
 import '../../../../domain/entities/license.dart';
 import '../../domain/repositories/license_repository.dart';
 
 class LicenseRepositoryImpl implements LicenseRepository {
-  LicenseRepositoryImpl({required SupabaseClient? client}) : _client = client;
+  LicenseRepositoryImpl({
+    required SupabaseClient client,
+    required LicenseEncryptedLocalCache localCache,
+  }) : _client = client,
+       _localCache = localCache;
 
-  final SupabaseClient? _client;
+  final SupabaseClient _client;
+  final LicenseEncryptedLocalCache _localCache;
+
+  static final RegExp _uuidPattern = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
+  static bool _isValidLicenseId(String value) {
+    return _uuidPattern.hasMatch(value.trim());
+  }
 
   @override
   Future<Either<Failure, License>> getByDeviceId(String deviceId) async {
-    if (_client == null) {
-      return const Left(ServerFailure('Supabase not configured'));
-    }
+    final Map<String, dynamic>? cached = await _localCache.readLicenseRow();
     try {
-      final Map<String, dynamic>? row =
-          await _client
-              .from('licencas')
-              .select()
-              .eq('device_id', deviceId)
-              .maybeSingle();
+      if (cached == null) {
+        return const Left(LicenseFailure('No license for this device'));
+      }
+      final LicenseModel model = LicenseModel.fromJson(cached);
+      final String activationCode = model.activationCode ?? '';
+      if (activationCode.isEmpty) {
+        return const Left(LicenseFailure('No license for this device'));
+      }
+      final dynamic response = await _client.rpc(
+        'find_license_by_activate_code',
+        params: <String, dynamic>{
+          'p_activate_code': activationCode,
+          'p_device_id': deviceId,
+        },
+      );
+      final Map<String, dynamic>? row = _parseRpcRow(response);
       if (row == null) {
         return const Left(LicenseFailure('No license for this device'));
       }
-      final LicenseModel model = LicenseModel.fromJson(row);
-      if (!model.isActive) {
+      final LicenseModel licenseModel = LicenseModel.fromJson(row);
+      if (!licenseModel.isActive) {
         return const Left(LicenseFailure('License inactive'));
       }
-      return Right(model.toDomain());
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message));
-    } on Exception catch (e) {
+      return Right(licenseModel.toDomain());
+    } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -43,23 +63,31 @@ class LicenseRepositoryImpl implements LicenseRepository {
     required String deviceId,
     required String activationKey,
   }) async {
-    final SupabaseClient? client = _client;
-    if (client == null) {
-      return const Left(ServerFailure('Supabase not configured'));
+    final String trimmed = activationKey.trim();
+    if (!_isValidLicenseId(trimmed)) {
+      return const Left(
+        LicenseFailure(
+          'ID da licença inválido. Informe o UUID da licença (ex.: CRM).',
+        ),
+      );
     }
     try {
-      final dynamic response = await client.rpc(
-        'activate_license',
+      final dynamic response = await _client.rpc(
+        'bind_license_device',
         params: <String, dynamic>{
+          'p_license_id': trimmed,
           'p_device_id': deviceId,
-          'p_activation_key': activationKey,
         },
       );
-      final Map<String, dynamic>? row = _parseActivateLicenseRow(response);
+      final Map<String, dynamic>? row = _parseRpcRow(response);
       if (row == null) {
         return const Left(LicenseFailure('Activation failed'));
       }
       final LicenseModel model = LicenseModel.fromJson(row);
+      if (!model.isActive) {
+        return const Left(LicenseFailure('License inactive'));
+      }
+      await _localCache.saveLicenseRow(row);
       return Right(model.toDomain());
     } on PostgrestException catch (e) {
       return Left(LicenseFailure(e.message));
@@ -68,7 +96,7 @@ class LicenseRepositoryImpl implements LicenseRepository {
     }
   }
 
-  Map<String, dynamic>? _parseActivateLicenseRow(dynamic response) {
+  Map<String, dynamic>? _parseRpcRow(dynamic response) {
     if (response == null) {
       return null;
     }

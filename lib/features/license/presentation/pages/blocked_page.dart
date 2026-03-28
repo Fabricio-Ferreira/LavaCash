@@ -40,7 +40,7 @@ class _BlockedPageState extends State<BlockedPage> {
       body.write('\nDevice ID: $deviceId');
     }
     if (key.isNotEmpty) {
-      body.write('\nChave informada: $key');
+      body.write('\nID da licença informado: $key');
     }
     if (digits.isEmpty) {
       AppSnackbar.showWarning(

@@ -72,7 +72,7 @@ Inicialização assíncrona roda dentro de **`runZonedGuarded`**, com **`Widgets
 3. **Barra inferior** — **Relatórios** | **Dashboard** | **Novo** (abre **Novo atendimento**: busca por placa/nome, clientes recentes e fluxo para atendimento).
 4. **Busca** — `VehicleSearchController` + repositório em `features/search`; busca normalizada (case e acentos) via RPC `search_vehicles_normalized`; UI principal em **Novo atendimento**; no relatório diário, lista ampliada via **VER TODOS** ao lado de “Atendimentos do dia”.
 5. **Fluxo operacional** — cadastro (rota dedicada) → atendimento por veículo → pagamento (Pix, dinheiro, débito, crédito).
-6. **Licença** — dispositivo sem licença ativa ou ativação por chave (`activation_keys` + RPC `activate_license`); ver migrações abaixo.
+6. **Licença** — validação em projeto Supabase dedicado (ver `LICENSE_SUPABASE_*` e `features/license`); o banco principal do app não guarda mais `licencas` / `activation_keys`.
 
 ---
 
@@ -95,7 +95,7 @@ Fluxo e visão geral das principais superfícies:
 
 ## Funcionalidades
 
-- **Licenciamento por dispositivo** — `features/license`; bloqueio se inativo; ativação com chave pré-gerada no Supabase.
+- **Licenciamento por dispositivo** — `features/license`; projeto Supabase de licenças separado; cache local criptografado após ativação.
 - **Busca cliente/veículo** — `features/search`; debounce; adapter RPC em `data/adapters/`; uso em **Novo atendimento** e relatório diário.
 - **Cadastro** — cliente + veículo (`features/registration`).
 - **Serviço** — detalhes, total, status e timer; caso de uso `StartService` no binding (`features/service`).
@@ -169,13 +169,12 @@ Aplicar as migrações na ordem em `supabase/migrations/`:
 
 | Arquivo | Conteúdo (resumo) |
 |---------|-------------------|
-| `001_initial.sql` | Schema base (tabelas, licenças, atendimentos, etc.) |
+| `001_initial.sql` | Schema base (clientes, veículos, atendimentos, views; sem tabelas de licença) |
 | `002_views_security_invoker.sql` | Views com `security_invoker` |
 | `003_weekly_report_fn.sql` | Funções RPC `get_weekly_report` e `get_best_weekday_report` |
 | `004_atendimentos_service_details.sql` | Detalhes de serviço nos atendimentos |
-| `005_activation_keys_and_activate_license.sql` | Tabela `activation_keys` + RPC `activate_license` |
-| `006_activate_license_fix_variable_conflict.sql` | Correção PL/pgSQL (`#variable_conflict`) na `activate_license` |
 | `007_search_vehicles_normalized.sql` | Extensão `unaccent`, `normalize_search`, RPC `search_vehicles_normalized` |
+| `008_drop_licencas_and_activation_keys.sql` | Remove legado `licencas` / `activation_keys` / `activate_license` em DBs antigos |
 
 **Recomendado:** [Supabase CLI](https://supabase.com/docs/guides/cli) — `supabase link` e `supabase db push`. Alternativa: colar cada arquivo no SQL Editor do dashboard (na ordem).
 
@@ -183,14 +182,7 @@ Detalhes e seed de desenvolvimento: [`supabase/README.md`](supabase/README.md).
 
 ### Licença de teste
 
-O ID do dispositivo aparece na tela de bloqueio se estiver inativo. Inserir licença manualmente:
-
-```sql
-INSERT INTO public.licencas (device_id, nome_lavagem, is_active)
-VALUES ('YOUR_DEVICE_ID', 'Minha Lavagem', true);
-```
-
-Ou usar **chaves de ativação** pré-cadastradas em `activation_keys` (ver migração `005` e comentário em `supabase/seed.sql`).
+A licença é gerida no **projeto Supabase de licenças** (URL em `LICENSE_SUPABASE_*` / `dart_defines.json`), não no banco principal deste repositório.
 
 ---
 

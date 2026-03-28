@@ -1,21 +1,6 @@
 -- Lava Cash test data for local `supabase db reset` or SQL Editor on remote.
--- Replace SEU-DEVICE-ID-AQUI with your real device id (from device_info / license flow)
--- before running on a remote project. Idempotent: safe to re-run (ON CONFLICT).
-
--- License (active)
-INSERT INTO public.licencas (id, device_id, nome_lavagem, is_active)
-VALUES (
-  '10000000-0000-4000-8000-000000000001'::uuid,
-  'RZKS31.Q3-25-15-9',
-  'LavaCash Demo',
-  true
-)
-ON CONFLICT (device_id) DO NOTHING;
-
--- Optional: unused activation key for onboarding tests (migration 005).
--- INSERT INTO public.activation_keys (key, nome_lavagem)
--- VALUES ('DEMO-ACTIVATION-KEY-001', 'LavaCash Demo')
--- ON CONFLICT (key) DO NOTHING;
+-- Idempotent: safe to re-run (ON CONFLICT).
+-- License/device auth is handled in the separate license Supabase project, not here.
 
 -- Clients
 INSERT INTO public.clientes (id, nome, telefone) VALUES

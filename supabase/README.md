@@ -18,8 +18,7 @@ Open the Supabase SQL Editor, paste the contents of
 
 ## Seed data (tests)
 
-[`seed.sql`](seed.sql) inserts a demo license, clients, vehicles, and services.
-Replace `SEU-DEVICE-ID-AQUI` with your device id before running on a remote DB.
+[`seed.sql`](seed.sql) inserts demo clients, vehicles, and services.
 
 - Local: `supabase db reset` applies migrations then `seed.sql`.
 - Remote: paste `seed.sql` in the SQL Editor after migrations.

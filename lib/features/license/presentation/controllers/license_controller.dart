@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import '../../../../app/app_global_controller.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/network/supabase_initializer.dart';
 import '../../../../core/services/device_id_service.dart';
 import '../../../../domain/entities/license.dart';
 import '../../domain/usecases/activate_license.dart';
@@ -51,24 +50,6 @@ class LicenseController extends GetxController {
     final AppGlobalController global = Get.find<AppGlobalController>();
     global.deviceId.value = deviceId;
     log('LicenseCheck | deviceId=$deviceId');
-    log('LicenseCheck | isConfigured=${SupabaseInitializer.isConfigured}');
-    log('LicenseCheck | clientOrNull=${SupabaseInitializer.clientOrNull != null}');
-    if (!SupabaseInitializer.isConfigured) {
-      const String message = 'Supabase não configurado';
-      blockedReason.value = message;
-      log('LicenseCheck | BLOCKED: Supabase not configured');
-      isChecking.value = false;
-      Get.offNamed<void>(AppRoutes.blocked, arguments: message);
-      return;
-    }
-    if (SupabaseInitializer.clientOrNull == null) {
-      const String message = 'Supabase client indisponível';
-      blockedReason.value = message;
-      log('LicenseCheck | BLOCKED: clientOrNull is null');
-      isChecking.value = false;
-      Get.offNamed<void>(AppRoutes.blocked, arguments: message);
-      return;
-    }
     await Future<void>.delayed(const Duration(seconds: 3));
     final Either<Failure, License> result = await _checkLicense(deviceId);
     result.fold(
@@ -79,8 +60,8 @@ class LicenseController extends GetxController {
         Get.offNamed<void>(AppRoutes.blocked, arguments: failure.message);
       },
       (License license) {
-        global.nomeLavagem.value = license.nomeLavagem;
-        log('LicenseCheck | OK: ${license.nomeLavagem}');
+        global.establishmentName.value = license.establishmentName;
+        log('LicenseCheck | OK: ${license.establishmentName}');
         isChecking.value = false;
         Get.offNamed<void>(AppRoutes.home);
       },
@@ -90,7 +71,7 @@ class LicenseController extends GetxController {
   Future<void> activateWithKey(String activationKey) async {
     final String trimmed = activationKey.trim();
     if (trimmed.isEmpty) {
-      blockedReason.value = 'Digite a chave de ativação.';
+      blockedReason.value = 'Digite o ID da licença (UUID).';
       return;
     }
     isActivating.value = true;
@@ -108,7 +89,7 @@ class LicenseController extends GetxController {
         blockedReason.value = failure.message;
       },
       (License license) {
-        global.nomeLavagem.value = license.nomeLavagem;
+        global.establishmentName.value = license.establishmentName;
         Get.offNamed<void>(AppRoutes.home);
       },
     );

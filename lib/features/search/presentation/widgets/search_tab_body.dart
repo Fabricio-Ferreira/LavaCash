@@ -20,9 +20,9 @@ class SearchTabBody extends GetView<VehicleSearchController> {
         children: [
           Obx(
             () => Text(
-              global.nomeLavagem.value.isEmpty
+              global.establishmentName.value.isEmpty
                   ? 'Operação'
-                  : global.nomeLavagem.value,
+                  : global.establishmentName.value,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),

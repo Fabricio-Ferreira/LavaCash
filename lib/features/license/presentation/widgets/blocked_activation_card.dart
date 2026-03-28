@@ -67,8 +67,8 @@ class BlockedActivationCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sua licença está inativa ou expirou. Se você tiver uma chave de '
-            'ativação, digite abaixo para liberar o acesso.',
+            'Sua licença está inativa ou expirou. Informe o ID da licença '
+            '(UUID fornecido pelo CRM) para vincular este dispositivo.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.45,
@@ -77,7 +77,7 @@ class BlockedActivationCard extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'CHAVE DE ATIVAÇÃO',
+            'ID DA LICENÇA (UUID)',
             style: theme.textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w700,
               letterSpacing: 2,
@@ -97,7 +97,7 @@ class BlockedActivationCard extends StatelessWidget {
             smartDashesType: SmartDashesType.disabled,
             smartQuotesType: SmartQuotesType.disabled,
             decoration: InputDecoration(
-              hintText: 'Digite sua chave de ativação',
+              hintText: 'Cole o UUID da licença',
               hintStyle: TextStyle(color: AppColors.outline),
               filled: true,
               fillColor: AppColors.surfaceContainerHigh,
