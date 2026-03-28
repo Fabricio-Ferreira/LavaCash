@@ -4,7 +4,7 @@ import 'package:lava_cash/app/theme/app_colors.dart';
 import 'package:lava_cash/core/utils/brazilian_real_input_formatter.dart';
 
 /// Service name, value, observations, and primary add action.
-class ServiceDetailForm extends StatelessWidget {
+class ServiceDetailForm extends StatefulWidget {
   const ServiceDetailForm({
     super.key,
     required this.nomeController,
@@ -20,6 +20,30 @@ class ServiceDetailForm extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onAddToService;
 
+  @override
+  State<ServiceDetailForm> createState() => _ServiceDetailFormState();
+}
+
+class _ServiceDetailFormState extends State<ServiceDetailForm> {
+  late final ExpansibleController _expansionTileController;
+
+  @override
+  void initState() {
+    super.initState();
+    _expansionTileController = ExpansibleController();
+  }
+
+  @override
+  void dispose() {
+    _expansionTileController.dispose();
+    super.dispose();
+  }
+
+  void _executeAddToService() {
+    _expansionTileController.collapse();
+    widget.onAddToService();
+  }
+
   static const InputBorder _fieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.all(Radius.circular(14)),
     borderSide: BorderSide.none,
@@ -28,6 +52,7 @@ class ServiceDetailForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final bool isLoading = widget.isLoading;
     final Color fillColor = AppColors.surfaceContainerHigh.withValues(
       alpha: 0.55,
     );
@@ -62,6 +87,7 @@ class ServiceDetailForm extends StatelessWidget {
             hoverColor: Colors.transparent,
           ),
           child: ExpansionTile(
+            controller: _expansionTileController,
             initiallyExpanded: true,
             shape: RoundedRectangleBorder(
               side: BorderSide(color: Colors.transparent),
@@ -101,7 +127,7 @@ class ServiceDetailForm extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: nomeController,
+                      controller: widget.nomeController,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: InputDecoration(
                         hintText: 'Ex: Lavagem de carro',
@@ -129,7 +155,7 @@ class ServiceDetailForm extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: valorController,
+                      controller: widget.valorController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: false,
                         signed: false,
@@ -173,7 +199,7 @@ class ServiceDetailForm extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: observacaoController,
+                      controller: widget.observacaoController,
                       minLines: 3,
                       maxLines: 5,
                       textCapitalization: TextCapitalization.sentences,
@@ -196,7 +222,7 @@ class ServiceDetailForm extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
-                      onPressed: isLoading ? null : onAddToService,
+                      onPressed: isLoading ? null : _executeAddToService,
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
