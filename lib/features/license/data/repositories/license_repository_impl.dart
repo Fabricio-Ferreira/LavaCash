@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:lava_cash/core/utils/validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/error/failures.dart';
@@ -16,14 +17,6 @@ class LicenseRepositoryImpl implements LicenseRepository {
 
   final SupabaseClient _client;
   final LicenseEncryptedLocalCache _localCache;
-
-  static final RegExp _uuidPattern = RegExp(
-    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
-  );
-
-  static bool _isValidLicenseId(String value) {
-    return _uuidPattern.hasMatch(value.trim());
-  }
 
   @override
   Future<Either<Failure, License>> getByDeviceId(String deviceId) async {
@@ -64,7 +57,7 @@ class LicenseRepositoryImpl implements LicenseRepository {
     required String activationKey,
   }) async {
     final String trimmed = activationKey.trim();
-    if (!_isValidLicenseId(trimmed)) {
+    if (!AppValidators.isValidLicenseId(trimmed)) {
       return const Left(
         LicenseFailure(
           'ID da licença inválido. Informe o UUID da licença (ex.: CRM).',

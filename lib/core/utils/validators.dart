@@ -62,4 +62,12 @@ abstract class AppValidators {
   static bool _isAsciiDigit(int unit) {
     return unit >= 0x30 && unit <= 0x39;
   }
+
+  static final RegExp _uuidPattern = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
+  static bool isValidLicenseId(String value) {
+    return _uuidPattern.hasMatch(value.trim());
+  }
 }
