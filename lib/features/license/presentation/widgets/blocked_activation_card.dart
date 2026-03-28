@@ -8,11 +8,13 @@ class BlockedActivationCard extends StatelessWidget {
     required this.activationKeyController,
     required this.onActivate,
     required this.onWhatsApp,
+    this.isActivating = false,
   });
 
   final TextEditingController activationKeyController;
   final VoidCallback onActivate;
   final VoidCallback onWhatsApp;
+  final bool isActivating;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +88,7 @@ class BlockedActivationCard extends StatelessWidget {
           const SizedBox(height: 8),
           TextField(
             controller: activationKeyController,
+            enabled: !isActivating,
             keyboardType: TextInputType.visiblePassword,
             textCapitalization: TextCapitalization.none,
             autocorrect: false,
@@ -130,21 +133,36 @@ class BlockedActivationCard extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: onActivate,
+                onTap: isActivating ? null : onActivate,
                 child: SizedBox(
                   height: 56,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Ativar aplicativo',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      if (isActivating)
+                        const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      else ...<Widget>[
+                        Text(
+                          'Ativar aplicativo',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.verified, color: Colors.white, size: 22),
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.verified,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -165,7 +183,7 @@ class BlockedActivationCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: onWhatsApp,
+              onPressed: isActivating ? null : onWhatsApp,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

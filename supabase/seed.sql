@@ -12,6 +12,11 @@ VALUES (
 )
 ON CONFLICT (device_id) DO NOTHING;
 
+-- Optional: unused activation key for onboarding tests (migration 005).
+-- INSERT INTO public.activation_keys (key, nome_lavagem)
+-- VALUES ('DEMO-ACTIVATION-KEY-001', 'LavaCash Demo')
+-- ON CONFLICT (key) DO NOTHING;
+
 -- Clients
 INSERT INTO public.clientes (id, nome, telefone) VALUES
   ('20000000-0000-4000-8000-000000000001'::uuid, 'Maria Santos', '51991110001'),

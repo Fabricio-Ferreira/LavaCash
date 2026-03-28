@@ -9,20 +9,38 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/network/supabase_initializer.dart';
 import '../../../../core/services/device_id_service.dart';
 import '../../../../domain/entities/license.dart';
+import '../../domain/usecases/activate_license.dart';
 import '../../domain/usecases/check_license.dart';
 
 class LicenseController extends GetxController {
-  LicenseController({required CheckLicense checkLicense})
-    : _checkLicense = checkLicense;
+  LicenseController({
+    required CheckLicense checkLicense,
+    required ActivateLicense activateLicense,
+  }) : _checkLicense = checkLicense,
+       _activateLicense = activateLicense;
 
   final CheckLicense _checkLicense;
+  final ActivateLicense _activateLicense;
 
   final RxBool isChecking = true.obs;
+  final RxBool isActivating = false.obs;
   final RxString blockedReason = ''.obs;
+
+  void _applyBlockedReasonFromRouteArguments() {
+    final Object? raw = Get.arguments;
+    if (raw is String && raw.isNotEmpty) {
+      blockedReason.value = raw;
+    }
+  }
 
   @override
   void onReady() {
     super.onReady();
+    if (Get.currentRoute == AppRoutes.blocked) {
+      isChecking.value = false;
+      _applyBlockedReasonFromRouteArguments();
+      return;
+    }
     verifyOnStartup();
   }
 
@@ -36,15 +54,19 @@ class LicenseController extends GetxController {
     log('LicenseCheck | isConfigured=${SupabaseInitializer.isConfigured}');
     log('LicenseCheck | clientOrNull=${SupabaseInitializer.clientOrNull != null}');
     if (!SupabaseInitializer.isConfigured) {
-      blockedReason.value = 'Supabase não configurado';
+      const String message = 'Supabase não configurado';
+      blockedReason.value = message;
       log('LicenseCheck | BLOCKED: Supabase not configured');
-      Get.offNamed<void>(AppRoutes.blocked);
+      isChecking.value = false;
+      Get.offNamed<void>(AppRoutes.blocked, arguments: message);
       return;
     }
     if (SupabaseInitializer.clientOrNull == null) {
-      blockedReason.value = 'Supabase client indisponível';
+      const String message = 'Supabase client indisponível';
+      blockedReason.value = message;
       log('LicenseCheck | BLOCKED: clientOrNull is null');
-      Get.offNamed<void>(AppRoutes.blocked);
+      isChecking.value = false;
+      Get.offNamed<void>(AppRoutes.blocked, arguments: message);
       return;
     }
     await Future<void>.delayed(const Duration(seconds: 3));
@@ -54,12 +76,39 @@ class LicenseController extends GetxController {
         blockedReason.value = failure.message;
         log('LicenseCheck | BLOCKED: ${failure.message}');
         isChecking.value = false;
-        Get.offNamed<void>(AppRoutes.blocked);
+        Get.offNamed<void>(AppRoutes.blocked, arguments: failure.message);
       },
       (License license) {
         global.nomeLavagem.value = license.nomeLavagem;
         log('LicenseCheck | OK: ${license.nomeLavagem}');
         isChecking.value = false;
+        Get.offNamed<void>(AppRoutes.home);
+      },
+    );
+  }
+
+  Future<void> activateWithKey(String activationKey) async {
+    final String trimmed = activationKey.trim();
+    if (trimmed.isEmpty) {
+      blockedReason.value = 'Digite a chave de ativação.';
+      return;
+    }
+    isActivating.value = true;
+    blockedReason.value = '';
+    final String deviceId = await DeviceIdService.getDeviceId();
+    final AppGlobalController global = Get.find<AppGlobalController>();
+    global.deviceId.value = deviceId;
+    final Either<Failure, License> result = await _activateLicense(
+      deviceId: deviceId,
+      activationKey: trimmed,
+    );
+    isActivating.value = false;
+    result.fold(
+      (Failure failure) {
+        blockedReason.value = failure.message;
+      },
+      (License license) {
+        global.nomeLavagem.value = license.nomeLavagem;
         Get.offNamed<void>(AppRoutes.home);
       },
     );

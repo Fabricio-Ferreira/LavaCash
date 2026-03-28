@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/network/supabase_initializer.dart';
 import '../../data/repositories/license_repository_impl.dart';
 import '../../domain/repositories/license_repository.dart';
+import '../../domain/usecases/activate_license.dart';
 import '../../domain/usecases/check_license.dart';
 import '../controllers/license_controller.dart';
 
@@ -19,8 +20,15 @@ class LicenseBinding extends Bindings {
       () => CheckLicense(repository: Get.find<LicenseRepository>()),
       fenix: true,
     );
+    Get.lazyPut<ActivateLicense>(
+      () => ActivateLicense(repository: Get.find<LicenseRepository>()),
+      fenix: true,
+    );
     Get.lazyPut<LicenseController>(
-      () => LicenseController(checkLicense: Get.find<CheckLicense>()),
+      () => LicenseController(
+        checkLicense: Get.find<CheckLicense>(),
+        activateLicense: Get.find<ActivateLicense>(),
+      ),
       fenix: true,
     );
   }

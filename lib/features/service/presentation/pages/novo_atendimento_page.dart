@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/services/recent_clients_cache.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../domain/entities/vehicle_with_client.dart';
+import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../../search/presentation/controllers/search_controller.dart';
 import 'widgets/client_result_card.dart';
 import 'widgets/novo_atendimento_app_bar.dart';
@@ -71,6 +72,17 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
     }
   }
 
+  Future<void> _handleBack() async {
+    if (Get.isRegistered<ReportController>()) {
+      final ReportController reports = Get.find<ReportController>();
+      await Future.wait<void>(<Future<void>>[
+        reports.loadDaily(),
+        reports.loadMonthly(),
+      ]);
+    }
+    Get.back<void>();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,7 +92,7 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              NovoAtendimentoAppBar(onBack: Get.back<void>),
+              NovoAtendimentoAppBar(onBack: _handleBack),
               Expanded(
                 child: Obx(() {
                   final String q = _search.query.value.trim();

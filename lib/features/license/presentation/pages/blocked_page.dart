@@ -58,6 +58,18 @@ class _BlockedPageState extends State<BlockedPage> {
     Get.offAllNamed<void>(AppRoutes.splash);
   }
 
+  void _onActivatePressed() {
+    final String key = _activationKeyController.text.trim();
+    if (key.isEmpty) {
+      _retryLicenseCheck();
+      return;
+    }
+    if (!Get.isRegistered<LicenseController>()) {
+      return;
+    }
+    Get.find<LicenseController>().activateWithKey(_activationKeyController.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppGlobalController global = Get.find<AppGlobalController>();
@@ -92,12 +104,21 @@ class _BlockedPageState extends State<BlockedPage> {
                             children: [
                               const BlockedBrandLogoBlock(),
                               const SizedBox(height: 32),
-                              BlockedActivationCard(
-                                activationKeyController:
-                                    _activationKeyController,
-                                onActivate: _retryLicenseCheck,
-                                onWhatsApp: () => _openWhatsAppSupport(global),
-                              ),
+                              Obx(() {
+                                final bool activating =
+                                    Get.isRegistered<LicenseController>()
+                                    ? Get.find<LicenseController>()
+                                        .isActivating
+                                        .value
+                                    : false;
+                                return BlockedActivationCard(
+                                  activationKeyController:
+                                      _activationKeyController,
+                                  onActivate: _onActivatePressed,
+                                  onWhatsApp: () => _openWhatsAppSupport(global),
+                                  isActivating: activating,
+                                );
+                              }),
                               if (Get.isRegistered<LicenseController>())
                                 Obx(() {
                                   final String reason =

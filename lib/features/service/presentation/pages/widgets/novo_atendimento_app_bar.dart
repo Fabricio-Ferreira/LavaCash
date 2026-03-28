@@ -7,7 +7,7 @@ import '../../../../../app/theme/app_colors.dart';
 class NovoAtendimentoAppBar extends StatelessWidget {
   const NovoAtendimentoAppBar({super.key, required this.onBack});
 
-  final VoidCallback onBack;
+  final Future<void> Function() onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,9 @@ class NovoAtendimentoAppBar extends StatelessWidget {
           child: Row(
             children: <Widget>[
               IconButton(
-                onPressed: onBack,
+                onPressed: () async {
+                  await onBack();
+                },
                 icon: const Icon(Icons.arrow_back),
                 color: AppColors.primary,
                 style: IconButton.styleFrom(

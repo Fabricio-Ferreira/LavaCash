@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/error/failures.dart';
+import '../../../reports/presentation/controllers/home_tab_controller.dart';
+import '../../../reports/presentation/controllers/report_controller.dart';
 import '../../../../domain/entities/payment_method.dart';
 import '../../domain/usecases/complete_payment.dart';
 
@@ -75,6 +77,16 @@ class PaymentController extends GetxController {
       },
       (_) {
         Get.offAllNamed<void>(AppRoutes.home);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (Get.isRegistered<HomeTabController>()) {
+            Get.find<HomeTabController>().setTab(0);
+          }
+          if (Get.isRegistered<ReportController>()) {
+            final ReportController reports = Get.find<ReportController>();
+            reports.loadDaily();
+            reports.loadMonthly();
+          }
+        });
       },
     );
     isSaving.value = false;

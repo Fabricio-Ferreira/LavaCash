@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
+import '../../../reports/presentation/controllers/home_tab_controller.dart';
 import '../../../../core/widgets/app_confirmation_dialog.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/services/whatsapp_service.dart';
@@ -239,13 +240,18 @@ class ServiceController extends GetxController {
     ) {
       _timer?.cancel();
       AppSnackbar.showSuccess('Atendimento cancelado com sucesso.');
-      if (Get.isRegistered<ReportController>()) {
-        Get.find<ReportController>().loadInProgressServices();
-        Get.find<ReportController>().loadDaily();
-        Get.find<ReportController>().loadMonthly();
-      }
-
-      Get.close(1);
+      Get.offAllNamed<void>(AppRoutes.home);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Get.isRegistered<HomeTabController>()) {
+          Get.find<HomeTabController>().setTab(0);
+        }
+        if (Get.isRegistered<ReportController>()) {
+          final ReportController reports = Get.find<ReportController>();
+          reports.loadInProgressServices();
+          reports.loadDaily();
+          reports.loadMonthly();
+        }
+      });
     });
   }
 
