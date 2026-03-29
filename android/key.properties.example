@@ -1,0 +1,14 @@
+# Copy to key.properties (gitignored) and fill passwords, or use env vars (no secrets in file):
+#   export LAVACASH_STORE_PASSWORD='...'
+#   export LAVACASH_KEY_PASSWORD='...'
+#   flutter build apk --release
+#
+# Generate keystore (run once, keep the .jks file and passwords safe):
+#   keytool -genkey -v -keystore lavacash-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias lavacash
+#
+# Place lavacash-release.jks in this android/ directory (or update storeFile path).
+
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=lavacash
+storeFile=lavacash-release.jks
