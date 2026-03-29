@@ -43,7 +43,7 @@ class MonthlyGrowthPill extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
+              children: <Widget>[
                 Icon(icon, size: 18, color: Colors.white),
                 const SizedBox(width: 8),
                 Text(

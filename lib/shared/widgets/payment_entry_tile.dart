@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_colors.dart';
-import '../../../../core/utils/formatters.dart';
+import '../../app/theme/app_colors.dart';
+import '../../core/utils/formatters.dart';
 
-class DashboardPaymentTile extends StatelessWidget {
-  const DashboardPaymentTile({super.key, required this.entry});
+class PaymentEntryTile extends StatelessWidget {
+  const PaymentEntryTile({super.key, required this.entry});
 
   final MapEntry<String, double> entry;
 
@@ -18,7 +18,7 @@ class DashboardPaymentTile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
-            children: [
+            children: <Widget>[
               Container(
                 width: 48,
                 height: 48,
@@ -30,7 +30,7 @@ class DashboardPaymentTile extends StatelessWidget {
                   ),
                 ),
                 child: Icon(
-                  DashboardPaymentTile.iconForPayment(entry.key),
+                  AppFormatters.iconForPaymentMethodKey(entry.key),
                   color: AppColors.primary,
                   size: 24,
                 ),
@@ -38,7 +38,9 @@ class DashboardPaymentTile extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
-                  DashboardPaymentTile.labelForPayment(entry.key).toUpperCase(),
+                  AppFormatters.labelForPaymentMethodKey(
+                    entry.key,
+                  ).toUpperCase(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.onSurfaceVariant,
                     fontWeight: FontWeight.bold,
@@ -57,26 +59,5 @@ class DashboardPaymentTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static IconData iconForPayment(String raw) {
-    final String k = raw.toLowerCase();
-    if (k.contains('pix')) {
-      return Icons.qr_code_2;
-    }
-    if (k.contains('dinheiro') || k.contains('espécie')) {
-      return Icons.payments_outlined;
-    }
-    if (k.contains('débito') || k.contains('debito')) {
-      return Icons.credit_card;
-    }
-    if (k.contains('crédito') || k.contains('credito')) {
-      return Icons.credit_score;
-    }
-    return Icons.payment;
-  }
-
-  static String labelForPayment(String raw) {
-    return raw.replaceAll('_', ' ');
   }
 }

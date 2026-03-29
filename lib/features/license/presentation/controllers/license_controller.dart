@@ -61,6 +61,7 @@ class LicenseController extends GetxController {
       },
       (License license) {
         global.establishmentName.value = license.establishmentName;
+        global.licenseType.value = license.licenseType;
         log('LicenseCheck | OK: ${license.establishmentName}');
         isChecking.value = false;
         Get.offNamed<void>(AppRoutes.home);
@@ -90,6 +91,7 @@ class LicenseController extends GetxController {
       },
       (License license) {
         global.establishmentName.value = license.establishmentName;
+        global.licenseType.value = license.licenseType;
         Get.offNamed<void>(AppRoutes.home);
       },
     );

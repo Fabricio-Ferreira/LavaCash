@@ -5,6 +5,7 @@ import 'package:lava_cash/app/routes/app_routes.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/string_utils.dart';
 import '../../../../domain/entities/service_status.dart';
 import '../../../../domain/entities/service_summary.dart';
 
@@ -109,7 +110,7 @@ class _ClientAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String initials = _initialsFromName(name);
+    final String initials = AppStringUtils.extractInitials(name);
     return CircleAvatar(
       radius: 22,
       backgroundColor: AppColors.surfaceContainerHigh,
@@ -122,27 +123,6 @@ class _ClientAvatar extends StatelessWidget {
       ),
     );
   }
-}
-
-String _initialsFromName(String name) {
-  final List<String> parts =
-      name
-          .trim()
-          .split(RegExp(r'\s+'))
-          .where((String p) => p.isNotEmpty)
-          .toList();
-  if (parts.isEmpty) {
-    return '?';
-  }
-  if (parts.length == 1) {
-    final String first = parts.first;
-    return first.isNotEmpty ? first[0].toUpperCase() : '?';
-  }
-  final String a = parts[0];
-  final String b = parts[1];
-  final String ca = a.isNotEmpty ? a[0] : '';
-  final String cb = b.isNotEmpty ? b[0] : '';
-  return ('$ca$cb').toUpperCase();
 }
 
 class _StatusBadge extends StatelessWidget {

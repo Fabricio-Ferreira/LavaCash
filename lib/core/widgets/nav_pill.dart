@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../app/theme/app_colors.dart';
 
 class NavPill extends StatelessWidget {
   const NavPill({
@@ -18,7 +18,7 @@ class NavPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color active = Color(0xFF10B981);
+    const Color activeNavColor = Color(0xFF10B981);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -34,11 +34,11 @@ class NavPill extends StatelessWidget {
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               Icon(
                 icon,
                 size: 26,
-                color: selected ? active : AppColors.onSurfaceVariant,
+                color: selected ? activeNavColor : AppColors.onSurfaceVariant,
               ),
               const SizedBox(height: 4),
               Text(
@@ -47,7 +47,7 @@ class NavPill extends StatelessWidget {
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                   fontSize: 10,
                   letterSpacing: 0.8,
-                  color: selected ? active : AppColors.onSurfaceVariant,
+                  color: selected ? activeNavColor : AppColors.onSurfaceVariant,
                 ),
               ),
             ],

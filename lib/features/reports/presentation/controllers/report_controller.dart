@@ -51,6 +51,26 @@ class ReportController extends GetxController {
   final Rxn<BestWeekdayReport> bestWeekday = Rxn<BestWeekdayReport>();
   final RxString errorMessage = ''.obs;
 
+  static const Duration _reportStaleThreshold = Duration(minutes: 5);
+
+  DateTime? _lastSuccessfulDailyLoadAt;
+
+  DateTime? _lastSuccessfulMonthlyLoadAt;
+
+  /// Refreshes daily/monthly data only if the last successful load is older
+  /// than [_reportStaleThreshold] (e.g. after switching home tabs).
+  void refreshIfStaleForHomeTab() {
+    final DateTime now = DateTime.now();
+    if (_lastSuccessfulDailyLoadAt == null ||
+        now.difference(_lastSuccessfulDailyLoadAt!) > _reportStaleThreshold) {
+      loadDaily();
+    }
+    if (_lastSuccessfulMonthlyLoadAt == null ||
+        now.difference(_lastSuccessfulMonthlyLoadAt!) > _reportStaleThreshold) {
+      loadMonthly();
+    }
+  }
+
   static MonthlyReport? resolveHighlightMonth(List<MonthlyReport> list) {
     if (list.isEmpty) {
       return null;
@@ -95,6 +115,7 @@ class ReportController extends GetxController {
       (DailyReport report) {
         errorMessage.value = '';
         dailyReport.value = report;
+        _lastSuccessfulDailyLoadAt = DateTime.now();
       },
     );
     servicesEither.fold(
@@ -170,6 +191,7 @@ class ReportController extends GetxController {
       (List<MonthlyReport> list) async {
         errorMessage.value = '';
         monthlyReports.assignAll(list);
+        _lastSuccessfulMonthlyLoadAt = DateTime.now();
         final MonthlyReport? highlight = resolveHighlightMonth(list);
         if (highlight != null) {
           await loadWeekly(highlight.mes);

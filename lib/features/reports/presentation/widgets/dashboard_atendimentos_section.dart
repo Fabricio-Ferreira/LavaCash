@@ -9,11 +9,9 @@ import 'service_summary_tile.dart';
 class DashboardAtendimentosSection extends StatelessWidget {
   const DashboardAtendimentosSection({
     super.key,
-    required this.textTheme,
     required this.onVerTodos,
   });
 
-  final TextTheme textTheme;
   final VoidCallback onVerTodos;
 
   static const int _previewCount = 3;
@@ -27,11 +25,12 @@ class DashboardAtendimentosSection extends StatelessWidget {
           .take(_previewCount)
           .toList(growable: false);
       final String err = reports.todayServicesError.value;
+      final TextTheme textTheme = Theme.of(context).textTheme;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Text(
                   'Atendimentos do dia',
@@ -44,7 +43,7 @@ class DashboardAtendimentosSection extends StatelessWidget {
                 onPressed: onVerTodos,
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: <Widget>[
                     Text('VER TODOS'),
                     SizedBox(width: 4),
                     Icon(Icons.arrow_forward, size: 16),
@@ -59,11 +58,12 @@ class DashboardAtendimentosSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.surfaceContainerLow,
               borderRadius: BorderRadius.circular(20),
-              border: Border(
+              border: const Border(
                 left: BorderSide(color: AppColors.primary, width: 4),
               ),
             ),
-            child: _buildBody(
+            child: _AtendimentosBody(
+              textTheme: textTheme,
               isLoading: isLoading,
               preview: preview,
               errorMessage: err,
@@ -73,15 +73,29 @@ class DashboardAtendimentosSection extends StatelessWidget {
       );
     });
   }
+}
 
-  Widget _buildBody({
-    required bool isLoading,
-    required List<ServiceSummary> preview,
-    required String errorMessage,
-  }) {
+class _AtendimentosBody extends StatelessWidget {
+  const _AtendimentosBody({
+    required this.textTheme,
+    required this.isLoading,
+    required this.preview,
+    required this.errorMessage,
+  });
+
+  final TextTheme textTheme;
+  final bool isLoading;
+  final List<ServiceSummary> preview;
+  final String errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
     if (errorMessage.isNotEmpty && preview.isEmpty && !isLoading) {
       return SelectableText.rich(
-        TextSpan(text: errorMessage, style: const TextStyle(color: Colors.red)),
+        TextSpan(
+          text: errorMessage,
+          style: const TextStyle(color: Colors.red),
+        ),
       );
     }
     if (isLoading && preview.isEmpty) {
@@ -102,13 +116,13 @@ class DashboardAtendimentosSection extends StatelessWidget {
       );
     }
     return Column(
-      children: List<Widget>.generate(preview.length, (int i) {
-        final Widget tile = ServiceSummaryTile(summary: preview[i]);
-        if (i == preview.length - 1) {
+      children: List<Widget>.generate(preview.length, (int index) {
+        final Widget tile = ServiceSummaryTile(summary: preview[index]);
+        if (index == preview.length - 1) {
           return tile;
         }
         return Column(
-          children: [
+          children: <Widget>[
             tile,
             Divider(
               height: 1,

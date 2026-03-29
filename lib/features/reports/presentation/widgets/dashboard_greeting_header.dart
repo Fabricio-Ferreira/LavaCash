@@ -4,30 +4,19 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
 
 class DashboardGreetingHeader extends StatelessWidget {
-  const DashboardGreetingHeader({super.key, required this.textTheme});
-
-  final TextTheme textTheme;
+  const DashboardGreetingHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
-    final String greeting = greetingForHour(now.hour);
-    final String dateLine =
-        toBeginningOfSentenceCase(
-          DateFormat("EEEE, d 'de' MMMM", 'pt_BR').format(now),
-        ) ??
+    final String rawDateLine =
         DateFormat("EEEE, d 'de' MMMM", 'pt_BR').format(now);
+    final String dateLine =
+        toBeginningOfSentenceCase(rawDateLine) ?? rawDateLine;
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          greeting,
-          style: textTheme.labelLarge?.copyWith(
-            color: AppColors.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.2,
-          ),
-        ),
+      children: <Widget>[
         const SizedBox(height: 4),
         Text(
           dateLine,
@@ -39,15 +28,5 @@ class DashboardGreetingHeader extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  static String greetingForHour(int hour) {
-    if (hour < 12) {
-      return 'Bom dia';
-    }
-    if (hour < 18) {
-      return 'Boa tarde';
-    }
-    return 'Boa noite';
   }
 }

@@ -9,7 +9,7 @@ import '../controllers/report_controller.dart';
 import '../utils/monthly_report_growth.dart';
 import '../widgets/dashboard_stat_card.dart';
 import '../widgets/monthly_best_weekday_card.dart';
-import '../widgets/monthly_elite_hero_card.dart';
+import '../../../../shared/widgets/elite_hero_card.dart';
 import '../widgets/monthly_list_card.dart';
 import '../widgets/monthly_report_header.dart';
 import '../widgets/weekly_performance_section.dart';
@@ -76,9 +76,9 @@ class MonthlyReportTab extends GetView<ReportController> {
               ),
               padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
               children: [
-                MonthlyReportHeader(textTheme: textTheme),
+                const MonthlyReportHeader(),
                 const SizedBox(height: 16),
-                MonthlyEliteHeroCard(
+                EliteHeroCard.monthly(
                   highlight: highlight,
                   growthPercentVsPrevious: growthPct,
                 ),

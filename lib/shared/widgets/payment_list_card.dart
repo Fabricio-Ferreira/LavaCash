@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_colors.dart';
-import 'dashboard_payment_tile.dart';
+import '../../app/theme/app_colors.dart';
+import 'payment_entry_tile.dart';
 
-class DailyElitePaymentCard extends StatelessWidget {
-  const DailyElitePaymentCard({
+/// White card listing payment method totals (dashboard + daily report).
+class PaymentListCard extends StatelessWidget {
+  const PaymentListCard({
     super.key,
     required this.entries,
     required this.isLoading,
@@ -15,6 +16,7 @@ class DailyElitePaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -22,7 +24,7 @@ class DailyElitePaymentCard extends StatelessWidget {
         border: Border.all(
           color: AppColors.outlineVariant.withValues(alpha: 0.2),
         ),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 24,
@@ -42,7 +44,7 @@ class DailyElitePaymentCard extends StatelessWidget {
                 child: Text(
                   'Nenhum recebimento hoje',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: textTheme.bodyMedium?.copyWith(
                     color: AppColors.onSurfaceVariant,
                   ),
                 ),
@@ -52,7 +54,7 @@ class DailyElitePaymentCard extends StatelessWidget {
                     entries
                         .map(
                           (MapEntry<String, double> e) =>
-                              DashboardPaymentTile(entry: e),
+                              PaymentEntryTile(entry: e),
                         )
                         .toList(),
               ),

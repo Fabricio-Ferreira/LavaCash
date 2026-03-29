@@ -4,16 +4,15 @@ import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
 
 class MonthlyReportHeader extends StatelessWidget {
-  const MonthlyReportHeader({super.key, required this.textTheme});
-
-  final TextTheme textTheme;
+  const MonthlyReportHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final String year = DateFormat('yyyy', 'pt_BR').format(DateTime.now());
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final String yearLabel = DateFormat('yyyy', 'pt_BR').format(DateTime.now());
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Relatório mensal',
           style: textTheme.titleLarge?.copyWith(
@@ -23,7 +22,7 @@ class MonthlyReportHeader extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'ANO $year',
+          'ANO $yearLabel',
           style: textTheme.labelSmall?.copyWith(
             color: AppColors.onSurfaceVariant,
             fontWeight: FontWeight.w700,

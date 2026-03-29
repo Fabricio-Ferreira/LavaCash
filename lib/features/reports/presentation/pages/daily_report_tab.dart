@@ -8,8 +8,8 @@ import '../../../../core/widgets/themed_refresh_indicator.dart';
 import '../controllers/report_controller.dart';
 import '../models/daily_report_state.dart';
 import '../widgets/daily_attendimentos_placeholder.dart';
-import '../widgets/daily_elite_hero_card.dart';
-import '../widgets/daily_elite_payment_card.dart';
+import '../../../../shared/widgets/elite_hero_card.dart';
+import '../../../../shared/widgets/payment_list_card.dart';
 import '../widgets/daily_report_day_header.dart';
 import '../widgets/dashboard_atendimentos_section.dart';
 import '../widgets/dashboard_stat_card.dart';
@@ -41,7 +41,7 @@ class DailyReportTab extends GetView<ReportController> {
               ),
               padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
               children: [
-                DailyReportDayHeader(textTheme: textTheme),
+                const DailyReportDayHeader(),
                 if (errorMessage.isNotEmpty &&
                     !daily.isLoading &&
                     controller.dailyReport.value == null)
@@ -55,7 +55,10 @@ class DailyReportTab extends GetView<ReportController> {
                     ),
                   ),
                 const SizedBox(height: 8),
-                DailyEliteHeroCard(daily: daily),
+                EliteHeroCard.dailyReport(
+                  isLoading: daily.isLoading,
+                  totalRecebido: daily.totalRecebido,
+                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -89,14 +92,13 @@ class DailyReportTab extends GetView<ReportController> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                DailyElitePaymentCard(
+                PaymentListCard(
                   entries: daily.paymentEntries,
                   isLoading: daily.isLoading,
                 ),
                 const SizedBox(height: 24),
                 if (controller.todayServices.isNotEmpty) ...[
                   DashboardAtendimentosSection(
-                    textTheme: textTheme,
                     onVerTodos: _openTodayServices,
                   ),
                 ] else ...[
@@ -114,7 +116,7 @@ class DailyReportTab extends GetView<ReportController> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  DailyAttendimentosPlaceholder(textTheme: textTheme),
+                  const DailyAttendimentosPlaceholder(),
                 ],
               ],
             );
@@ -125,8 +127,7 @@ class DailyReportTab extends GetView<ReportController> {
   }
 
   void _openTodayServices() {
-    final ReportController r = Get.find<ReportController>();
-    r.loadInProgressServices();
+    controller.loadInProgressServices();
     Get.toNamed<void>(AppRoutes.inProgressServices);
   }
 }

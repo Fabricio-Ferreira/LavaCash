@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:lava_cash/core/utils/validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/error/failures.dart';
@@ -57,18 +56,11 @@ class LicenseRepositoryImpl implements LicenseRepository {
     required String activationKey,
   }) async {
     final String trimmed = activationKey.trim();
-    if (!AppValidators.isValidLicenseId(trimmed)) {
-      return const Left(
-        LicenseFailure(
-          'ID da licença inválido. Informe o UUID da licença (ex.: CRM).',
-        ),
-      );
-    }
     try {
       final dynamic response = await _client.rpc(
-        'bind_license_device',
+        'find_license_by_activate_code',
         params: <String, dynamic>{
-          'p_license_id': trimmed,
+          'p_activate_code': trimmed,
           'p_device_id': deviceId,
         },
       );

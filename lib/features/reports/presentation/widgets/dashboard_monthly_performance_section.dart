@@ -31,16 +31,15 @@ class DashboardMonthlyPerformanceSection extends StatelessWidget {
   const DashboardMonthlyPerformanceSection({
     super.key,
     required this.reports,
-    required this.textTheme,
     required this.onOpenMonthly,
   });
 
   final ReportController reports;
-  final TextTheme textTheme;
   final VoidCallback onOpenMonthly;
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Obx(() {
       if (reports.isMonthlyLoading.value) {
         return const Center(

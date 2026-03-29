@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lava_cash/core/utils/string_utils.dart';
 
@@ -79,5 +80,28 @@ abstract class AppFormatters {
 
   static String formatMonthYear(DateTime dateTime) {
     return DateFormat('MMMM yyyy', 'pt_BR').format(dateTime.toLocal());
+  }
+
+  /// Icon for a payment method key from reports (e.g. `pix`, `dinheiro`).
+  static IconData iconForPaymentMethodKey(String raw) {
+    final String k = raw.toLowerCase();
+    if (k.contains('pix')) {
+      return Icons.qr_code_2;
+    }
+    if (k.contains('dinheiro') || k.contains('espécie')) {
+      return Icons.payments_outlined;
+    }
+    if (k.contains('débito') || k.contains('debito')) {
+      return Icons.credit_card;
+    }
+    if (k.contains('crédito') || k.contains('credito')) {
+      return Icons.credit_score;
+    }
+    return Icons.payment;
+  }
+
+  /// Human-readable label for a payment method key from reports.
+  static String labelForPaymentMethodKey(String raw) {
+    return raw.replaceAll('_', ' ');
   }
 }

@@ -13,4 +13,8 @@ abstract class AppRoutes {
   /// `Get.toNamed(AppRoutes.inProgressServices, arguments: ServiceStatus.emAndamento)`
   /// ou `arguments: null` para todos os itens retornados pelo backend.
   static const String inProgressServices = '/in-progress-services';
+
+  static const String dailyReport = '/daily-report';
+
+  static const String monthlyReport = '/monthly-report';
 }

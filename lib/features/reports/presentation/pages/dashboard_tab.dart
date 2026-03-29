@@ -4,17 +4,15 @@ import 'package:lava_cash/domain/entities/service_status.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/utils/constants.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
-import '../controllers/report_controller.dart';
+import '../controllers/dashboard_controller.dart';
 import '../models/daily_report_state.dart';
 import '../widgets/dashboard_greeting_header.dart';
-import '../widgets/dashboard_hero_total_card.dart';
+import '../../../../shared/widgets/elite_hero_card.dart';
 import '../widgets/dashboard_atendimentos_section.dart';
 import '../widgets/dashboard_monthly_performance_section.dart';
 import '../widgets/dashboard_quick_actions.dart';
 import '../widgets/dashboard_recebimento_section.dart';
 import '../widgets/dashboard_stats_row.dart';
-import 'daily_report_tab.dart';
-import 'monthly_report_tab.dart';
 
 /// Stitch "Dashboard — Versão Elite Suprema" layout with live report data.
 /// When [AppConstants.useMockReportData] is true, data comes from
@@ -52,9 +50,7 @@ class _DashboardTabState extends State<DashboardTab>
       ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final ReportController reports = Get.find<ReportController>();
-      reports.loadDaily();
-      reports.loadMonthly();
+      Get.find<DashboardController>().loadInitialReportData();
       _animationController.forward();
     });
   }
@@ -67,20 +63,18 @@ class _DashboardTabState extends State<DashboardTab>
 
   @override
   Widget build(BuildContext context) {
-    final ReportController reports = Get.find<ReportController>();
-    final TextTheme textTheme = Theme.of(context).textTheme;
+    final DashboardController dashboard = Get.find<DashboardController>();
     return Obx(() {
-      final DailyReportState daily = DailyReportState.fromController(reports);
+      final DailyReportState daily = DailyReportState.fromController(
+        dashboard.reportController,
+      );
       return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final double maxW = constraints.maxWidth;
           final double horizontalPad = maxW > 600 ? 32 : 24;
           final double contentMax = maxW > 900 ? 560 : maxW;
           return ThemedRefreshIndicator(
-            onRefresh: () async {
-              await reports.loadDaily();
-              await reports.loadMonthly();
-            },
+            onRefresh: dashboard.refreshDashboard,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
@@ -100,12 +94,15 @@ class _DashboardTabState extends State<DashboardTab>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _fade(
-                              0,
-                              DashboardGreetingHeader(textTheme: textTheme),
-                            ),
+                            _fade(0, const DashboardGreetingHeader()),
                             const SizedBox(height: 24),
-                            _fade(1, DashboardHeroTotalCard(daily: daily)),
+                            _fade(
+                              1,
+                              EliteHeroCard.dashboard(
+                                isLoading: daily.isLoading,
+                                totalRecebido: daily.totalRecebido,
+                              ),
+                            ),
                             const SizedBox(height: 16),
                             _fade(
                               2,
@@ -113,7 +110,7 @@ class _DashboardTabState extends State<DashboardTab>
                                 cars: daily.totalCarros,
                                 inProgress: daily.emAndamento,
                                 onInProgressTap:
-                                    () => _openInProgressServices(
+                                    () => dashboard.openInProgressServices(
                                       status: ServiceStatus.emAndamento,
                                     ),
                               ),
@@ -125,33 +122,25 @@ class _DashboardTabState extends State<DashboardTab>
                                 onNovoAtendimento:
                                     () =>
                                         Get.toNamed(AppRoutes.novoAtendimento),
-                                onRelatorioDiario:
-                                    () => _openDailyReport(context),
+                                onRelatorioDiario: dashboard.openDailyReport,
                               ),
                             ),
                             const SizedBox(height: 28),
-                            _fade(
-                              4,
-                              DashboardRecebimentoSection(
-                                daily: daily,
-                                textTheme: textTheme,
-                              ),
-                            ),
+                            _fade(4, DashboardRecebimentoSection(daily: daily)),
                             const SizedBox(height: 28),
                             _fade(
                               6,
                               DashboardMonthlyPerformanceSection(
-                                reports: reports,
-                                textTheme: textTheme,
-                                onOpenMonthly: () => _openMonthlyReport(),
+                                reports: dashboard.reportController,
+                                onOpenMonthly: dashboard.openMonthlyReport,
                               ),
                             ),
                             const SizedBox(height: 28),
                             _fade(
                               5,
                               DashboardAtendimentosSection(
-                                textTheme: textTheme,
-                                onVerTodos: () => _openInProgressServices(),
+                                onVerTodos:
+                                    () => dashboard.openInProgressServices(),
                               ),
                             ),
                           ],
@@ -179,33 +168,5 @@ class _DashboardTabState extends State<DashboardTab>
         child: child,
       ),
     );
-  }
-
-  void _openDailyReport(BuildContext context) {
-    final ReportController r = Get.find<ReportController>();
-    r.loadDaily();
-    Get.to<void>(
-      () => Scaffold(
-        appBar: AppBar(title: const Text('Relatório diário')),
-        body: const DailyReportTab(),
-      ),
-    );
-  }
-
-  void _openMonthlyReport() {
-    final ReportController r = Get.find<ReportController>();
-    r.loadMonthly();
-    Get.to<void>(
-      () => Scaffold(
-        appBar: AppBar(title: const Text('Relatório mensal')),
-        body: const MonthlyReportTab(),
-      ),
-    );
-  }
-
-  void _openInProgressServices({ServiceStatus? status}) {
-    final ReportController r = Get.find<ReportController>();
-    r.loadInProgressServices();
-    Get.toNamed<void>(AppRoutes.inProgressServices, arguments: status);
   }
 }

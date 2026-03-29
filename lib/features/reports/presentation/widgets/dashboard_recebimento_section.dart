@@ -1,27 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../shared/widgets/payment_list_card.dart';
 import '../models/daily_report_state.dart';
-import 'dashboard_payment_tile.dart';
 
 class DashboardRecebimentoSection extends StatelessWidget {
-  const DashboardRecebimentoSection({
-    super.key,
-    required this.daily,
-    required this.textTheme,
-  });
+  const DashboardRecebimentoSection({super.key, required this.daily});
 
   final DailyReportState daily;
-  final TextTheme textTheme;
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Text(
               'Recebimento',
               style: textTheme.titleMedium?.copyWith(
@@ -48,47 +44,9 @@ class DashboardRecebimentoSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppColors.outlineVariant.withValues(alpha: 0.2),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child:
-              daily.isLoading
-                  ? const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                  : daily.paymentEntries.isEmpty
-                  ? Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      'Nenhum recebimento hoje',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                    ),
-                  )
-                  : Column(
-                    children:
-                        daily.paymentEntries
-                            .map(
-                              (MapEntry<String, double> e) =>
-                                  DashboardPaymentTile(entry: e),
-                            )
-                            .toList(),
-                  ),
+        PaymentListCard(
+          entries: daily.paymentEntries,
+          isLoading: daily.isLoading,
         ),
       ],
     );
