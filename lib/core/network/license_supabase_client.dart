@@ -3,18 +3,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Dedicated Supabase project for license validation (separate from the main app DB).
 ///
-/// **Credentials (first non-empty wins):**
-/// 1. `--dart-define=LICENSE_SUPABASE_URL=...` and
-///    `--dart-define=LICENSE_SUPABASE_ANON_KEY=...`, or
-///    `--dart-define-from-file=dart_defines.json`.
-/// 2. Optional fallbacks: [_defaultUrl] and [_defaultAnonKey] below.
+/// **Credentials (required at compile time):**
+/// - `--dart-define=LICENSE_SUPABASE_URL=...` and
+///   `--dart-define=LICENSE_SUPABASE_ANON_KEY=...`, or
+///   `--dart-define-from-file=dart_defines.json` (see repository README).
+///
+/// Do not embed fallbacks in source: keys are still visible in the binary when
+/// passed via [String.fromEnvironment], but hardcoding them in code is worse.
 abstract class LicenseSupabaseClient {
   LicenseSupabaseClient._();
-
-  static const String _defaultUrl = 'https://kjqaktmovcfsajjccdhu.supabase.co';
-
-  static const String _defaultAnonKey =
-      'sb_publishable_A5WusANVApveSjB0E3jD2Q_qdRzDhNx';
 
   static const String _urlFromDefine = String.fromEnvironment(
     'LICENSE_SUPABASE_URL',
@@ -26,17 +23,9 @@ abstract class LicenseSupabaseClient {
     defaultValue: '',
   );
 
-  static String get _resolvedUrl {
-    final String raw =
-        _urlFromDefine.isNotEmpty ? _urlFromDefine : _defaultUrl;
-    return raw.trim();
-  }
+  static String get _resolvedUrl => _urlFromDefine.trim();
 
-  static String get _resolvedAnonKey {
-    final String raw =
-        _anonKeyFromDefine.isNotEmpty ? _anonKeyFromDefine : _defaultAnonKey;
-    return raw.trim();
-  }
+  static String get _resolvedAnonKey => _anonKeyFromDefine.trim();
 
   static bool _isPlausibleSupabaseProjectUrl(String url) {
     final Uri? uri = Uri.tryParse(url);
@@ -49,10 +38,10 @@ abstract class LicenseSupabaseClient {
     return true;
   }
 
-  /// Resolved project URL (after defines + fallback).
+  /// Resolved project URL (from defines only).
   static String get url => _resolvedUrl;
 
-  /// Resolved anon key (after defines + fallback).
+  /// Resolved anon key (from defines only).
   static String get anonKey => _resolvedAnonKey;
 
   static bool get isConfigured {

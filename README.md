@@ -150,7 +150,8 @@ flutter run \
 
 ### Onde a URL do Supabase é lida
 
-- **Código:** [`lib/core/network/supabase_initializer.dart`](lib/core/network/supabase_initializer.dart) — usa `SUPABASE_URL` e `SUPABASE_ANON_KEY` via `--dart-define` / `dart_defines.json` (prioridade); constantes `_url` e `_anonKey` no mesmo arquivo servem só como fallback opcional.
+- **Código:** [`lib/core/network/supabase_initializer.dart`](lib/core/network/supabase_initializer.dart) — usa `SUPABASE_URL` e `SUPABASE_ANON_KEY` via `--dart-define` / `dart_defines.json` (prioridade); constantes `_url` e `_anonKey` no mesmo arquivo podem ser preenchidas manualmente como fallback opcional.
+- **Licença:** [`lib/core/network/license_supabase_client.dart`](lib/core/network/license_supabase_client.dart) — **somente** `LICENSE_SUPABASE_URL` e `LICENSE_SUPABASE_ANON_KEY` via defines (sem fallback em código).
 - **Valores corretos:** Supabase Dashboard → **Project Settings** → **API** — copie **Project URL** e a chave **anon** / **publishable**.
 
 ### Erro `Failed host lookup: '....supabase.co'`
@@ -160,6 +161,32 @@ Isso indica **falha de DNS ou rede** no dispositivo/emulador (o host nem chegou 
 - Confirme internet no aparelho/emulador; abra o mesmo URL no navegador no mesmo ambiente.
 - Confira se o **Project URL** no dashboard é exatamente o que está em `dart_defines.json` (espaços no final são ignorados pelo app).
 - Emulador Android: cold boot, ou teste em dispositivo físico; VPN/firewall corporativo pode bloquear DNS.
+
+### Build APK de release (segurança e distribuição)
+
+1. **`dart_defines.json`** — deve incluir `SUPABASE_*`, `LICENSE_SUPABASE_*` e chaves de cache local (`LICENSE_LOCAL_CACHE_*`), como o exemplo em `dart_defines.example.json`. A licença **não** tem fallback no código; sem defines o cliente de licença falha em tempo de execução.
+2. **Assinatura Android** — `android/key.properties` + `lavacash-release.jks`. Com senhas reais ou env vars (`LAVACASH_STORE_PASSWORD`, `LAVACASH_KEY_PASSWORD`), o release usa o keystore de release. Com `CHANGE_ME` ou senhas em falta, o Gradle **avisa** e assina o release com **debug** (APK gera na mesma; para distribuição, configura as senhas).
+3. **Ofuscação Dart** — use o script (APK por omissão; `./scripts/build_release.sh appbundle` para AAB / Play Store):
+
+```bash
+chmod +x scripts/build_release.sh
+./scripts/build_release.sh
+```
+
+Ou manualmente:
+
+```bash
+mkdir -p build/symbols/android
+flutter build apk --release \
+  --obfuscate \
+  --split-debug-info=build/symbols/android \
+  --dart-define-from-file=dart_defines.json
+```
+
+Guarde em local seguro a pasta `build/symbols/android/` para decifrar stack traces de produção.
+
+4. **Rotacionar chaves** — se a chave anon do Supabase já tiver sido commitada ou vazada, gere nova em **Project Settings → API** no dashboard e atualize `dart_defines.json`.
+5. **Auditoria de histórico Git** — `git log --all --full-history -- .env dart_defines.json` — se houver commits, rotacione as chaves no Supabase e considere limpar o histórico com `git filter-repo`.
 
 ---
 

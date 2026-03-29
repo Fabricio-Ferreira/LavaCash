@@ -2,6 +2,11 @@
 .env
 dart_defines.json
 
+# Android release signing (never commit)
+android/key.properties
+android/*.jks
+android/*.keystore
+
 # Miscellaneous
 *.class
 *.log
