@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:lava_cash/core/utils/string_utils.dart';
 
 abstract class AppFormatters {
+  static final RegExp _plateNonAlphanumeric = RegExp(r'[^A-Z0-9]');
+
   static final NumberFormat currency = NumberFormat.currency(
     locale: 'pt_BR',
     symbol: r'R$',
@@ -30,11 +32,15 @@ abstract class AppFormatters {
   /// length is greater than 3 (matches input mask while typing).
   static String formatPlate(String raw) {
     final String carPlate = AppStringUtils.stripWhitespace(raw).toUpperCase();
-    if (carPlate.length <= 3) {
-      return carPlate;
+    final String alnumOnly = carPlate.replaceAll(_plateNonAlphanumeric, '');
+    if (alnumOnly.isEmpty) {
+      return '';
+    }
+    if (alnumOnly.length <= 3) {
+      return alnumOnly;
     }
     final String core =
-        carPlate.length > 7 ? carPlate.substring(0, 7) : carPlate;
+        alnumOnly.length > 7 ? alnumOnly.substring(0, 7) : alnumOnly;
     return '${core.substring(0, 3)}-${core.substring(3)}';
   }
 

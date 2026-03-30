@@ -70,7 +70,15 @@ abstract class SupabaseInitializer {
       }
       return;
     }
-    await Supabase.initialize(url: _resolvedUrl, anonKey: _resolvedAnonKey);
+    // Default auth: SharedPreferences persistence + recoverSession() on startup;
+    // autoRefreshToken true (default) keeps JWT valid after background/kill.
+    await Supabase.initialize(
+      url: _resolvedUrl,
+      anonKey: _resolvedAnonKey,
+      authOptions: const FlutterAuthClientOptions(
+        autoRefreshToken: true,
+      ),
+    );
   }
 
   static bool get isConfigured {

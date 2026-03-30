@@ -49,21 +49,18 @@ class AuthRepositoryImpl implements AuthRepository {
       email: email,
       password: trimmed,
     );
-    return signInResult.fold(
-      (Failure failure) async {
-        final String lower = failure.message.toLowerCase();
-        if (lower.contains('incorretos') ||
-            lower.contains('invalid login credentials')) {
-          return signUp(email: email, password: trimmed);
-        }
-        return Left(failure);
-      },
-      Right.new,
-    );
+    return signInResult.fold((Failure failure) async {
+      final String lower = failure.message.toLowerCase();
+      if (lower.contains('incorretos') ||
+          lower.contains('invalid login credentials')) {
+        return signUp(email: email, password: trimmed);
+      }
+      return Left(failure);
+    }, Right.new);
   }
 
   String _activationEmailFromCode(String activationCode) =>
-      '$activationCode@lavacash.app';
+      '$activationCode-lavacash.app@gmail.com';
 
   @override
   Future<Either<Failure, UserSession>> signUp({

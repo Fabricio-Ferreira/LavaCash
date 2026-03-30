@@ -14,6 +14,9 @@ class EmpresaRepositoryImpl implements EmpresaRepository {
   static const String _table = 'empresas';
   static const String _claimRpc = 'claim_empresa';
 
+  /// One row: current user's empresa (RLS scopes the query).
+  static const int _ownEmpresaRowLimit = 1;
+
   @override
   Future<Either<Failure, Empresa?>> fetchOwn() async {
     final SupabaseClient? client = _client;
@@ -22,7 +25,7 @@ class EmpresaRepositoryImpl implements EmpresaRepository {
       final List<dynamic> data = await client
           .from(_table)
           .select()
-          .limit(1);
+          .limit(_ownEmpresaRowLimit);
       if (data.isEmpty) return const Right(null);
       final EmpresaModel model = EmpresaModel.fromJson(
         Map<String, dynamic>.from(data.first as Map),
