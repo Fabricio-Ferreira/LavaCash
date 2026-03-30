@@ -7,6 +7,9 @@ android/key.properties
 android/*.jks
 android/*.keystore
 
+# Supabase Edge Functions (npm install for IDE / local tooling)
+supabase/functions/node_modules/
+
 # Miscellaneous
 *.class
 *.log

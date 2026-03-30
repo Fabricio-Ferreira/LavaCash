@@ -42,6 +42,7 @@ abstract class AppPages {
       page: () => const BlockedPage(),
       binding: LicenseBinding(),
     ),
+
     GetPage<void>(
       name: AppRoutes.home,
       page: () => const HomePage(),

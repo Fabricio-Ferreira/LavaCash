@@ -2,7 +2,12 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/network/license_supabase_client.dart';
+import '../../../../core/network/supabase_initializer.dart';
 import '../../../../core/services/license_encrypted_local_cache.dart';
+import '../../../auth/data/repositories/auth_repository_impl.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
+import '../../../empresa/presentation/bindings/empresa_binding.dart';
+import '../../../empresa/presentation/controllers/empresa_controller.dart';
 import '../../data/repositories/license_repository_impl.dart';
 import '../../domain/repositories/license_repository.dart';
 import '../../domain/usecases/activate_license.dart';
@@ -47,6 +52,13 @@ class LicenseBinding extends Bindings {
         fenix: true,
       );
     }
+    EmpresaBinding.registerDependenciesIfNeeded();
+    if (!Get.isRegistered<AuthRepository>()) {
+      Get.lazyPut<AuthRepository>(
+        () => AuthRepositoryImpl(client: SupabaseInitializer.clientOrNull),
+        fenix: true,
+      );
+    }
   }
 
   @override
@@ -56,6 +68,8 @@ class LicenseBinding extends Bindings {
       () => LicenseController(
         checkLicense: Get.find<CheckLicense>(),
         activateLicense: Get.find<ActivateLicense>(),
+        authRepository: Get.find<AuthRepository>(),
+        empresaController: Get.find<EmpresaController>(),
       ),
       fenix: true,
     );

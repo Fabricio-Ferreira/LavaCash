@@ -1,0 +1,7 @@
+{
+  "name": "lavacash-supabase-functions",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0"
+  }
+}
