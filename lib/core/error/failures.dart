@@ -28,3 +28,7 @@ class LicenseFailure extends Failure {
 class ValidationFailure extends Failure {
   const ValidationFailure([super.message = 'Validation failed']);
 }
+
+class UpdateFailure extends Failure {
+  const UpdateFailure([super.message = 'Failed to check for updates']);
+}

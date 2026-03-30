@@ -2,6 +2,11 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/network/supabase_initializer.dart';
+import '../../../app_update/data/datasources/app_update_remote_datasource.dart';
+import '../../../app_update/data/repositories/app_update_repository_impl.dart';
+import '../../../app_update/domain/repositories/app_update_repository.dart';
+import '../../../app_update/domain/usecases/check_for_update.dart';
+import '../../../app_update/presentation/controllers/app_update_controller.dart';
 import '../../../license/presentation/bindings/license_binding.dart';
 import '../../../search/data/repositories/search_repository_impl.dart';
 import '../../../search/domain/repositories/search_repository.dart';
@@ -89,6 +94,24 @@ class HomeBinding extends Bindings {
       fenix: true,
     );
     Get.lazyPut<HomeTabController>(() => HomeTabController(), fenix: true);
+    Get.lazyPut<AppUpdateRemoteDataSource>(
+      () => AppUpdateRemoteDataSource(client: client),
+      fenix: true,
+    );
+    Get.lazyPut<AppUpdateRepository>(
+      () => AppUpdateRepositoryImpl(
+        remoteDataSource: Get.find<AppUpdateRemoteDataSource>(),
+      ),
+      fenix: true,
+    );
+    Get.lazyPut<CheckForUpdate>(
+      () => CheckForUpdate(repository: Get.find<AppUpdateRepository>()),
+      fenix: true,
+    );
+    Get.lazyPut<AppUpdateController>(
+      () => AppUpdateController(checkForUpdate: Get.find<CheckForUpdate>()),
+      fenix: true,
+    );
     ensureDashboardController();
   }
 }

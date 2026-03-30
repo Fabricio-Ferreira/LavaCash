@@ -5,14 +5,30 @@ import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/app_bottom_navigation.dart';
 import '../../../../core/widgets/home_top_bar.dart';
+import '../../../app_update/presentation/controllers/app_update_controller.dart';
 import '../bindings/home_binding.dart';
 import '../controllers/home_tab_controller.dart';
 import '../controllers/report_controller.dart';
 import 'dashboard_tab.dart';
 import 'reports_tab.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<AppUpdateController>()) {
+        Get.find<AppUpdateController>();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
