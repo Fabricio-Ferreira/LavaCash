@@ -6,6 +6,7 @@ import '../../../app_update/data/datasources/app_update_remote_datasource.dart';
 import '../../../app_update/data/repositories/app_update_repository_impl.dart';
 import '../../../app_update/domain/repositories/app_update_repository.dart';
 import '../../../app_update/domain/usecases/check_for_update.dart';
+import '../../../app_update/domain/usecases/get_apk_download_url.dart';
 import '../../../app_update/presentation/controllers/app_update_controller.dart';
 import '../../../license/presentation/bindings/license_binding.dart';
 import '../../../search/data/repositories/search_repository_impl.dart';
@@ -108,8 +109,15 @@ class HomeBinding extends Bindings {
       () => CheckForUpdate(repository: Get.find<AppUpdateRepository>()),
       fenix: true,
     );
+    Get.lazyPut<GetApkDownloadUrl>(
+      () => GetApkDownloadUrl(repository: Get.find<AppUpdateRepository>()),
+      fenix: true,
+    );
     Get.lazyPut<AppUpdateController>(
-      () => AppUpdateController(checkForUpdate: Get.find<CheckForUpdate>()),
+      () => AppUpdateController(
+        checkForUpdate: Get.find<CheckForUpdate>(),
+        getApkDownloadUrl: Get.find<GetApkDownloadUrl>(),
+      ),
       fenix: true,
     );
     ensureDashboardController();

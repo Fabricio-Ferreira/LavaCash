@@ -7,13 +7,18 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/update_check_result.dart';
 import '../../domain/usecases/check_for_update.dart';
+import '../../domain/usecases/get_apk_download_url.dart';
 import '../widgets/update_dialog.dart';
 
 class AppUpdateController extends GetxController {
-  AppUpdateController({required CheckForUpdate checkForUpdate})
-    : _checkForUpdate = checkForUpdate;
+  AppUpdateController({
+    required CheckForUpdate checkForUpdate,
+    required GetApkDownloadUrl getApkDownloadUrl,
+  }) : _checkForUpdate = checkForUpdate,
+       _getApkDownloadUrl = getApkDownloadUrl;
 
   final CheckForUpdate _checkForUpdate;
+  final GetApkDownloadUrl _getApkDownloadUrl;
 
   @override
   void onReady() {
@@ -42,7 +47,16 @@ class AppUpdateController extends GetxController {
         info: data.updateInfo,
         onUpdatePressed: () async {
           Get.back<void>();
-          await openApkUrl(data.updateInfo.apkUrl);
+          final Either<Failure, String> urlResult =
+              await _getApkDownloadUrl();
+          await urlResult.fold<Future<void>>(
+            (Failure failure) async {
+              log('AppUpdate | could not get download URL: ${failure.message}');
+            },
+            (String signedUrl) async {
+              await openApkUrl(signedUrl);
+            },
+          );
         },
       ),
       barrierDismissible: !data.updateInfo.isMandatory,

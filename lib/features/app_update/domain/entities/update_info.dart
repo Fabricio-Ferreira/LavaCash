@@ -4,7 +4,7 @@ class UpdateInfo extends Equatable {
   const UpdateInfo({
     required this.latestVersion,
     required this.latestBuildNumber,
-    required this.apkUrl,
+    required this.apkStoragePath,
     required this.isMandatory,
     required this.title,
     required this.message,
@@ -14,7 +14,7 @@ class UpdateInfo extends Equatable {
 
   final String latestVersion;
   final int latestBuildNumber;
-  final String apkUrl;
+  final String apkStoragePath;
   final bool isMandatory;
   final String title;
   final String message;
@@ -25,7 +25,7 @@ class UpdateInfo extends Equatable {
   List<Object?> get props => <Object?>[
     latestVersion,
     latestBuildNumber,
-    apkUrl,
+    apkStoragePath,
     isMandatory,
     title,
     message,

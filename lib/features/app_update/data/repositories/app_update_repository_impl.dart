@@ -22,7 +22,7 @@ class AppUpdateRepositoryImpl implements AppUpdateRepository {
           int.tryParse(packageInfo.buildNumber) ?? 0;
       final model = await _remoteDataSource.fetchLatestVersion();
       final UpdateInfo remote = model.toDomain();
-      final String trimmedApk = remote.apkUrl.trim();
+      final String trimmedApk = remote.apkStoragePath.trim();
       if (trimmedApk.isEmpty) {
         return Right<Failure, UpdateCheckResult>(
           UpdateCheckResult(
@@ -51,6 +51,18 @@ class AppUpdateRepositoryImpl implements AppUpdateRepository {
       return Left<Failure, UpdateCheckResult>(e);
     } on Exception catch (e) {
       return Left<Failure, UpdateCheckResult>(UpdateFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getApkDownloadUrl() async {
+    try {
+      final String url = await _remoteDataSource.getApkSignedUrl();
+      return Right<Failure, String>(url);
+    } on UpdateFailure catch (e) {
+      return Left<Failure, String>(e);
+    } on Exception catch (e) {
+      return Left<Failure, String>(UpdateFailure(e.toString()));
     }
   }
 

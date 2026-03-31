@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Release build from repo root: Dart obfuscation + split debug symbols.
+# Release build from repo root: split-per-ABI APK, Dart obfuscation, tree-shaken icons.
 # Requires dart_defines.json (or DEFINES_FILE) with SUPABASE_* and LICENSE_SUPABASE_*.
 # Android signing: android/key.properties + keystore (see README).
 #
@@ -21,31 +21,35 @@ if [[ ! -f "${DEFINES_FILE}" ]]; then
   exit 1
 fi
 
-SYMBOLS_DIR="${SYMBOLS_DIR:-${ROOT}/build/symbols/android}"
+SYMBOLS_DIR="${SYMBOLS_DIR:-${ROOT}/build/app/debug-info}"
 mkdir -p "${SYMBOLS_DIR}"
 
 TARGET="${1:-apk}"
 
 case "${TARGET}" in
   apk)
-    echo "Building release APK (obfuscated); symbols → ${SYMBOLS_DIR}"
+    echo "Building release APK (split-per-ABI, obfuscated, tree-shaken icons); symbols → ${SYMBOLS_DIR}"
     flutter build apk --release \
+      --split-per-abi \
       --obfuscate \
       "--split-debug-info=${SYMBOLS_DIR}" \
+      --tree-shake-icons \
       "--dart-define-from-file=${DEFINES_FILE}"
-    echo "APK: ${ROOT}/build/app/outputs/flutter-apk/app-release.apk"
+    echo "APKs: ${ROOT}/build/app/outputs/flutter-apk/app-*-release.apk"
+    echo "  (typical sideload: app-arm64-v8a-release.apk)"
     ;;
   appbundle|bundle|aab)
-    echo "Building release App Bundle (obfuscated); symbols → ${SYMBOLS_DIR}"
+    echo "Building release App Bundle (obfuscated, tree-shaken icons); symbols → ${SYMBOLS_DIR}"
     flutter build appbundle --release \
       --obfuscate \
       "--split-debug-info=${SYMBOLS_DIR}" \
+      --tree-shake-icons \
       "--dart-define-from-file=${DEFINES_FILE}"
     echo "AAB: ${ROOT}/build/app/outputs/bundle/release/app-release.aab"
     ;;
   *)
     echo "Usage: $0 [apk|appbundle]" >&2
-    echo "  apk (default)  — release APK" >&2
+    echo "  apk (default)  — release APK (split per ABI)" >&2
     echo "  appbundle      — release AAB (Play Store)" >&2
     echo "Env: DEFINES_FILE, SYMBOLS_DIR" >&2
     exit 1

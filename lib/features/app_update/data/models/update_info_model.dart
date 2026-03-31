@@ -4,7 +4,7 @@ class UpdateInfoModel {
   UpdateInfoModel({
     required this.latestVersion,
     required this.latestBuildNumber,
-    required this.apkUrl,
+    required this.apkStoragePath,
     required this.isMandatory,
     required this.title,
     required this.message,
@@ -14,7 +14,7 @@ class UpdateInfoModel {
 
   final String latestVersion;
   final int latestBuildNumber;
-  final String apkUrl;
+  final String apkStoragePath;
   final bool isMandatory;
   final String title;
   final String message;
@@ -37,7 +37,7 @@ class UpdateInfoModel {
     return UpdateInfoModel(
       latestVersion: json['latest_version'] as String? ?? '',
       latestBuildNumber: _parseInt(json['latest_build_number']),
-      apkUrl: json['apk_url'] as String? ?? '',
+      apkStoragePath: json['apk_storage_path'] as String? ?? '',
       isMandatory: json['is_mandatory'] as bool? ?? false,
       title: json['title'] as String? ?? 'Atualizacao disponivel',
       message: json['message'] as String? ?? '',
@@ -50,7 +50,7 @@ class UpdateInfoModel {
     return UpdateInfo(
       latestVersion: latestVersion,
       latestBuildNumber: latestBuildNumber,
-      apkUrl: apkUrl,
+      apkStoragePath: apkStoragePath,
       isMandatory: isMandatory,
       title: title,
       message: message,
