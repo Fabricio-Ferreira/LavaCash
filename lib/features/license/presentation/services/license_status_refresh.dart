@@ -34,6 +34,7 @@ abstract class LicenseStatusRefresh {
       },
       (License license) {
         global.establishmentName.value = license.establishmentName;
+        global.establishmentPhone.value = license.phone;
         global.licenseType.value = license.licenseType;
         log('LicenseStatusRefresh | OK: ${license.establishmentName}');
         return true;

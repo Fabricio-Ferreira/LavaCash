@@ -10,7 +10,7 @@ import '../../domain/repositories/empresa_repository.dart';
 
 class EmpresaController extends GetxController {
   EmpresaController({required EmpresaRepository empresaRepository})
-      : _empresaRepository = empresaRepository;
+    : _empresaRepository = empresaRepository;
 
   final EmpresaRepository _empresaRepository;
 
@@ -18,9 +18,13 @@ class EmpresaController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxnString errorMessage = RxnString();
 
-  /// Verifica se empresa já existe; se não, tenta reivindicar pelo activation_code.
-  /// Retorna true se empresa foi encontrada ou reivindicada com sucesso.
-  Future<bool> loadOrClaim(String activationCode) async {
+  /// Fetch own row, else [claim], else [create] if [nomeParaCriacao] is set
+  /// (requires auth — RLS).
+  Future<bool> loadOrClaim(
+    String activationCode, {
+    String nomeParaCriacao = '',
+    String telefoneParaCriacao = '',
+  }) async {
     isLoading.value = true;
     errorMessage.value = null;
     final Either<Failure, Empresa?> fetchResult =
@@ -39,24 +43,35 @@ class EmpresaController extends GetxController {
       return false;
     }
     log('EmpresaController | tentando claim code=$activationCode');
-    final Either<Failure, Empresa?> claimResult =
-        await _empresaRepository.claimByActivationCode(activationCode);
+    final Either<Failure, Empresa?> claimResult = await _empresaRepository
+        .claimByActivationCode(activationCode);
     isLoading.value = false;
     return claimResult.fold(
-      (Failure failure) {
+      (Failure failure) async {
         log('EmpresaController | claim falhou: ${failure.message}');
         errorMessage.value = failure.message;
         return false;
       },
-      (Empresa? claimed) {
-        if (claimed == null) {
-          log('EmpresaController | activation_code inválido ou já reivindicado');
+      (Empresa? claimed) async {
+        if (claimed != null) {
+          log('EmpresaController | claim OK id=${claimed.id}');
+          empresa.value = claimed;
+          _populateGlobal(claimed);
+          return true;
+        }
+        final String nome = nomeParaCriacao.trim();
+        if (nome.isEmpty) {
+          log(
+            'EmpresaController | sem linha para claim e sem nome para criar',
+          );
           return false;
         }
-        log('EmpresaController | claim OK id=${claimed.id}');
-        empresa.value = claimed;
-        _populateGlobal(claimed);
-        return true;
+        log('EmpresaController | criando empresa após licença');
+        return createEmpresa(
+          nome: nome,
+          telefone: telefoneParaCriacao.trim(),
+          activationCode: activationCode,
+        );
       },
     );
   }

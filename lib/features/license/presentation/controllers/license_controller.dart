@@ -77,6 +77,7 @@ class LicenseController extends GetxController {
       (License l) => l,
     );
     global.establishmentName.value = license.establishmentName;
+    global.establishmentPhone.value = license.phone;
     global.licenseType.value = license.licenseType;
     global.activationCode.value = license.activationCode ?? '';
     log('LicenseCheck | OK: ${license.establishmentName}');
@@ -112,6 +113,7 @@ class LicenseController extends GetxController {
       (License l) => l,
     );
     global.establishmentName.value = license.establishmentName;
+    global.establishmentPhone.value = license.phone;
     global.licenseType.value = license.licenseType;
     global.activationCode.value = license.activationCode ?? '';
     await _completeAuthAndNavigate(global);
@@ -133,8 +135,21 @@ class LicenseController extends GetxController {
       Get.offNamed<void>(AppRoutes.blocked, arguments: failure.message);
       return;
     }
-    final bool ok = await _empresaController.loadOrClaim(code);
+    final bool ok = await _empresaController.loadOrClaim(
+      code,
+      nomeParaCriacao: global.establishmentName.value,
+      telefoneParaCriacao: global.establishmentPhone.value,
+    );
     log('LicenseCheck | empresa ok=$ok');
+    if (!ok) {
+      final String msg = _empresaController.errorMessage.value ??
+          'Não foi possível configurar a empresa.';
+      isChecking.value = false;
+      isActivating.value = false;
+      blockedReason.value = msg;
+      Get.offNamed<void>(AppRoutes.blocked, arguments: msg);
+      return;
+    }
     isChecking.value = false;
     isActivating.value = false;
     Get.offAllNamed<void>(AppRoutes.home);
