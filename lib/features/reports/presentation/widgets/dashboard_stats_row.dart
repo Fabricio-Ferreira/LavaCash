@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import 'dashboard_stat_card.dart';
+import 'dashboard_stat_grid.dart';
 
 class DashboardStatsRow extends StatelessWidget {
   const DashboardStatsRow({
@@ -21,25 +22,23 @@ class DashboardStatsRow extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints c) {
         final bool narrow = c.maxWidth < 340;
         final double gap = narrow ? 10 : 16;
-        return Row(
-          children: [
-            Expanded(
-              child: DashboardStatCard(
-                icon: Icons.directions_car_outlined,
-                iconColor: AppColors.primary,
-                label: 'CARROS ATENDIDOS',
-                value: '$cars',
-              ),
+        return DashboardStatGrid(
+          crossAxisSpacing: gap,
+          mainAxisSpacing: gap,
+          childAspectRatio: narrow ? 1.05 : 1.18,
+          children: <Widget>[
+            DashboardStatCard(
+              icon: Icons.directions_car_outlined,
+              iconColor: AppColors.primary,
+              label: 'CARROS ATENDIDOS',
+              value: '$cars',
             ),
-            SizedBox(width: gap),
-            Expanded(
-              child: DashboardStatCard(
-                icon: Icons.sync,
-                iconColor: AppColors.secondary,
-                label: 'EM ANDAMENTO',
-                value: '$inProgress',
-                onTap: onInProgressTap,
-              ),
+            DashboardStatCard(
+              icon: Icons.sync,
+              iconColor: AppColors.secondary,
+              label: 'EM ANDAMENTO',
+              value: '$inProgress',
+              onTap: onInProgressTap,
             ),
           ],
         );

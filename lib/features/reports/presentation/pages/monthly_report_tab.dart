@@ -8,6 +8,7 @@ import '../../../../domain/entities/monthly_report.dart';
 import '../controllers/report_controller.dart';
 import '../utils/monthly_report_growth.dart';
 import '../widgets/dashboard_stat_card.dart';
+import '../widgets/dashboard_stat_grid.dart';
 import '../widgets/monthly_best_weekday_card.dart';
 import '../../../../shared/widgets/elite_hero_card.dart';
 import '../widgets/monthly_list_card.dart';
@@ -83,27 +84,22 @@ class MonthlyReportTab extends GetView<ReportController> {
                   growthPercentVsPrevious: growthPct,
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DashboardStatCard(
-                        icon: Icons.local_car_wash_outlined,
-                        iconColor: AppColors.primary,
-                        label: 'ATENDIMENTOS',
-                        value:
-                            highlight == null
-                                ? '0'
-                                : '${highlight.totalAtendimentos}',
-                      ),
+                DashboardStatGrid(
+                  children: <Widget>[
+                    DashboardStatCard(
+                      icon: Icons.local_car_wash_outlined,
+                      iconColor: AppColors.primary,
+                      label: 'ATENDIMENTOS',
+                      value:
+                          highlight == null
+                              ? '0'
+                              : '${highlight.totalAtendimentos}',
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DashboardStatCard(
-                        icon: Icons.calendar_month_outlined,
-                        iconColor: AppColors.primary,
-                        label: 'MESES REGISTRADOS',
-                        value: '$totalMeses',
-                      ),
+                    DashboardStatCard(
+                      icon: Icons.calendar_month_outlined,
+                      iconColor: AppColors.primary,
+                      label: 'MESES REGISTRADOS',
+                      value: '$totalMeses',
                     ),
                   ],
                 ),

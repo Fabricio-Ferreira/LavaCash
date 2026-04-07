@@ -13,6 +13,7 @@ import '../../../../shared/widgets/payment_list_card.dart';
 import '../widgets/daily_report_day_header.dart';
 import '../widgets/dashboard_atendimentos_section.dart';
 import '../widgets/dashboard_stat_card.dart';
+import '../widgets/dashboard_stat_grid.dart';
 
 /// Stitch "Relatório Diário — Nível Elite Final" layout.
 class DailyReportTab extends GetView<ReportController> {
@@ -60,27 +61,22 @@ class DailyReportTab extends GetView<ReportController> {
                   totalRecebido: daily.totalRecebido,
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DashboardStatCard(
-                        icon: Icons.directions_car_outlined,
-                        iconColor: AppColors.primary,
-                        label: 'CARROS',
-                        value: daily.isLoading ? '—' : '${daily.totalCarros}',
-                      ),
+                DashboardStatGrid(
+                  children: <Widget>[
+                    DashboardStatCard(
+                      icon: Icons.directions_car_outlined,
+                      iconColor: AppColors.primary,
+                      label: 'CARROS',
+                      value: daily.isLoading ? '—' : '${daily.totalCarros}',
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DashboardStatCard(
-                        icon: Icons.payments_outlined,
-                        iconColor: AppColors.primary,
-                        label: 'TICKET MÉDIO',
-                        value:
-                            daily.isLoading
-                                ? '—'
-                                : AppFormatters.formatCurrency(ticketMedio),
-                      ),
+                    DashboardStatCard(
+                      icon: Icons.payments_outlined,
+                      iconColor: AppColors.primary,
+                      label: 'TICKET MÉDIO',
+                      value:
+                          daily.isLoading
+                              ? '—'
+                              : AppFormatters.formatCurrency(ticketMedio),
                     ),
                   ],
                 ),
@@ -98,9 +94,7 @@ class DailyReportTab extends GetView<ReportController> {
                 ),
                 const SizedBox(height: 24),
                 if (controller.todayServices.isNotEmpty) ...[
-                  DashboardAtendimentosSection(
-                    onVerTodos: _openTodayServices,
-                  ),
+                  DashboardAtendimentosSection(onVerTodos: _openTodayServices),
                 ] else ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

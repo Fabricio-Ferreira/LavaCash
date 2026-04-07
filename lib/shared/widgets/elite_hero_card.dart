@@ -167,14 +167,22 @@ class _EliteHeroDashboardCard extends EliteHeroCard {
                 ),
               )
             else
-              Text(
-                AppFormatters.formatCurrency(totalRecebido),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 40,
-                  fontWeight: FontWeight.w900,
-                  height: 1.05,
-                  letterSpacing: -1.2,
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    AppFormatters.formatCurrency(totalRecebido),
+                    maxLines: 1,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                      letterSpacing: -1.2,
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 12),
@@ -250,14 +258,22 @@ class _EliteHeroDailyReportCard extends EliteHeroCard {
                 ),
               )
             else
-              Text(
-                AppFormatters.formatCurrency(totalRecebido),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  height: 1.05,
-                  letterSpacing: -1,
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    AppFormatters.formatCurrency(totalRecebido),
+                    maxLines: 1,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                      letterSpacing: -1,
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 14),
@@ -340,14 +356,22 @@ class _EliteHeroMonthlyCard extends EliteHeroCard {
                 ),
               )
             else
-              Text(
-                AppFormatters.formatCurrency(report.faturamento),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 34,
-                  fontWeight: FontWeight.w900,
-                  height: 1.05,
-                  letterSpacing: -1,
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    AppFormatters.formatCurrency(report.faturamento),
+                    maxLines: 1,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                      letterSpacing: -1,
+                    ),
+                  ),
                 ),
               ),
             if (report != null) ...<Widget>[

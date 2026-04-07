@@ -8,11 +8,19 @@ abstract class WhatsAppService {
     required String phoneDigitsOnly,
     required String message,
   }) async {
-    final String normalized = AppStringUtils.digitsOnly(phoneDigitsOnly);
-    if (normalized.isEmpty) {
+    final String digits = AppStringUtils.digitsOnly(phoneDigitsOnly);
+    if (digits.isEmpty) {
       return false;
     }
-    final Uri url = Uri.parse('https://wa.me/55$normalized?text=$message');
+    final String e164Br = digits.startsWith('55') ? digits : '55$digits';
+    final Uri url = Uri(
+      scheme: 'whatsapp',
+      host: 'send',
+      queryParameters: <String, String>{
+        'phone': e164Br,
+        'text': message,
+      },
+    );
     if (!await canLaunchUrl(url)) {
       AppSnackbar.showError('Não foi possível abrir o WhatsApp.');
       return false;
@@ -29,7 +37,7 @@ abstract class WhatsAppService {
       AppSnackbar.showError('Telefone inválido.');
       return false;
     }
-    final Uri url = Uri.parse('tel: $normalized');
+    final Uri url = Uri(scheme: 'tel', path: normalized);
     if (!await canLaunchUrl(url)) {
       AppSnackbar.showError('Não foi possível abrir o discador.');
       return false;
