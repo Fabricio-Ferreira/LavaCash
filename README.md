@@ -91,6 +91,11 @@ Fluxo e visão geral das principais superfícies:
 | **Novo atendimento** | Busca, recentes e sequência serviço → pagamento; cadastro acessível a partir da mesma tela. |
 | **Licença bloqueada** | Dispositivo sem licença ativa ou fluxo de ativação por chave (dados do aparelho + suporte). |
 
+### Layout responsivo (métricas e valores)
+
+- **Grid de duas colunas** para pares de cards (dashboard, relatório diário, relatório mensal): [`lib/features/reports/presentation/widgets/dashboard_stat_grid.dart`](lib/features/reports/presentation/widgets/dashboard_stat_grid.dart) — mesmo padrão de [`payment_method_grid.dart`](lib/features/payment/presentation/pages/widgets/payment_method_grid.dart) (`GridView.count`, `shrinkWrap`, `NeverScrollableScrollPhysics`, `childAspectRatio` ajustável).
+- **Valores longos em pt_BR** (totais no hero e ticket médio nos cards): [`elite_hero_card.dart`](lib/shared/widgets/elite_hero_card.dart) e [`dashboard_stat_card.dart`](lib/features/reports/presentation/widgets/dashboard_stat_card.dart) usam `FittedBox` + `maxLines: 1` para o texto não quebrar no meio do número em telas estreitas.
+
 ---
 
 ## Funcionalidades
