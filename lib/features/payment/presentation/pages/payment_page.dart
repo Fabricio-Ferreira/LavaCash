@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lava_cash/core/utils/app_snackbar.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../controllers/payment_controller.dart';
@@ -90,6 +91,12 @@ class PaymentPage extends GetView<PaymentController> {
                     controller.selectedMethod.value != null
                         ? () => controller.submit()
                         : null,
+                onDisabledPressed: () {
+                  AppSnackbar.showError(
+                    'Selecione um método de pagamento para '
+                    'concluir o atendimento.',
+                  );
+                },
                 isLoading: controller.isSaving,
               ),
             ),

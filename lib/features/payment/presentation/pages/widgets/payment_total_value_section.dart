@@ -1,19 +1,31 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../../core/utils/brazilian_real_input_formatter.dart';
 
 class PaymentTotalValueSection extends StatelessWidget {
   const PaymentTotalValueSection({super.key, required this.valorController});
 
   final TextEditingController valorController;
 
+  static const double _maxFontSize = 86;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme scheme = theme.colorScheme;
+    final TextStyle valueStyle = (theme.textTheme.displaySmall ??
+            theme.textTheme.headlineLarge!)
+        .copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -1.5,
+          height: 1,
+          fontSize: _maxFontSize,
+        );
     return AnimatedBuilder(
       animation: valorController,
       builder: (BuildContext context, Widget? child) {
+        final String displayText =
+            valorController.text.isEmpty ? '0,00' : valorController.text;
+        final bool isPlaceholder = valorController.text.isEmpty;
         return Stack(
           clipBehavior: Clip.none,
           children: <Widget>[
@@ -42,46 +54,21 @@ class PaymentTotalValueSection extends StatelessWidget {
                       ),
                     ),
                     Flexible(
-                      child: TextField(
-                        readOnly: true,
-                        enabled: false,
-                        controller: valorController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        textInputAction: TextInputAction.done,
+                      child: AutoSizeText(
+                        displayText,
+                        minFontSize: 14,
+                        maxFontSize: _maxFontSize,
+                        maxLines: 1,
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -1.5,
-                          height: 1,
-                          fontSize: 86,
-                        ),
-                        inputFormatters: const <BrazilianRealInputFormatter>[
-                          BrazilianRealInputFormatter(),
-                        ],
-                        decoration: InputDecoration(
-                          filled: false,
-                          fillColor: Colors.transparent,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          disabledBorder: InputBorder.none,
-                          errorBorder: InputBorder.none,
-                          focusedErrorBorder: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                          hintText: '0,00',
-                          hintStyle: theme.textTheme.displaySmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -1.5,
-                            height: 1,
-                            fontSize: 86,
-                            color: scheme.onSurfaceVariant.withValues(
-                              alpha: 0.35,
-                            ),
-                          ),
-                        ),
+                        overflow: TextOverflow.visible,
+                        style:
+                            isPlaceholder
+                                ? valueStyle.copyWith(
+                                  color: scheme.onSurfaceVariant.withValues(
+                                    alpha: 0.35,
+                                  ),
+                                )
+                                : valueStyle,
                       ),
                     ),
                   ],

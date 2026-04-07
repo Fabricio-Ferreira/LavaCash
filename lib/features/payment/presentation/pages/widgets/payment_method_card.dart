@@ -89,22 +89,38 @@ class PaymentMethodCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                    const Spacer(),
-                    Text(
-                      paymentMethodDisplayTitle(method),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: selected ? scheme.onPrimary : scheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      method.subtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color:
-                            selected
-                                ? scheme.onPrimary.withValues(alpha: 0.85)
-                                : scheme.onSurfaceVariant,
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Flexible(
+                            child: Text(
+                              paymentMethodDisplayTitle(method),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    selected
+                                        ? scheme.onPrimary
+                                        : scheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            method.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color:
+                                  selected
+                                      ? scheme.onPrimary.withValues(alpha: 0.85)
+                                      : scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

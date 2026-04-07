@@ -12,8 +12,7 @@ abstract class WhatsAppService {
     if (normalized.isEmpty) {
       return false;
     }
-    final String encoded = Uri.encodeComponent(message);
-    final Uri url = Uri.parse('https://wa.me/55$normalized?text=$encoded');
+    final Uri url = Uri.parse('https://wa.me/55$normalized?text=$message');
     if (!await canLaunchUrl(url)) {
       AppSnackbar.showError('Não foi possível abrir o WhatsApp.');
       return false;

@@ -10,10 +10,12 @@ class PaymentConfirmButton extends StatelessWidget {
     super.key,
     required this.onPressed,
     required this.isLoading,
+    this.onDisabledPressed,
   });
 
   final VoidCallback? onPressed;
   final RxBool isLoading;
+  final VoidCallback? onDisabledPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,8 @@ class PaymentConfirmButton extends StatelessWidget {
                 height: 56,
                 isLoading: isLoading.value,
                 onPressed: onPressed,
+                isDisabled: onPressed == null,
+                onDisabledPressed: onDisabledPressed,
               ),
             ),
           ),

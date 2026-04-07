@@ -9,18 +9,21 @@ class AppButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.isSecondary = false,
+    this.isDisabled = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
   final bool isSecondary;
+  final bool isDisabled;
 
   @override
   Widget build(BuildContext context) {
+    final bool isInactive = isLoading || isDisabled;
     if (isSecondary) {
       return TextButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isInactive ? null : onPressed,
         child:
             isLoading
                 ? const SizedBox(
@@ -32,7 +35,7 @@ class AppButton extends StatelessWidget {
       );
     }
     return ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
+      onPressed: isInactive ? null : onPressed,
       child:
           isLoading
               ? const SizedBox(
@@ -54,6 +57,8 @@ class AppGradientButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.isLoading = false,
+    this.isDisabled = false,
+    this.onDisabledPressed,
     this.trailingIcon,
     this.borderRadius = 16,
     this.height = 52,
@@ -62,13 +67,15 @@ class AppGradientButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final bool isDisabled;
+  final VoidCallback? onDisabledPressed;
   final IconData? trailingIcon;
   final double borderRadius;
   final double height;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    final Widget button = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
         gradient: const LinearGradient(
@@ -81,7 +88,12 @@ class AppGradientButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(borderRadius),
-          onTap: isLoading ? null : onPressed,
+          onTap:
+              isLoading
+                  ? null
+                  : isDisabled
+                  ? onDisabledPressed
+                  : onPressed,
           child: SizedBox(
             height: height,
             width: double.infinity,
@@ -111,11 +123,7 @@ class AppGradientButton extends StatelessWidget {
                           ),
                           if (trailingIcon != null) ...<Widget>[
                             const SizedBox(width: 8),
-                            Icon(
-                              trailingIcon,
-                              color: Colors.white,
-                              size: 22,
-                            ),
+                            Icon(trailingIcon, color: Colors.white, size: 22),
                           ],
                         ],
                       ),
@@ -124,5 +132,9 @@ class AppGradientButton extends StatelessWidget {
         ),
       ),
     );
+    if (isDisabled && !isLoading) {
+      return Opacity(opacity: 0.45, child: button);
+    }
+    return button;
   }
 }
