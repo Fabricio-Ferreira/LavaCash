@@ -5,6 +5,13 @@ import '../../../../../app/theme/app_colors.dart';
 import '../../../../../features/auth/domain/entities/user_role.dart';
 import 'convite_role_option.dart';
 
+/// Result of [AddConviteBottomSheet]; use the same type in [showModalBottomSheet].
+typedef AddConviteSheetResult = ({
+  String code,
+  UserRole role,
+  String? membroNome,
+});
+
 class AddConviteBottomSheet extends StatefulWidget {
   const AddConviteBottomSheet({super.key});
 
@@ -31,11 +38,15 @@ class _AddConviteBottomSheetState extends State<AddConviteBottomSheet> {
       return;
     }
     final String code = _codeController.text.trim();
-    final String? membroNome =
-        _selectedRole == UserRole.operador ? _nomeController.text.trim() : null;
-    Navigator.of(
-      context,
-    ).pop((code: code, role: _selectedRole, membroNome: membroNome));
+    final String? membroNome = _selectedRole == UserRole.operador
+        ? _nomeController.text.trim()
+        : null;
+    final AddConviteSheetResult payload = (
+      code: code,
+      role: _selectedRole,
+      membroNome: membroNome,
+    );
+    Navigator.of(context).pop<AddConviteSheetResult>(payload);
   }
 
   @override

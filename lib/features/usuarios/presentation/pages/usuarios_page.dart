@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lava_cash/core/utils/app_snackbar.dart';
 
 import '../../../../app/app_global_controller.dart';
 import '../../../../app/theme/app_colors.dart';
@@ -101,36 +102,35 @@ class _UsuariosPageState extends State<UsuariosPage> {
     UsuariosController controller,
     AppGlobalController global,
   ) async {
-    final dynamic result = await showModalBottomSheet<dynamic>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => const AddConviteBottomSheet(),
-    );
-    if (result == null) return;
-    final ({String code, UserRole role, String? memberName}) data =
-        result as ({String code, UserRole role, String? memberName});
+    final AddConviteSheetResult? data =
+        await showModalBottomSheet<AddConviteSheetResult>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.white,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          builder: (_) => const AddConviteBottomSheet(),
+        );
+    if (data == null) return;
     if (data.code.isEmpty) return;
     final bool ok = await controller.addConvite(
       empresaId: global.empresaId.value,
       activationCode: data.code,
       role: data.role,
-      membroNome: data.memberName,
+      membroNome: data.membroNome,
     );
     if (mounted) {
       final String msg =
           ok
               ? 'Convite enviado!'
               : (controller.errorMessage.value ?? 'Erro ao enviar convite.');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(msg),
-          backgroundColor: ok ? AppColors.primary : Colors.red,
-        ),
-      );
+
+      if (ok) {
+        AppSnackbar.showSuccess(msg);
+      } else {
+        AppSnackbar.showError(msg);
+      }
     }
   }
 
