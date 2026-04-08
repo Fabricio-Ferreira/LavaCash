@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../../app/app_global_controller.dart';
 import '../../../../core/error/failures.dart';
+import '../../../auth/domain/entities/user_role.dart';
 import '../../domain/entities/empresa.dart';
 import '../../domain/repositories/empresa_repository.dart';
 
@@ -18,8 +19,12 @@ class EmpresaController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxnString errorMessage = RxnString();
 
-  /// Fetch own row, else [claim], else [create] if [nomeParaCriacao] is set
-  /// (requires auth — RLS).
+  /// True when claim/convite failed and there is no nome to create empresa —
+  /// operador must ask admin to register this device's [activation_code].
+  final RxBool isWaitingForCompanyLink = false.obs;
+
+  /// Fetch own empresa via RLS (which now uses empresa_usuarios).
+  /// Falls back to claim → convite → create.
   Future<bool> loadOrClaim(
     String activationCode, {
     String nomeParaCriacao = '',
@@ -27,52 +32,69 @@ class EmpresaController extends GetxController {
   }) async {
     isLoading.value = true;
     errorMessage.value = null;
-    final Either<Failure, Empresa?> fetchResult =
-        await _empresaRepository.fetchOwn();
-    final Empresa? existing = fetchResult.fold((_) => null, (e) => e);
+    isWaitingForCompanyLink.value = false;
+
+    final Empresa? existing = (await _empresaRepository.fetchOwn()).fold(
+      (_) => null,
+      (e) => e,
+    );
     if (existing != null) {
       log('EmpresaController | empresa existente id=${existing.id}');
       empresa.value = existing;
-      _populateGlobal(existing);
+      await _populateGlobalWithRole(existing);
       isLoading.value = false;
       return true;
     }
+
     if (activationCode.isEmpty) {
       log('EmpresaController | sem empresa e sem activation_code');
       isLoading.value = false;
       return false;
     }
+
     log('EmpresaController | tentando claim code=$activationCode');
-    final Either<Failure, Empresa?> claimResult = await _empresaRepository
-        .claimByActivationCode(activationCode);
-    isLoading.value = false;
-    return claimResult.fold(
-      (Failure failure) async {
-        log('EmpresaController | claim falhou: ${failure.message}');
-        errorMessage.value = failure.message;
-        return false;
-      },
-      (Empresa? claimed) async {
-        if (claimed != null) {
-          log('EmpresaController | claim OK id=${claimed.id}');
-          empresa.value = claimed;
-          _populateGlobal(claimed);
-          return true;
-        }
-        final String nome = nomeParaCriacao.trim();
-        if (nome.isEmpty) {
-          log(
-            'EmpresaController | sem linha para claim e sem nome para criar',
-          );
-          return false;
-        }
-        log('EmpresaController | criando empresa após licença');
-        return createEmpresa(
-          nome: nome,
-          telefone: telefoneParaCriacao.trim(),
-          activationCode: activationCode,
-        );
-      },
+    final Either<Failure, Empresa?> claimResult =
+        await _empresaRepository.claimByActivationCode(activationCode);
+
+    if (claimResult.isRight()) {
+      final Empresa? claimed = claimResult.fold((_) => null, (e) => e);
+      if (claimed != null) {
+        log('EmpresaController | claim OK id=${claimed.id}');
+        empresa.value = claimed;
+        await _registerAndPopulate(claimed, UserRole.admin);
+        isLoading.value = false;
+        return true;
+      }
+    }
+
+    // Empresa already claimed — check if this device has a convite
+    log('EmpresaController | verificando convite para code=$activationCode');
+    final Empresa? convidada = (await _empresaRepository.acceptConvite(
+      activationCode,
+    )).fold((_) => null, (e) => e);
+
+    if (convidada != null) {
+      log('EmpresaController | convite aceito id=${convidada.id}');
+      empresa.value = convidada;
+      await _populateGlobalWithRole(convidada);
+      isLoading.value = false;
+      return true;
+    }
+
+    // Last resort: create new empresa
+    final String nome = nomeParaCriacao.trim();
+    if (nome.isEmpty) {
+      log('EmpresaController | sem empresa, sem claim, sem convite, sem nome');
+      isWaitingForCompanyLink.value = true;
+      isLoading.value = false;
+      return false;
+    }
+
+    log('EmpresaController | criando empresa após licença');
+    return createEmpresa(
+      nome: nome,
+      telefone: telefoneParaCriacao.trim(),
+      activationCode: activationCode,
     );
   }
 
@@ -94,17 +116,34 @@ class EmpresaController extends GetxController {
         errorMessage.value = failure.message;
         return false;
       },
-      (Empresa created) {
+      (Empresa created) async {
         empresa.value = created;
-        _populateGlobal(created);
+        await _registerAndPopulate(created, UserRole.admin);
         return true;
       },
     );
   }
 
-  void _populateGlobal(Empresa e) {
+  Future<void> _registerAndPopulate(Empresa e, UserRole role) async {
+    await _empresaRepository.registerUserInEmpresa(
+      empresaId: e.id,
+      role: role,
+    );
+    _applyGlobal(e, role);
+  }
+
+  Future<void> _populateGlobalWithRole(Empresa e) async {
+    final UserRole role = (await _empresaRepository.fetchMyRole()).fold(
+      (_) => UserRole.operador,
+      (r) => r ?? UserRole.operador,
+    );
+    _applyGlobal(e, role);
+  }
+
+  void _applyGlobal(Empresa e, UserRole role) {
     final AppGlobalController global = Get.find<AppGlobalController>();
     global.empresaId.value = e.id;
+    global.userRole.value = role;
     if (global.establishmentName.value.isEmpty) {
       global.establishmentName.value = e.nome;
     }

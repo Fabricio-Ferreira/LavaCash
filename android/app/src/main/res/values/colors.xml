@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- LavaCash primary — FCM / system notification accent (Android 5+) -->
+    <color name="notification_accent">#006B2C</color>
 </resources>

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../app/app_global_controller.dart';
+import '../../app/routes/app_routes.dart';
 import '../../app/theme/app_colors.dart';
+import '../../features/auth/domain/entities/user_role.dart';
 import '../services/whatsapp_service.dart';
 import '../utils/constants.dart';
 import '../utils/string_utils.dart';
@@ -47,6 +49,7 @@ class HomeTopBar extends StatelessWidget {
                 final String initials = AppStringUtils.extractInitials(
                   establishmentName,
                 );
+                final UserRole role = global.userRole.value;
                 return Row(
                   children: <Widget>[
                     Expanded(
@@ -63,6 +66,13 @@ class HomeTopBar extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
+                    if (role.isAdmin)
+                      IconButton(
+                        icon: const Icon(Icons.group_outlined),
+                        color: AppColors.primary,
+                        tooltip: 'Gerenciar usuários',
+                        onPressed: () => Get.toNamed<void>(AppRoutes.usuarios),
+                      ),
                     _LicenseChip(
                       establishmentName: establishmentName,
                       licenseType: licenseType,

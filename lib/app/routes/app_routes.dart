@@ -1,6 +1,9 @@
 abstract class AppRoutes {
   static const String splash = '/splash';
   static const String blocked = '/blocked';
+
+  /// Operador aguardando admin cadastrar convite com este device's activation code.
+  static const String waitingLinkage = '/waiting-linkage';
   static const String home = '/home';
   static const String registration = '/registration';
   static const String novoAtendimento = '/novo-atendimento';
@@ -17,4 +20,6 @@ abstract class AppRoutes {
   static const String dailyReport = '/daily-report';
 
   static const String monthlyReport = '/monthly-report';
+
+  static const String usuarios = '/usuarios';
 }

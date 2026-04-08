@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Resource shrinker (release) removes drawables not linked from static XML.
+  flutter_local_notifications resolves the small icon by name at runtime
+  (getIdentifier), so @drawable/ic_stat_notify must be kept explicitly.
+  See: https://developer.android.com/studio/build/shrink-code#keep-resources
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_notify" />

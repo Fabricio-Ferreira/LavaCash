@@ -4,6 +4,7 @@ import 'package:lava_cash/domain/entities/service_status.dart';
 import '../../features/license/presentation/bindings/license_binding.dart';
 import '../../features/license/presentation/pages/blocked_page.dart';
 import '../../features/license/presentation/pages/splash_page.dart';
+import '../../features/license/presentation/pages/waiting_linkage_page.dart';
 import '../../features/payment/presentation/bindings/payment_binding.dart';
 import '../../features/payment/presentation/pages/payment_page.dart';
 import '../../features/registration/presentation/bindings/registration_binding.dart';
@@ -17,6 +18,8 @@ import '../../features/service/presentation/bindings/novo_atendimento_binding.da
 import '../../features/service/presentation/bindings/service_binding.dart';
 import '../../features/service/presentation/pages/novo_atendimento_page.dart';
 import '../../features/service/presentation/pages/service_page.dart';
+import '../../features/usuarios/presentation/bindings/usuarios_binding.dart';
+import '../../features/usuarios/presentation/pages/usuarios_page.dart';
 import 'app_routes.dart';
 
 ServiceStatus? _inProgressServicesStatusFromArguments() {
@@ -40,6 +43,11 @@ abstract class AppPages {
     GetPage<void>(
       name: AppRoutes.blocked,
       page: () => const BlockedPage(),
+      binding: LicenseBinding(),
+    ),
+    GetPage<void>(
+      name: AppRoutes.waitingLinkage,
+      page: () => const WaitingLinkagePage(),
       binding: LicenseBinding(),
     ),
 
@@ -84,6 +92,11 @@ abstract class AppPages {
       name: '${AppRoutes.payment}/:serviceId',
       page: () => const PaymentPage(),
       binding: PaymentBinding(),
+    ),
+    GetPage<void>(
+      name: AppRoutes.usuarios,
+      page: () => const UsuariosPage(),
+      binding: UsuariosBinding(),
     ),
   ];
 }

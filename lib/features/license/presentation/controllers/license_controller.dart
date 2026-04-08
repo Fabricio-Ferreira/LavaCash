@@ -7,6 +7,7 @@ import '../../../../app/app_global_controller.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/services/device_id_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../domain/entities/license.dart';
 import '../../../auth/domain/entities/user_session.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
@@ -142,16 +143,21 @@ class LicenseController extends GetxController {
     );
     log('LicenseCheck | empresa ok=$ok');
     if (!ok) {
-      final String msg = _empresaController.errorMessage.value ??
-          'Não foi possível configurar a empresa.';
       isChecking.value = false;
       isActivating.value = false;
+      if (_empresaController.isWaitingForCompanyLink.value) {
+        Get.offAllNamed<void>(AppRoutes.waitingLinkage);
+        return;
+      }
+      final String msg = _empresaController.errorMessage.value ??
+          'Não foi possível configurar a empresa.';
       blockedReason.value = msg;
       Get.offNamed<void>(AppRoutes.blocked, arguments: msg);
       return;
     }
     isChecking.value = false;
     isActivating.value = false;
+    NotificationService.saveToken(deviceId: global.deviceId.value);
     Get.offAllNamed<void>(AppRoutes.home);
   }
 }
