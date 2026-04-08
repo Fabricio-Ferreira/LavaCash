@@ -13,6 +13,7 @@ class LicenseModel {
     required this.priceCents,
     required this.isDeviceRegistered,
     this.activationCode,
+    this.empresaId,
   });
 
   final String id;
@@ -26,6 +27,7 @@ class LicenseModel {
   final int priceCents;
   final bool isDeviceRegistered;
   final String? activationCode;
+  final String? empresaId;
 
   factory LicenseModel.fromJson(Map<String, dynamic> json) {
     return LicenseModel(
@@ -40,6 +42,7 @@ class LicenseModel {
       priceCents: _parseInt(json['price_cents']),
       isDeviceRegistered: json['is_device_registered'] as bool? ?? false,
       activationCode: json['activation_code'] as String?,
+      empresaId: json['empresa_id'] as String?,
     );
   }
 
@@ -79,6 +82,7 @@ class LicenseModel {
       priceCents: priceCents,
       isDeviceRegistered: isDeviceRegistered,
       activationCode: activationCode,
+      empresaId: empresaId,
     );
   }
 }

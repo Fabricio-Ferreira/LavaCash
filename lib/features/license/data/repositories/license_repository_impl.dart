@@ -5,6 +5,7 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/services/license_encrypted_local_cache.dart';
 import '../../../../data/models/license_model.dart';
 import '../../../../domain/entities/license.dart';
+import '../license_rpc_error_mapper.dart';
 import '../../domain/repositories/license_repository.dart';
 
 class LicenseRepositoryImpl implements LicenseRepository {
@@ -45,6 +46,8 @@ class LicenseRepositoryImpl implements LicenseRepository {
         return const Left(LicenseFailure('License inactive'));
       }
       return Right(licenseModel.toDomain());
+    } on PostgrestException catch (e) {
+      return Left(LicenseFailure(mapLicensePostgrestMessage(e)));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -75,7 +78,7 @@ class LicenseRepositoryImpl implements LicenseRepository {
       await _localCache.saveLicenseRow(row);
       return Right(model.toDomain());
     } on PostgrestException catch (e) {
-      return Left(LicenseFailure(e.message));
+      return Left(LicenseFailure(mapLicensePostgrestMessage(e)));
     } on Exception catch (e) {
       return Left(ServerFailure(e.toString()));
     }

@@ -3,8 +3,10 @@ import 'dart:developer';
 import 'package:dartz/dartz.dart';
 import 'package:get/get.dart';
 
+import '../../../../app/app_global_controller.dart';
 import '../../../../core/error/failures.dart';
 import '../../../auth/domain/entities/user_role.dart';
+import '../../domain/entities/empresa_convite_pendente.dart';
 import '../../domain/entities/empresa_usuario.dart';
 import '../../domain/repositories/usuarios_repository.dart';
 
@@ -15,21 +17,43 @@ class UsuariosController extends GetxController {
   final UsuariosRepository _usuariosRepository;
 
   final RxList<EmpresaUsuario> usuarios = <EmpresaUsuario>[].obs;
+  final RxList<EmpresaConvitePendente> convitesPendentes =
+      <EmpresaConvitePendente>[].obs;
   final RxBool isLoading = false.obs;
   final RxnString errorMessage = RxnString();
 
   Future<void> loadUsuarios(String empresaId) async {
     isLoading.value = true;
     errorMessage.value = null;
-    final Either<Failure, List<EmpresaUsuario>> result =
+    final bool isAdmin =
+        Get.find<AppGlobalController>().userRole.value.isAdmin;
+    if (!isAdmin) {
+      convitesPendentes.clear();
+    }
+    final Either<Failure, List<EmpresaUsuario>> userResult =
         await _usuariosRepository.listUsuarios(empresaId);
-    isLoading.value = false;
-    result.fold(
-      (Failure failure) {
+    await userResult.fold<Future<void>>(
+      (Failure failure) async {
         log('UsuariosController | listUsuarios falhou: ${failure.message}');
         errorMessage.value = failure.message;
+        isLoading.value = false;
       },
-      (List<EmpresaUsuario> list) => usuarios.assignAll(list),
+      (List<EmpresaUsuario> list) async {
+        usuarios.assignAll(list);
+        errorMessage.value = null;
+        if (isAdmin) {
+          final Either<Failure, List<EmpresaConvitePendente>> convResult =
+              await _usuariosRepository.listConvitesPendentes(empresaId);
+          convResult.fold(
+            (Failure f) {
+              log('UsuariosController | listConvitesPendentes: ${f.message}');
+              convitesPendentes.clear();
+            },
+            convitesPendentes.assignAll,
+          );
+        }
+        isLoading.value = false;
+      },
     );
   }
 
@@ -97,12 +121,15 @@ class UsuariosController extends GetxController {
       role: role,
       membroNome: membroNome,
     );
-    return result.fold(
-      (Failure failure) {
+    return await result.fold<Future<bool>>(
+      (Failure failure) async {
         errorMessage.value = failure.message;
         return false;
       },
-      (_) => true,
+      (_) async {
+        await loadUsuarios(empresaId);
+        return true;
+      },
     );
   }
 }

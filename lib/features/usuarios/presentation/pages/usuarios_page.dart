@@ -6,12 +6,15 @@ import '../../../../app/app_global_controller.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/network/supabase_initializer.dart';
 import '../../../auth/domain/entities/user_role.dart';
+import '../../domain/entities/empresa_convite_pendente.dart';
 import '../../domain/entities/empresa_usuario.dart';
 import '../controllers/usuarios_controller.dart';
 import 'widgets/add_convite_bottom_sheet.dart';
+import 'widgets/convite_pendente_tile.dart';
 import 'widgets/usuario_list_tile.dart';
 import 'widgets/usuarios_empty_state.dart';
 import 'widgets/usuarios_error_state.dart';
+import 'widgets/usuarios_section_header.dart';
 
 class UsuariosPage extends StatefulWidget {
   const UsuariosPage({super.key});
@@ -49,15 +52,20 @@ class _UsuariosPageState extends State<UsuariosPage> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddConvite(controller, global),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.person_add_outlined, color: Colors.white),
-        label: const Text(
-          'Convidar dispositivo',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-        ),
-      ),
+      floatingActionButton: Obx(() {
+        if (!global.userRole.value.isAdmin) {
+          return const SizedBox.shrink();
+        }
+        return FloatingActionButton.extended(
+          onPressed: () => _showAddConvite(controller, global),
+          backgroundColor: AppColors.primary,
+          icon: const Icon(Icons.person_add_outlined, color: Colors.white),
+          label: const Text(
+            'Convidar dispositivo',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
+        );
+      }),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -66,33 +74,48 @@ class _UsuariosPageState extends State<UsuariosPage> {
         if (error != null) {
           return UsuariosErrorState(message: error);
         }
+        final bool isAdmin = global.userRole.value.isAdmin;
+        final List<EmpresaConvitePendente> convites =
+            controller.convitesPendentes;
         final List<EmpresaUsuario> list = controller.usuarios;
-        if (list.isEmpty) {
+        if (list.isEmpty && convites.isEmpty) {
           return const UsuariosEmptyState();
         }
-        return ListView.builder(
+        return ListView(
           padding: const EdgeInsets.only(top: 12, bottom: 100),
-          itemCount: list.length,
-          itemBuilder: (_, int i) {
-            final EmpresaUsuario usuario = list[i];
-            return UsuarioListTile(
-              usuario: usuario,
-              isCurrentUser: usuario.userId == currentUserId,
-              onChangeRole:
-                  (UserRole role) => _changeRole(
-                    controller,
-                    global.empresaId.value,
-                    usuario.userId,
-                    role,
-                  ),
-              onRemove:
-                  () => _confirmRemove(
-                    controller,
-                    global.empresaId.value,
-                    usuario.userId,
-                  ),
-            );
-          },
+          children: <Widget>[
+            if (isAdmin && convites.isNotEmpty) ...<Widget>[
+              const UsuariosSectionHeader(title: 'Convites pendentes'),
+              ...convites.map(
+                (EmpresaConvitePendente c) =>
+                    ConvitePendenteTile(convite: c),
+              ),
+              if (list.isNotEmpty) const SizedBox(height: 8),
+            ],
+            if (list.isNotEmpty) ...<Widget>[
+              if (isAdmin && convites.isNotEmpty)
+                const UsuariosSectionHeader(title: 'Usuários'),
+              ...list.map(
+                (EmpresaUsuario usuario) => UsuarioListTile(
+                  usuario: usuario,
+                  isCurrentUser: usuario.userId == currentUserId,
+                  onChangeRole:
+                      (UserRole role) => _changeRole(
+                        controller,
+                        global.empresaId.value,
+                        usuario.userId,
+                        role,
+                      ),
+                  onRemove:
+                      () => _confirmRemove(
+                        controller,
+                        global.empresaId.value,
+                        usuario.userId,
+                      ),
+                ),
+              ),
+            ],
+          ],
         );
       }),
     );

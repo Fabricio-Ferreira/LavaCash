@@ -82,7 +82,11 @@ class LicenseController extends GetxController {
     global.licenseType.value = license.licenseType;
     global.activationCode.value = license.activationCode ?? '';
     log('LicenseCheck | OK: ${license.establishmentName}');
-    await _completeAuthAndNavigate(global);
+    await _completeAuthAndNavigate(
+      global,
+      licenseType: license.licenseType,
+      crmEmpresaId: license.empresaId,
+    );
   }
 
   Future<void> activateWithKey(String activationKey) async {
@@ -117,10 +121,18 @@ class LicenseController extends GetxController {
     global.establishmentPhone.value = license.phone;
     global.licenseType.value = license.licenseType;
     global.activationCode.value = license.activationCode ?? '';
-    await _completeAuthAndNavigate(global);
+    await _completeAuthAndNavigate(
+      global,
+      licenseType: license.licenseType,
+      crmEmpresaId: license.empresaId,
+    );
   }
 
-  Future<void> _completeAuthAndNavigate(AppGlobalController global) async {
+  Future<void> _completeAuthAndNavigate(
+    AppGlobalController global, {
+    required String licenseType,
+    String? crmEmpresaId,
+  }) async {
     final String code = global.activationCode.value;
     final Either<Failure, UserSession> authEither = await _authRepository
         .signInOrSignUpWithActivationCode(code);
@@ -140,6 +152,8 @@ class LicenseController extends GetxController {
       code,
       nomeParaCriacao: global.establishmentName.value,
       telefoneParaCriacao: global.establishmentPhone.value,
+      licenseType: licenseType,
+      crmEmpresaId: crmEmpresaId,
     );
     log('LicenseCheck | empresa ok=$ok');
     if (!ok) {

@@ -13,6 +13,7 @@ class License extends Equatable {
     required this.priceCents,
     required this.isDeviceRegistered,
     this.activationCode,
+    this.empresaId,
   });
 
   final String id;
@@ -26,6 +27,8 @@ class License extends Equatable {
   final int priceCents;
   final bool isDeviceRegistered;
   final String? activationCode;
+  /// LavaCash `empresas.id` for comercial (CRM `create_empresa_for_crm`).
+  final String? empresaId;
   @override
   List<Object?> get props => <Object?>[
     id,
@@ -39,5 +42,6 @@ class License extends Equatable {
     priceCents,
     isDeviceRegistered,
     activationCode,
+    empresaId,
   ];
 }

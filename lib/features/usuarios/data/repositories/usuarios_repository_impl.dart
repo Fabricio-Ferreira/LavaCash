@@ -3,8 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../auth/domain/entities/user_role.dart';
+import '../../domain/entities/empresa_convite_pendente.dart';
 import '../../domain/entities/empresa_usuario.dart';
 import '../../domain/repositories/usuarios_repository.dart';
+import '../models/empresa_convite_pendente_model.dart';
 import '../models/empresa_usuario_model.dart';
 
 class UsuariosRepositoryImpl implements UsuariosRepository {
@@ -35,6 +37,36 @@ class UsuariosRepositoryImpl implements UsuariosRepository {
           )
           .toList();
       return Right(usuarios);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<EmpresaConvitePendente>>> listConvitesPendentes(
+    String empresaId,
+  ) async {
+    final SupabaseClient? client = _client;
+    if (client == null) {
+      return const Right(<EmpresaConvitePendente>[]);
+    }
+    try {
+      final List<dynamic> data = await client
+          .from(_convitesTable)
+          .select()
+          .eq('empresa_id', empresaId)
+          .isFilter('claimed_at', null)
+          .order('created_at', ascending: false);
+      final List<EmpresaConvitePendente> list = data
+          .map(
+            (dynamic e) => EmpresaConvitePendenteModel.fromJson(
+              Map<String, dynamic>.from(e as Map),
+            ).toDomain(),
+          )
+          .toList();
+      return Right(list);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
     } on Exception catch (e) {

@@ -115,7 +115,6 @@ class _DashboardTabState extends State<DashboardTab>
                                     ),
                               ),
                             ),
-                            const SizedBox(height: 12),
                             _fade(
                               3,
                               DashboardQuickActions(

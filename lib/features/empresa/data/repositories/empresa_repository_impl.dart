@@ -16,6 +16,7 @@ class EmpresaRepositoryImpl implements EmpresaRepository {
   static const String _claimRpc = 'claim_empresa';
   static const String _acceptConviteRpc = 'accept_empresa_convite';
   static const String _registerUserRpc = 'register_user_in_empresa';
+  static const String _joinEmpresaAsDeviceRpc = 'join_empresa_as_device';
   static const String _myRoleRpc = 'get_my_role';
   static const int _ownEmpresaRowLimit = 1;
 
@@ -82,6 +83,29 @@ class EmpresaRepositoryImpl implements EmpresaRepository {
         EmpresaModel.fromJson(Map<String, dynamic>.from(data.first as Map))
             .toDomain(),
       );
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> joinEmpresaAsDevice(String empresaId) async {
+    final SupabaseClient? client = _client;
+    if (client == null) {
+      return const Left(ServerFailure('Supabase não configurado.'));
+    }
+    final String trimmed = empresaId.trim();
+    if (trimmed.isEmpty) {
+      return const Left(ServerFailure('empresa_id obrigatório.'));
+    }
+    try {
+      await client.rpc(
+        _joinEmpresaAsDeviceRpc,
+        params: <String, dynamic>{'p_empresa_id': trimmed},
+      );
+      return const Right(unit);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
     } on Exception catch (e) {

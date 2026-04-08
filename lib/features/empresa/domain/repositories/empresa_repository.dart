@@ -28,4 +28,7 @@ abstract class EmpresaRepository {
     required String empresaId,
     required UserRole role,
   });
+
+  /// Comercial package: links [auth.uid] to pre-created empresa (CRM bridge).
+  Future<Either<Failure, Unit>> joinEmpresaAsDevice(String empresaId);
 }

@@ -24,11 +24,14 @@ class EmpresaController extends GetxController {
   final RxBool isWaitingForCompanyLink = false.obs;
 
   /// Fetch own empresa via RLS (which now uses empresa_usuarios).
-  /// Falls back to claim → convite → create.
+  /// Comercial: [joinEmpresaAsDevice] when [crmEmpresaId] is set.
+  /// Otherwise: claim → convite → create.
   Future<bool> loadOrClaim(
     String activationCode, {
     String nomeParaCriacao = '',
     String telefoneParaCriacao = '',
+    String licenseType = '',
+    String? crmEmpresaId,
   }) async {
     isLoading.value = true;
     errorMessage.value = null;
@@ -42,6 +45,45 @@ class EmpresaController extends GetxController {
       log('EmpresaController | empresa existente id=${existing.id}');
       empresa.value = existing;
       await _populateGlobalWithRole(existing);
+      isLoading.value = false;
+      return true;
+    }
+
+    final String typeLower = licenseType.trim().toLowerCase();
+    final String? bridgeId = crmEmpresaId?.trim();
+    if (typeLower == 'comercial') {
+      if (bridgeId == null || bridgeId.isEmpty) {
+        log('EmpresaController | comercial sem empresa_id');
+        errorMessage.value =
+            'Licença comercial sem vínculo de empresa. Contate o suporte.';
+        isLoading.value = false;
+        return false;
+      }
+      log('EmpresaController | comercial join empresa_id=$bridgeId');
+      final Either<Failure, Unit> joinResult =
+          await _empresaRepository.joinEmpresaAsDevice(bridgeId);
+      if (joinResult.isLeft()) {
+        final Failure failure = joinResult.fold(
+          (Failure f) => f,
+          (_) => throw StateError('Expected Left'),
+        );
+        errorMessage.value = failure.message;
+        isLoading.value = false;
+        return false;
+      }
+      final Empresa? linked = (await _empresaRepository.fetchOwn()).fold(
+        (_) => null,
+        (Empresa? e) => e,
+      );
+      if (linked == null) {
+        errorMessage.value =
+            'Empresa não encontrada após vínculo. Tente novamente.';
+        isLoading.value = false;
+        return false;
+      }
+      log('EmpresaController | comercial join OK id=${linked.id}');
+      empresa.value = linked;
+      await _populateGlobalWithRole(linked);
       isLoading.value = false;
       return true;
     }

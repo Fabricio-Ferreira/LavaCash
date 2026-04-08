@@ -23,7 +23,7 @@ class DashboardStatCard extends StatelessWidget {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(24),
-      elevation: 0,
+      elevation: 4,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
