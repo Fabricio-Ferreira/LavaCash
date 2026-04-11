@@ -102,7 +102,7 @@ O workflow [`.github/workflows/release-android.yml`](.github/workflows/release-a
 | `SUPABASE_SERVICE_ROLE_KEY` | Upload no Storage `app-releases` + `PATCH` em `public.app_version` (nunca no app cliente). |
 | `DART_DEFINES_JSON` | JSON com os `--dart-define` necessários para o build (mesmo conteúdo lógico que `dart_defines.json` local: `SUPABASE_*`, `LICENSE_SUPABASE_*`, `LICENSE_LOCAL_CACHE_*`, etc.). |
 
-**Erro `Unable to parse file provided for --dart-define-from-file` / `Invalid property line`:** o secret tem de ser **JSON válido**, só isso — sem cercas ` ``` `, sem comentários, sem vírgula extra no último campo. No terminal: `jq -c . dart_defines.json` e cola **uma linha** no secret (ou o JSON minificado). Se tiveres BOM ao copiar do editor, o workflow tenta limpar; o problema mais comum é markdown ou JSON quebrado no GitHub.
+**Erro `Unable to parse file provided for --dart-define-from-file` / `Invalid property line` / `Extra data`:** o secret tem de ser **um único objeto JSON** — sem cercas ` ``` `, sem comentários, sem vírgula extra no último campo, **sem colar o JSON duas vezes** nem texto depois do `}` final. No terminal: `jq -c . dart_defines.json` e cola **só essa linha** no secret. O erro `Extra data: line 1 column …` costuma ser **dois JSON seguidos** ou caracteres a mais após o primeiro `}`.
 
 O pipeline **substitui** o objeto do APK no path configurado e **atualiza a linha** `app_version` (metadados de versão). **Não** apaga tabelas de negócio nem outros buckets. O build replica [`scripts/build_release.sh`](scripts/build_release.sh) (`--split-per-abi`, obfuscação, `--tree-shake-icons`); o upload publica o APK **arm64-v8a** (`app-arm64-v8a-release.apk`) no `apk_storage_path` (ex.: `lavacash/latest.apk`).
 

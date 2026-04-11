@@ -113,8 +113,9 @@ jobs:
               file=sys.stderr,
             )
             sys.exit(1)
+          decoder = json.JSONDecoder()
           try:
-            data = json.loads(raw)
+            data, end_idx = decoder.raw_decode(raw)
           except json.JSONDecodeError as err:
             print(
               "::error::DART_DEFINES_JSON is not valid JSON. "
@@ -123,6 +124,16 @@ jobs:
               file=sys.stderr,
             )
             print(err, file=sys.stderr)
+            sys.exit(1)
+          trailing = raw[end_idx:].strip()
+          if trailing:
+            print(
+              "::error::Extra data after the first JSON object (often two JSONs "
+              "pasted, or text after the closing }). Delete everything after the "
+              "first }. Position of junk starts around column "
+              f"{end_idx + 1}.",
+              file=sys.stderr,
+            )
             sys.exit(1)
           if not isinstance(data, dict):
             print("::error::Root must be a JSON object.", file=sys.stderr)
