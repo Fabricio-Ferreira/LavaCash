@@ -1,4 +1,4 @@
-import '../../domain/entities/license.dart';
+import 'package:lava_cash/core/domain/entities/license.dart';
 
 class LicenseModel {
   const LicenseModel({

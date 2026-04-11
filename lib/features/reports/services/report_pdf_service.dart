@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:intl/intl.dart';
-import '../../../domain/entities/best_weekday_report.dart';
-import '../../../domain/entities/weekly_report.dart';
+import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
+import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';

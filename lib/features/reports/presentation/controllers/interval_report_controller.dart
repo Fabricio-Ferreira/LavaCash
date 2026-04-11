@@ -8,10 +8,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../app/app_global_controller.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/app_snackbar.dart';
-import '../../domain/repositories/report_repository.dart';
-import '../../domain/usecases/get_interval_report.dart';
+import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_interval_report.dart';
 import '../../services/report_pdf_service.dart';
-import '../../../license/presentation/services/license_status_refresh.dart';
+import 'package:lava_cash/features/license/presentation/services/license_status_refresh.dart';
 
 class IntervalReportController extends GetxController {
   IntervalReportController({

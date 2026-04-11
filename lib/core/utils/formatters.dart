@@ -90,6 +90,32 @@ abstract class AppFormatters {
     return DateFormat('dd/MM/yyyy HH:mm').format(dateTime.toLocal());
   }
 
+  /// Parses `dd/MM/yyyy` from masked input; returns null if invalid.
+  static DateTime? tryParseBrazilianDateDdMmYyyy(String raw) {
+    final String t = AppStringUtils.stripWhitespace(raw);
+    if (t.length != 10) {
+      return null;
+    }
+    final RegExp re = RegExp(r'^(\d{2})/(\d{2})/(\d{4})$');
+    final Match? m = re.firstMatch(t);
+    if (m == null) {
+      return null;
+    }
+    final int? dd = int.tryParse(m[1]!);
+    final int? mm = int.tryParse(m[2]!);
+    final int? yyyy = int.tryParse(m[3]!);
+    if (dd == null || mm == null || yyyy == null) {
+      return null;
+    }
+    final DateTime constructed = DateTime(yyyy, mm, dd);
+    if (constructed.year != yyyy ||
+        constructed.month != mm ||
+        constructed.day != dd) {
+      return null;
+    }
+    return constructed;
+  }
+
   static String formatMonthYear(DateTime dateTime) {
     return DateFormat('MMMM yyyy', 'pt_BR').format(dateTime.toLocal());
   }

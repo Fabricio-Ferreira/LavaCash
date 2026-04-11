@@ -2,12 +2,12 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/network/supabase_initializer.dart';
-import '../../data/repositories/expense_repository_impl.dart';
-import '../../domain/repositories/expense_repository.dart';
-import '../../domain/usecases/create_expense.dart';
-import '../../domain/usecases/delete_expense.dart';
-import '../../domain/usecases/list_expenses_in_range.dart';
-import '../../domain/usecases/update_expense.dart';
+import 'package:lava_cash/core/data/expense/repositories/expense_repository_impl.dart';
+import 'package:lava_cash/core/domain/expense/repositories/expense_repository.dart';
+import 'package:lava_cash/core/domain/expense/usecases/create_expense.dart';
+import 'package:lava_cash/core/domain/expense/usecases/delete_expense.dart';
+import 'package:lava_cash/core/domain/expense/usecases/list_expenses_in_range.dart';
+import 'package:lava_cash/core/domain/expense/usecases/update_expense.dart';
 import '../controllers/expense_controller.dart';
 
 class ExpenseBinding extends Bindings {

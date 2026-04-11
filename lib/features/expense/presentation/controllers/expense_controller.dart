@@ -3,13 +3,13 @@ import 'package:get/get.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/app_snackbar.dart';
-import '../../../license/presentation/services/license_status_refresh.dart';
-import '../../../reports/presentation/controllers/report_controller.dart';
-import '../../domain/entities/expense.dart';
-import '../../domain/usecases/create_expense.dart';
-import '../../domain/usecases/delete_expense.dart';
-import '../../domain/usecases/list_expenses_in_range.dart';
-import '../../domain/usecases/update_expense.dart';
+import 'package:lava_cash/features/license/presentation/services/license_status_refresh.dart';
+import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
+import 'package:lava_cash/core/domain/expense/entities/expense.dart';
+import 'package:lava_cash/core/domain/expense/usecases/create_expense.dart';
+import 'package:lava_cash/core/domain/expense/usecases/delete_expense.dart';
+import 'package:lava_cash/core/domain/expense/usecases/list_expenses_in_range.dart';
+import 'package:lava_cash/core/domain/expense/usecases/update_expense.dart';
 
 class ExpenseController extends GetxController {
   ExpenseController({

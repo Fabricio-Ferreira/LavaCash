@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
-import '../../domain/entities/update_info.dart';
+import 'package:lava_cash/core/domain/app_update/entities/update_info.dart';
 
 class UpdateDialog extends StatelessWidget {
   const UpdateDialog({

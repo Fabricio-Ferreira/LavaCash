@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../domain/entities/expense.dart';
+import 'package:lava_cash/core/domain/expense/entities/expense.dart';
 import '../controllers/expense_controller.dart';
 import '../widgets/expense_add_form_sheet.dart';
 import '../widgets/expense_date_selector_row.dart';

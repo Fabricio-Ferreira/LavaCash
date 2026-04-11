@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../app/theme/app_colors.dart';
-import '../../../../../domain/entities/payment_method.dart';
+import 'package:lava_cash/core/domain/entities/payment_method.dart';
 
 class PaymentMethodCard extends StatelessWidget {
   const PaymentMethodCard({

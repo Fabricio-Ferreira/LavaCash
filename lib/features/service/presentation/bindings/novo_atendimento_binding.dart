@@ -3,10 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/network/supabase_initializer.dart';
 import '../../../../core/services/recent_clients_cache.dart';
-import '../../../search/data/repositories/search_repository_impl.dart';
-import '../../../search/domain/repositories/search_repository.dart';
-import '../../../search/domain/usecases/search_vehicle.dart';
-import '../../../search/presentation/controllers/search_controller.dart'
+import 'package:lava_cash/core/data/search/repositories/search_repository_impl.dart';
+import 'package:lava_cash/core/domain/search/repositories/search_repository.dart';
+import 'package:lava_cash/core/domain/search/usecases/search_vehicle.dart';
+import 'package:lava_cash/features/search/presentation/controllers/search_controller.dart'
     show VehicleSearchController;
 
 class NovoAtendimentoBinding extends Bindings {

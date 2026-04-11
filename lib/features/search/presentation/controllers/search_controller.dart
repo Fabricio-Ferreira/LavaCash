@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/constants.dart';
-import '../../../../domain/entities/vehicle_with_client.dart';
-import '../../domain/usecases/search_vehicle.dart';
+import 'package:lava_cash/core/domain/entities/vehicle_with_client.dart';
+import 'package:lava_cash/core/domain/search/usecases/search_vehicle.dart';
 
 class VehicleSearchController extends GetxController {
   VehicleSearchController({required SearchVehicle searchVehicle})

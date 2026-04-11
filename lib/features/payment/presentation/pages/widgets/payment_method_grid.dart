@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../../domain/entities/payment_method.dart';
+import 'package:lava_cash/core/domain/entities/payment_method.dart';
 import 'payment_method_card.dart';
 
 const List<PaymentMethod> kPaymentGridOrder = <PaymentMethod>[

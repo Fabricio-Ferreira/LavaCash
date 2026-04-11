@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 
 import '../../../../core/network/supabase_initializer.dart';
-import '../../data/repositories/empresa_repository_impl.dart';
-import '../../domain/repositories/empresa_repository.dart';
+import 'package:lava_cash/core/data/empresa/repositories/empresa_repository_impl.dart';
+import 'package:lava_cash/core/domain/empresa/repositories/empresa_repository.dart';
 import '../controllers/empresa_controller.dart';
 
 class EmpresaBinding extends Bindings {

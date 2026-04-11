@@ -7,12 +7,12 @@ import '../../../../app/app_global_controller.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/services/device_id_service.dart';
-import '../../../../domain/entities/license.dart';
-import '../../../auth/domain/entities/user_session.dart';
-import '../../../auth/domain/repositories/auth_repository.dart';
-import '../../../empresa/presentation/controllers/empresa_controller.dart';
-import '../../domain/usecases/activate_license.dart';
-import '../../domain/usecases/check_license.dart';
+import 'package:lava_cash/core/domain/entities/license.dart';
+import 'package:lava_cash/core/domain/auth/entities/user_session.dart';
+import 'package:lava_cash/core/domain/auth/repositories/auth_repository.dart';
+import 'package:lava_cash/features/empresa/presentation/controllers/empresa_controller.dart';
+import 'package:lava_cash/core/domain/license/usecases/activate_license.dart';
+import 'package:lava_cash/core/domain/license/usecases/check_license.dart';
 
 class LicenseController extends GetxController {
   LicenseController({

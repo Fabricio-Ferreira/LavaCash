@@ -8,20 +8,20 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../app/app_global_controller.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/app_snackbar.dart';
-import '../../../../domain/entities/best_weekday_report.dart';
-import '../../../../domain/entities/daily_report.dart';
-import '../../../../domain/entities/monthly_report.dart';
-import '../../../../domain/entities/service_summary.dart';
-import '../../../../domain/entities/weekly_report.dart';
-import '../../domain/usecases/get_best_weekday_report.dart';
-import '../../domain/usecases/get_daily_report.dart';
-import '../../domain/usecases/get_in_progress_services.dart';
-import '../../domain/usecases/get_monthly_reports.dart';
-import '../../domain/usecases/get_today_services.dart';
-import '../../domain/usecases/get_weekly_report.dart';
-import '../../domain/repositories/report_repository.dart';
+import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
+import 'package:lava_cash/core/domain/entities/daily_report.dart';
+import 'package:lava_cash/core/domain/entities/monthly_report.dart';
+import 'package:lava_cash/core/domain/entities/service_summary.dart';
+import 'package:lava_cash/core/domain/entities/weekly_report.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_best_weekday_report.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_daily_report.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_in_progress_services.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_monthly_reports.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_today_services.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_weekly_report.dart';
+import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
 import '../../services/report_pdf_service.dart';
-import '../../../license/presentation/services/license_status_refresh.dart';
+import 'package:lava_cash/features/license/presentation/services/license_status_refresh.dart';
 
 class ReportController extends GetxController {
   ReportController({

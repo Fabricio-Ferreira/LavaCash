@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../domain/entities/client.dart';
-import '../../domain/entities/vehicle.dart';
-import '../../domain/entities/vehicle_with_client.dart';
+import 'package:lava_cash/core/domain/entities/client.dart';
+import 'package:lava_cash/core/domain/entities/vehicle.dart';
+import 'package:lava_cash/core/domain/entities/vehicle_with_client.dart';
 
 const String _prefsKeyRecentClients = 'recent_clients';
 

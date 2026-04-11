@@ -4,9 +4,9 @@ import 'package:get/get.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../controllers/interval_report_controller.dart';
 import '../controllers/report_controller.dart';
-import 'daily_report_tab.dart';
-import 'interval_report_tab.dart';
-import 'monthly_report_tab.dart';
+import '../daily/daily_report_tab.dart';
+import '../monthly/monthly_report_tab.dart';
+import '../period/interval_report_tab.dart';
 
 /// Relatórios with Diário / Mensal sub-tabs (Stitch-style shell).
 class ReportsTab extends StatefulWidget {

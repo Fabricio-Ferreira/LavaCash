@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../domain/entities/expense.dart';
+import 'package:lava_cash/core/domain/expense/entities/expense.dart';
 import '../expense_category_labels.dart';
 
 class ExpenseListItemCard extends StatelessWidget {

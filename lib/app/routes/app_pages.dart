@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:lava_cash/domain/entities/service_status.dart';
+import 'package:lava_cash/core/domain/entities/service_status.dart';
 
 import '../../features/license/presentation/bindings/license_binding.dart';
 import '../../features/license/presentation/pages/blocked_page.dart';
@@ -8,12 +8,12 @@ import '../../features/payment/presentation/bindings/payment_binding.dart';
 import '../../features/payment/presentation/pages/payment_page.dart';
 import '../../features/registration/presentation/bindings/registration_binding.dart';
 import '../../features/registration/presentation/pages/registration_page.dart';
-import '../../features/reports/presentation/bindings/home_binding.dart';
-import '../../features/reports/presentation/pages/daily_report_route_page.dart';
-import '../../features/reports/presentation/pages/home_page.dart';
+import '../../features/dashboard/bindings/home_binding.dart';
+import '../../features/dashboard/presentation/pages/home_page.dart';
+import '../../features/reports/presentation/daily/daily_report_route_page.dart';
 import '../../features/reports/presentation/pages/in_progress_services_page.dart';
-import '../../features/reports/presentation/pages/interval_report_route_page.dart';
-import '../../features/reports/presentation/pages/monthly_report_route_page.dart';
+import '../../features/reports/presentation/monthly/monthly_report_route_page.dart';
+import '../../features/reports/presentation/period/interval_report_route_page.dart';
 import '../../features/service/presentation/bindings/novo_atendimento_binding.dart';
 import '../../features/service/presentation/bindings/service_binding.dart';
 import '../../features/service/presentation/pages/novo_atendimento_page.dart';

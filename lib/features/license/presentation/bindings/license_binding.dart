@@ -4,14 +4,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/network/license_supabase_client.dart';
 import '../../../../core/network/supabase_initializer.dart';
 import '../../../../core/services/license_encrypted_local_cache.dart';
-import '../../../auth/data/repositories/auth_repository_impl.dart';
-import '../../../auth/domain/repositories/auth_repository.dart';
-import '../../../empresa/presentation/bindings/empresa_binding.dart';
-import '../../../empresa/presentation/controllers/empresa_controller.dart';
-import '../../data/repositories/license_repository_impl.dart';
-import '../../domain/repositories/license_repository.dart';
-import '../../domain/usecases/activate_license.dart';
-import '../../domain/usecases/check_license.dart';
+import 'package:lava_cash/core/data/auth/repositories/auth_repository_impl.dart';
+import 'package:lava_cash/core/domain/auth/repositories/auth_repository.dart';
+import 'package:lava_cash/features/empresa/presentation/bindings/empresa_binding.dart';
+import 'package:lava_cash/features/empresa/presentation/controllers/empresa_controller.dart';
+import 'package:lava_cash/core/data/license/repositories/license_repository_impl.dart';
+import 'package:lava_cash/core/domain/license/repositories/license_repository.dart';
+import 'package:lava_cash/core/domain/license/usecases/activate_license.dart';
+import 'package:lava_cash/core/domain/license/usecases/check_license.dart';
 import '../controllers/license_controller.dart';
 
 class LicenseBinding extends Bindings {
