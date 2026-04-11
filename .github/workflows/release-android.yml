@@ -1,0 +1,176 @@
+# Release Android: build APK, upload to Supabase Storage (app-releases), PATCH public.app_version.
+# Triggers: manual (workflow_dispatch) or tag v* on a commit that is on main.
+# Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DART_DEFINES_JSON (see README).
+# Docs: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+
+name: Release Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      is_mandatory:
+        description: 'Mandatory in-app update (blocks dismiss in UpdateDialog)'
+        type: boolean
+        default: false
+      release_notes:
+        description: 'Optional; one line per bullet (shown in app as release_notes)'
+        required: false
+        type: string
+        default: ''
+      apk_storage_path:
+        description: 'Object path inside bucket app-releases'
+        required: false
+        default: 'lavacash/latest.apk'
+        type: string
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - name: Check secrets
+        run: |
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY repository secrets."
+            exit 1
+          fi
+          exit 0
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag commit is on main
+        if: github.event_name == 'push'
+        run: |
+          set -e
+          git fetch origin main
+          git merge-base --is-ancestor "${{ github.sha }}" origin/main
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Parse pubspec version
+        id: pubspec
+        run: |
+          set -e
+          LINE=$(grep '^version:' pubspec.yaml | head -1)
+          RAW="${LINE#version:}"
+          RAW="${RAW#"${RAW%%[![:space:]]*}"}"
+          RAW="${RAW//$'\r'/}"
+          SEMVER="${RAW%%+*}"
+          BUILD="${RAW#*+}"
+          if [ -z "$BUILD" ] || [ "$BUILD" = "$RAW" ]; then
+            BUILD="0"
+          fi
+          echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+
+      - name: Export release notes for PATCH
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          {
+            echo 'RELEASE_NOTES_FOR_PATCH<<EOF'
+            echo "${{ github.event.inputs.release_notes }}"
+            echo 'EOF'
+          } >> "$GITHUB_ENV"
+
+      - name: Write dart defines for CI
+        env:
+          DART_DEFINES_JSON: ${{ secrets.DART_DEFINES_JSON }}
+        run: |
+          if [ -z "${DART_DEFINES_JSON}" ]; then
+            echo "Missing DART_DEFINES_JSON repository secret (same keys as dart_defines.json)."
+            exit 1
+          fi
+          printf '%s' "${DART_DEFINES_JSON}" > dart_defines.ci.json
+
+      - name: Install jq
+        run: sudo apt-get update -qq && sudo apt-get install -y jq
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build APK
+        run: |
+          set -e
+          SYMBOLS_DIR="${GITHUB_WORKSPACE}/build/symbols/android"
+          mkdir -p "${SYMBOLS_DIR}"
+          flutter build apk --release \
+            --split-per-abi \
+            --obfuscate \
+            "--split-debug-info=${SYMBOLS_DIR}" \
+            --tree-shake-icons \
+            "--dart-define-from-file=${GITHUB_WORKSPACE}/dart_defines.ci.json"
+
+      - name: Resolve storage object path
+        id: storage
+        run: |
+          set -e
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "path=${{ github.event.inputs.apk_storage_path }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "path=lavacash/latest.apk" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload APK to Supabase Storage
+        run: |
+          set -e
+          # split-per-ABI: same outputs as scripts/build_release.sh; arm64-v8a for typical phones
+          APK_FILE="${GITHUB_WORKSPACE}/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
+          if [ ! -f "$APK_FILE" ]; then
+            echo "Expected split APK not found: $APK_FILE"
+            ls -la "${GITHUB_WORKSPACE}/build/app/outputs/flutter-apk/" || true
+            exit 1
+          fi
+          OBJECT_PATH="${{ steps.storage.outputs.path }}"
+          URL="${SUPABASE_URL%/}/storage/v1/object/app-releases/${OBJECT_PATH}?upsert=true"
+          curl -fS -X POST "$URL" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "x-upsert: true" \
+            -H "Content-Type: application/vnd.android.package-archive" \
+            --data-binary "@${APK_FILE}"
+
+      - name: PATCH app_version
+        run: |
+          set -e
+          SEMVER="${{ steps.pubspec.outputs.semver }}"
+          BUILD="${{ steps.pubspec.outputs.build }}"
+          OBJECT_PATH="${{ steps.storage.outputs.path }}"
+          UPDATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          MAND_JSON=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && \
+             [ "${{ github.event.inputs.is_mandatory }}" = "true" ]; then
+            MAND_JSON=true
+          fi
+          NOTES_JSON=$(printf '%s' "${RELEASE_NOTES_FOR_PATCH:-}" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          BN_JSON=$(printf '%s' "$BUILD" | jq -R 'tonumber? // 0')
+          BODY=$(jq -n \
+            --arg ver "$SEMVER" \
+            --argjson bn "$BN_JSON" \
+            --arg path "$OBJECT_PATH" \
+            --argjson mand "$MAND_JSON" \
+            --argjson notes "$NOTES_JSON" \
+            --arg ut "$UPDATED_AT" \
+            '{latest_version:$ver,latest_build_number:$bn,apk_storage_path:$path,is_mandatory:$mand,release_notes:$notes,updated_at:$ut}')
+          curl -fS -X PATCH \
+            "${SUPABASE_URL%/}/rest/v1/app_version?id=eq.1" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "$BODY"

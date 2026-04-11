@@ -57,6 +57,67 @@ Código **compartilhado:** `lib/core/` (erros, rede, utilitários, widgets gené
 
 ---
 
+## Branching e GitFlow
+
+| Branch | Papel |
+|--------|--------|
+| **`main`** | Produção; recebe merge de `release/*` (ou `hotfix/*`); **tags `v*`** marcam releases publicados. |
+| **`development`** | Integração contínua do dia a dia. |
+| **`release/x.y.z`** | Congelamento (ex.: `release/1.1.0`); após QA, merge em **`main`**, tag **`vx.y.z`**, depois merge de volta para `development` se necessário. |
+
+```mermaid
+flowchart TB
+  subgraph integration [Integração]
+    dev[development]
+    feat[feature ou fix branches]
+    feat --> dev
+  end
+  subgraph release_flow [Congelamento]
+    rel[release x.y.z]
+    dev --> rel
+  end
+  subgraph production [Produção]
+    main[main]
+    tag[tag v x.y.z]
+    rel --> main
+    main --> tag
+  end
+  rel -->|merge após QA| dev
+```
+
+Hotfix opcional: `hotfix/*` a partir de `main` → merge em `main` e em `development`.
+
+### Release Android (GitHub Actions)
+
+O workflow [`.github/workflows/release-android.yml`](.github/workflows/release-android.yml) **não** roda em push para `development` ou `main`. Só dispara:
+
+1. **`workflow_dispatch`** (ação manual no GitHub) — inputs: `is_mandatory`, `release_notes` opcional, `apk_storage_path` (default `lavacash/latest.apk`).
+2. **`push` de tags `v*`** — o job verifica se o commit do tag está na história de `main`; `is_mandatory` usa **false** por omissão (sem inputs).
+
+**Secrets do repositório** (Settings → Secrets and variables → Actions):
+
+| Secret | Uso |
+|--------|-----|
+| `SUPABASE_URL` | URL do projeto (mesma da API). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Upload no Storage `app-releases` + `PATCH` em `public.app_version` (nunca no app cliente). |
+| `DART_DEFINES_JSON` | JSON com os `--dart-define` necessários para o build (mesmo conteúdo lógico que `dart_defines.json` local: `SUPABASE_*`, `LICENSE_SUPABASE_*`, `LICENSE_LOCAL_CACHE_*`, etc.). |
+
+O pipeline **substitui** o objeto do APK no path configurado e **atualiza a linha** `app_version` (metadados de versão). **Não** apaga tabelas de negócio nem outros buckets. O build replica [`scripts/build_release.sh`](scripts/build_release.sh) (`--split-per-abi`, obfuscação, `--tree-shake-icons`); o upload publica o APK **arm64-v8a** (`app-arm64-v8a-release.apk`) no `apk_storage_path` (ex.: `lavacash/latest.apk`).
+
+### Verificação após rodar o workflow
+
+No Supabase (SQL Editor ou MCP `execute_sql`):
+
+```sql
+SELECT latest_version, latest_build_number, apk_storage_path, is_mandatory
+FROM public.app_version
+WHERE id = 1;
+```
+
+Em dispositivo com build antigo, confirmar o dialog de atualização conforme `is_mandatory`.
+
+---
+
 ## Bootstrap (`main.dart`)
 
 Inicialização assíncrona roda dentro de **`runZonedGuarded`**, com **`WidgetsFlutterBinding.ensureInitialized()`** na mesma zona que **`runApp`** (evita *zone mismatch* do Flutter). Ordem: `ensureInitialized` → `initializeDateFormatting('pt_BR')` → Supabase → orientação retrato → `AppGlobalController` → `runApp`.
@@ -168,6 +229,8 @@ Isso indica **falha de DNS ou rede** no dispositivo/emulador (o host nem chegou 
 - Emulador Android: cold boot, ou teste em dispositivo físico; VPN/firewall corporativo pode bloquear DNS.
 
 ### Build APK de release (segurança e distribuição)
+
+Publicação automática (build + Storage + `app_version`) via GitHub Actions: [Release Android (GitHub Actions)](#release-android-github-actions) — requer secrets `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `DART_DEFINES_JSON` no repositório. Assinatura de release no CI: opcional; sem keystore nos secrets o Gradle pode cair em assinatura de debug (ver `android/app/build.gradle.kts`).
 
 1. **`dart_defines.json`** — deve incluir `SUPABASE_*`, `LICENSE_SUPABASE_*` e chaves de cache local (`LICENSE_LOCAL_CACHE_*`), como o exemplo em `dart_defines.example.json`. A licença **não** tem fallback no código; sem defines o cliente de licença falha em tempo de execução.
 2. **Assinatura Android** — `android/key.properties` + `lavacash-release.jks`. Com senhas reais ou env vars (`LAVACASH_STORE_PASSWORD`, `LAVACASH_KEY_PASSWORD`), o release usa o keystore de release. Com `CHANGE_ME` ou senhas em falta, o Gradle **avisa** e assina o release com **debug** (APK gera na mesma; para distribuição, configura as senhas).
