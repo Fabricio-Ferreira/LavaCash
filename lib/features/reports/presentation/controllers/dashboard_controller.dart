@@ -37,8 +37,19 @@ class DashboardController extends GetxController {
     Get.toNamed<void>(AppRoutes.monthlyReport);
   }
 
+  void openIntervalReport() {
+    Get.toNamed<void>(AppRoutes.intervalReport);
+  }
+
   void openInProgressServices({ServiceStatus? status}) {
     _reportController.loadInProgressServices();
     Get.toNamed<void>(AppRoutes.inProgressServices, arguments: status);
+  }
+
+  void openExpenses() {
+    final Future<void>? navigation = Get.toNamed<void>(AppRoutes.expenses);
+    navigation?.then((_) {
+      _reportController.loadDaily();
+    });
   }
 }

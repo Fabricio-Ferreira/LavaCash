@@ -100,7 +100,7 @@ class _AtendimentosBody extends StatelessWidget {
     }
     if (isLoading && preview.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
+        padding: EdgeInsets.symmetric(vertical: 16),
         child: Center(child: CircularProgressIndicator()),
       );
     }

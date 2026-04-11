@@ -17,7 +17,6 @@ class DashboardGreetingHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const SizedBox(height: 4),
         Text(
           dateLine,
           style: textTheme.headlineSmall?.copyWith(

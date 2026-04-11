@@ -43,7 +43,7 @@ class DashboardRecebimentoSection extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         PaymentListCard(
           entries: daily.paymentEntries,
           isLoading: daily.isLoading,

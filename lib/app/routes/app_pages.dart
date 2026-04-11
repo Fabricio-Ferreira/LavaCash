@@ -12,10 +12,13 @@ import '../../features/reports/presentation/bindings/home_binding.dart';
 import '../../features/reports/presentation/pages/daily_report_route_page.dart';
 import '../../features/reports/presentation/pages/home_page.dart';
 import '../../features/reports/presentation/pages/in_progress_services_page.dart';
+import '../../features/reports/presentation/pages/interval_report_route_page.dart';
 import '../../features/reports/presentation/pages/monthly_report_route_page.dart';
 import '../../features/service/presentation/bindings/novo_atendimento_binding.dart';
 import '../../features/service/presentation/bindings/service_binding.dart';
 import '../../features/service/presentation/pages/novo_atendimento_page.dart';
+import '../../features/expense/presentation/bindings/expense_binding.dart';
+import '../../features/expense/presentation/pages/expense_page.dart';
 import '../../features/service/presentation/pages/service_page.dart';
 import 'app_routes.dart';
 
@@ -57,6 +60,16 @@ abstract class AppPages {
       name: AppRoutes.monthlyReport,
       page: () => const MonthlyReportRoutePage(),
       binding: HomeBinding(),
+    ),
+    GetPage<void>(
+      name: AppRoutes.intervalReport,
+      page: () => const IntervalReportRoutePage(),
+      binding: HomeBinding(),
+    ),
+    GetPage<void>(
+      name: AppRoutes.expenses,
+      page: () => const ExpensePage(),
+      binding: ExpenseBinding(),
     ),
     GetPage<void>(
       name: AppRoutes.registration,

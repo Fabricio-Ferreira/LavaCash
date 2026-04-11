@@ -24,4 +24,39 @@ abstract class ReportRepository {
   Future<Either<Failure, BestWeekdayReport?>> getBestWeekdayReport(
     DateTime month,
   );
+
+  /// Consolidated row for [vw_relatorio_diario_pdf] (PDF / export).
+  Future<Either<Failure, Map<String, dynamic>>> getPdfDailySummary(
+    DateTime day,
+  );
+
+  Future<Either<Failure, List<Map<String, dynamic>>>>
+  getPdfDailyAttendanceRows(DateTime day);
+
+  Future<Either<Failure, List<Map<String, dynamic>>>> getPdfDailyExpenseRows(
+    DateTime day,
+  );
+
+  /// Consolidated row for [vw_relatorio_mensal_pdf].
+  Future<Either<Failure, Map<String, dynamic>>> getPdfMonthlySummary(
+    DateTime month,
+  );
+
+  /// Inclusive [startInclusive] / [endInclusive] (local calendar days).
+  /// Aggregates finalizados + despesas; max span enforced in implementation.
+  Future<Either<Failure, Map<String, dynamic>>> getIntervalSummary(
+    DateTime startInclusive,
+    DateTime endInclusive,
+  );
+
+  Future<Either<Failure, List<Map<String, dynamic>>>>
+  getIntervalAttendanceRows(
+    DateTime startInclusive,
+    DateTime endInclusive,
+  );
+
+  Future<Either<Failure, List<Map<String, dynamic>>>> getIntervalExpenseRows(
+    DateTime startInclusive,
+    DateTime endInclusive,
+  );
 }

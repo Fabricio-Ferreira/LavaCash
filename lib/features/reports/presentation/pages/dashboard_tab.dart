@@ -11,6 +11,7 @@ import '../../../../shared/widgets/elite_hero_card.dart';
 import '../widgets/dashboard_atendimentos_section.dart';
 import '../widgets/dashboard_monthly_performance_section.dart';
 import '../widgets/dashboard_quick_actions.dart';
+import '../widgets/dashboard_despesas_section.dart';
 import '../widgets/dashboard_recebimento_section.dart';
 import '../widgets/dashboard_stats_row.dart';
 
@@ -37,17 +38,22 @@ class _DashboardTabState extends State<DashboardTab>
       vsync: this,
     );
     _fadeAnimations = List<Animation<double>>.generate(
-      7,
-      (int i) => Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(
-          parent: _animationController,
-          curve: Interval(
-            i * 0.08,
-            0.55 + i * 0.07,
-            curve: Curves.easeOutCubic,
+      8,
+      (int i) {
+        final double start = (i * 0.08).clamp(0.0, 1.0);
+        final double endUncapped = 0.55 + i * 0.07;
+        final double end = endUncapped.clamp(start + 0.02, 1.0);
+        return Tween<double>(begin: 0, end: 1).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Interval(
+              start,
+              end,
+              curve: Curves.easeOutCubic,
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Get.find<DashboardController>().loadInitialReportData();
@@ -83,9 +89,9 @@ class _DashboardTabState extends State<DashboardTab>
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
                     horizontalPad,
-                    8,
+                    0,
                     horizontalPad,
-                    120,
+                    72,
                   ),
                   sliver: SliverToBoxAdapter(
                     child: Center(
@@ -95,15 +101,16 @@ class _DashboardTabState extends State<DashboardTab>
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _fade(0, const DashboardGreetingHeader()),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 8),
                             _fade(
                               1,
                               EliteHeroCard.dashboard(
                                 isLoading: daily.isLoading,
                                 totalRecebido: daily.totalRecebido,
+                                totalDespesas: daily.totalDespesas,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 6),
                             _fade(
                               2,
                               DashboardStatsRow(
@@ -115,7 +122,7 @@ class _DashboardTabState extends State<DashboardTab>
                                     ),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 6),
                             _fade(
                               3,
                               DashboardQuickActions(
@@ -123,11 +130,18 @@ class _DashboardTabState extends State<DashboardTab>
                                     () =>
                                         Get.toNamed(AppRoutes.novoAtendimento),
                                 onRelatorioDiario: dashboard.openDailyReport,
+                                onRelatorioPeriodo: dashboard.openIntervalReport,
+                                onDespesas: dashboard.openExpenses,
                               ),
                             ),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 10),
                             _fade(4, DashboardRecebimentoSection(daily: daily)),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 10),
+                            _fade(
+                              5,
+                              DashboardDespesasSection(daily: daily),
+                            ),
+                            const SizedBox(height: 10),
                             _fade(
                               6,
                               DashboardMonthlyPerformanceSection(
@@ -135,9 +149,9 @@ class _DashboardTabState extends State<DashboardTab>
                                 onOpenMonthly: dashboard.openMonthlyReport,
                               ),
                             ),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 10),
                             _fade(
-                              5,
+                              7,
                               DashboardAtendimentosSection(
                                 onVerTodos:
                                     () => dashboard.openInProgressServices(),

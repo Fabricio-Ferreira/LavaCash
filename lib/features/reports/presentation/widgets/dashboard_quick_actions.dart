@@ -7,10 +7,14 @@ class DashboardQuickActions extends StatelessWidget {
     super.key,
     required this.onNovoAtendimento,
     required this.onRelatorioDiario,
+    required this.onRelatorioPeriodo,
+    required this.onDespesas,
   });
 
   final VoidCallback onNovoAtendimento;
   final VoidCallback onRelatorioDiario;
+  final VoidCallback onRelatorioPeriodo;
+  final VoidCallback onDespesas;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +41,7 @@ class DashboardQuickActions extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               onTap: onNovoAtendimento,
               child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 18),
+                padding: EdgeInsets.symmetric(vertical: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -57,11 +61,11 @@ class DashboardQuickActions extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         OutlinedButton(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 10),
             side: BorderSide(
               color: AppColors.primary.withValues(alpha: 0.22),
               width: 2,
@@ -79,6 +83,60 @@ class DashboardQuickActions extends StatelessWidget {
               SizedBox(width: 8),
               Text(
                 'Relatório diário',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            side: BorderSide(
+              color: AppColors.primary.withValues(alpha: 0.22),
+              width: 2,
+            ),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.05),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          onPressed: onRelatorioPeriodo,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.date_range),
+              SizedBox(width: 8),
+              Text(
+                'Relatório por período',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.tertiary,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            side: BorderSide(
+              color: AppColors.tertiary.withValues(alpha: 0.35),
+              width: 2,
+            ),
+            backgroundColor: AppColors.tertiary.withValues(alpha: 0.06),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          onPressed: onDespesas,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.receipt_long),
+              SizedBox(width: 8),
+              Text(
+                'Despesas do dia',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
             ],

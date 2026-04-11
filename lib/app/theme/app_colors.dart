@@ -17,4 +17,5 @@ abstract class AppColors {
   static const Color secondaryContainer = Color(0xFF6BFF8F);
   static const Color primaryFixed = Color(0xFF7FFC97);
   static const Color surfaceContainer = Color(0xFFECEEF0);
+  static const Color expenseRed = Color(0xFFFF8A80);
 }

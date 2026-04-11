@@ -70,7 +70,7 @@ class AppBottomNavigation extends StatelessWidget {
                 ),
                 NavPill(
                   icon: Icons.add_circle_outline,
-                  label: 'Novo',
+                  label: 'Atendimento',
                   selected: false,
                   onTap: () => onSelect(2),
                 ),

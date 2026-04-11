@@ -20,6 +20,12 @@ abstract class AppFormatters {
     return currency.format(value);
   }
 
+  /// Expense line on dark backgrounds: always `- R$ …` (minus before currency).
+  static String formatCurrencyExpenseOutflow(double value) {
+    final double safe = value < 0 ? 0 : value;
+    return '- ${currency.format(safe)}';
+  }
+
   static String formatCurrencyInputFromCentavos(int centavos) {
     int safe = centavos;
     if (safe < 0) {

@@ -23,6 +23,7 @@ class ReportRepositoryImpl implements ReportRepository {
     try {
       final DateTime start = DateTime(day.year, day.month, day.day);
       final DateTime end = start.add(const Duration(days: 1));
+      final String dataReferenciaKey = _dateKeyLocal(start);
       final List<dynamic> parallel =
           await Future.wait<dynamic>(<Future<dynamic>>[
             _client
@@ -37,9 +38,14 @@ class ReportRepositoryImpl implements ReportRepository {
                 .eq('status', 'em_andamento')
                 .gte('hora_entrada', start.toUtc().toIso8601String())
                 .lt('hora_entrada', end.toUtc().toIso8601String()),
+            _client
+                .from('despesas')
+                .select('valor')
+                .eq('data_referencia', dataReferenciaKey),
           ]);
       final List<dynamic> rows = parallel[0] as List<dynamic>;
       final List<dynamic> emAndamentoRows = parallel[1] as List<dynamic>;
+      final List<dynamic> despesasRows = parallel[2] as List<dynamic>;
       final int emAndamento = emAndamentoRows.length;
       final Map<String, double> byForm = <String, double>{};
       double total = 0;
@@ -56,10 +62,19 @@ class ReportRepositoryImpl implements ReportRepository {
         total += valor;
         byForm[forma] = (byForm[forma] ?? 0) + valor;
       }
+      double totalDespesas = 0;
+      for (final dynamic row in despesasRows) {
+        final Map<String, dynamic> map = row as Map<String, dynamic>;
+        final double? v = _toDouble(map['valor']);
+        if (v != null) {
+          totalDespesas += v;
+        }
+      }
       return Right(
         DailyReport(
           totalCarros: count,
           totalRecebido: total,
+          totalDespesas: totalDespesas,
           totalPorFormaPagamento: byForm,
           emAndamento: emAndamento,
         ),
@@ -303,6 +318,368 @@ class ReportRepositoryImpl implements ReportRepository {
     }
   }
 
+  static String _pdfDateIso(DateTime d) {
+    final String y = d.year.toString().padLeft(4, '0');
+    final String m = d.month.toString().padLeft(2, '0');
+    final String day = d.day.toString().padLeft(2, '0');
+    return '$y-$m-$day';
+  }
+
+  static String _pdfMesRefIso(DateTime m) {
+    final String y = m.year.toString().padLeft(4, '0');
+    final String mo = m.month.toString().padLeft(2, '0');
+    return '$y-$mo';
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getPdfDailySummary(
+    DateTime day,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final String dr = _pdfDateIso(day);
+      final Map<String, dynamic>? row =
+          await _client
+              .from('vw_relatorio_diario_pdf')
+              .select()
+              .eq('data_ref', dr)
+              .maybeSingle();
+      return Right(_normalizePdfSummaryRow(row));
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>>
+  getPdfDailyAttendanceRows(DateTime day) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final String dr = _pdfDateIso(day);
+      final List<dynamic> rows =
+          await _client
+              .from('vw_relatorio_diario_atendimentos_detalhe')
+              .select()
+              .eq('data_ref', dr)
+              .order('hora_entrada_local', ascending: false);
+      final List<Map<String, dynamic>> list = rows
+          .map((dynamic e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      return Right(list);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getPdfDailyExpenseRows(
+    DateTime day,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final String dr = _pdfDateIso(day);
+      final List<dynamic> rows =
+          await _client
+              .from('vw_relatorio_diario_despesas_detalhe')
+              .select()
+              .eq('data_ref', dr)
+              .order('registrado_em', ascending: false);
+      final List<Map<String, dynamic>> list = rows
+          .map((dynamic e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      return Right(list);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  static const int _maxIntervalDays = 366;
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getIntervalSummary(
+    DateTime startInclusive,
+    DateTime endInclusive,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final DateTime start = DateTime(
+        startInclusive.year,
+        startInclusive.month,
+        startInclusive.day,
+      );
+      final DateTime end = DateTime(
+        endInclusive.year,
+        endInclusive.month,
+        endInclusive.day,
+      );
+      if (start.isAfter(end)) {
+        return const Left(ValidationFailure('Data inicial após a data final'));
+      }
+      final int spanDays = end.difference(start).inDays + 1;
+      if (spanDays > _maxIntervalDays) {
+        return Left(
+          ValidationFailure('Período máximo: $_maxIntervalDays dias'),
+        );
+      }
+      final DateTime endExclusive = end.add(const Duration(days: 1));
+      final List<dynamic> parallel =
+          await Future.wait<dynamic>(<Future<dynamic>>[
+            _client
+                .from('atendimentos')
+                .select('valor, forma_pagamento')
+                .eq('status', 'finalizado')
+                .gte('hora_entrada', start.toUtc().toIso8601String())
+                .lt(
+                  'hora_entrada',
+                  endExclusive.toUtc().toIso8601String(),
+                ),
+            _client
+                .from('despesas')
+                .select('valor')
+                .gte('data_referencia', _pdfDateIso(start))
+                .lte('data_referencia', _pdfDateIso(end)),
+          ]);
+      final List<dynamic> attRows = parallel[0] as List<dynamic>;
+      final List<dynamic> expRows = parallel[1] as List<dynamic>;
+      double totalEntradas = 0;
+      int count = 0;
+      double totalDinheiro = 0;
+      double totalPix = 0;
+      double totalDebito = 0;
+      double totalCredito = 0;
+      double totalLink = 0;
+      for (final dynamic row in attRows) {
+        final Map<String, dynamic> map = row as Map<String, dynamic>;
+        final String? forma = map['forma_pagamento'] as String?;
+        final double? valor = _toDouble(map['valor']);
+        if (valor == null || forma == null) {
+          continue;
+        }
+        count += 1;
+        totalEntradas += valor;
+        switch (forma) {
+          case 'dinheiro':
+            totalDinheiro += valor;
+            break;
+          case 'pix':
+            totalPix += valor;
+            break;
+          case 'debito':
+            totalDebito += valor;
+            break;
+          case 'credito':
+            totalCredito += valor;
+            break;
+          case 'link':
+            totalLink += valor;
+            break;
+          default:
+            break;
+        }
+      }
+      double totalSaidas = 0;
+      for (final dynamic row in expRows) {
+        final Map<String, dynamic> map = row as Map<String, dynamic>;
+        totalSaidas += _toDouble(map['valor']) ?? 0;
+      }
+      final double ticketMedio = count > 0 ? totalEntradas / count : 0;
+      final Map<String, dynamic> summary = <String, dynamic>{
+        'total_entradas': totalEntradas,
+        'total_saidas': totalSaidas,
+        'saldo_liquido': totalEntradas - totalSaidas,
+        'ticket_medio': ticketMedio,
+        'total_lavagens': count,
+        'total_dinheiro': totalDinheiro,
+        'total_pix': totalPix,
+        'total_debito': totalDebito,
+        'total_credito': totalCredito,
+        'total_link': totalLink,
+      };
+      return Right(summary);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>>
+  getIntervalAttendanceRows(
+    DateTime startInclusive,
+    DateTime endInclusive,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final DateTime start = DateTime(
+        startInclusive.year,
+        startInclusive.month,
+        startInclusive.day,
+      );
+      final DateTime end = DateTime(
+        endInclusive.year,
+        endInclusive.month,
+        endInclusive.day,
+      );
+      if (start.isAfter(end)) {
+        return const Left(ValidationFailure('Data inicial após a data final'));
+      }
+      final int spanDays = end.difference(start).inDays + 1;
+      if (spanDays > _maxIntervalDays) {
+        return Left(
+          ValidationFailure('Período máximo: $_maxIntervalDays dias'),
+        );
+      }
+      final String s = _pdfDateIso(start);
+      final String e = _pdfDateIso(end);
+      final List<dynamic> rows =
+          await _client
+              .from('vw_relatorio_diario_atendimentos_detalhe')
+              .select()
+              .gte('data_ref', s)
+              .lte('data_ref', e)
+              .order('hora_entrada_local', ascending: false);
+      final List<Map<String, dynamic>> list = rows
+          .map((dynamic r) => Map<String, dynamic>.from(r as Map))
+          .toList();
+      return Right(list);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getIntervalExpenseRows(
+    DateTime startInclusive,
+    DateTime endInclusive,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final DateTime start = DateTime(
+        startInclusive.year,
+        startInclusive.month,
+        startInclusive.day,
+      );
+      final DateTime end = DateTime(
+        endInclusive.year,
+        endInclusive.month,
+        endInclusive.day,
+      );
+      if (start.isAfter(end)) {
+        return const Left(ValidationFailure('Data inicial após a data final'));
+      }
+      final int spanDays = end.difference(start).inDays + 1;
+      if (spanDays > _maxIntervalDays) {
+        return Left(
+          ValidationFailure('Período máximo: $_maxIntervalDays dias'),
+        );
+      }
+      final String s = _pdfDateIso(start);
+      final String e = _pdfDateIso(end);
+      final List<dynamic> rows =
+          await _client
+              .from('vw_relatorio_diario_despesas_detalhe')
+              .select()
+              .gte('data_ref', s)
+              .lte('data_ref', e)
+              .order('registrado_em', ascending: false);
+      final List<Map<String, dynamic>> list = rows
+          .map((dynamic r) => Map<String, dynamic>.from(r as Map))
+          .toList();
+      return Right(list);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getPdfMonthlySummary(
+    DateTime month,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final String mr = _pdfMesRefIso(month);
+      final Map<String, dynamic>? row =
+          await _client
+              .from('vw_relatorio_mensal_pdf')
+              .select()
+              .eq('mes_ref', mr)
+              .maybeSingle();
+      return Right(_normalizePdfSummaryRow(row));
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  static Map<String, dynamic> _normalizePdfSummaryRow(
+    Map<String, dynamic>? row,
+  ) {
+    final Map<String, dynamic> m = row ?? <String, dynamic>{};
+    double v(String k) {
+      final Object? o = m[k];
+      if (o == null) {
+        return 0;
+      }
+      if (o is num) {
+        return o.toDouble();
+      }
+      return double.tryParse(o.toString()) ?? 0;
+    }
+
+    int i(String k) {
+      final Object? o = m[k];
+      if (o == null) {
+        return 0;
+      }
+      if (o is int) {
+        return o;
+      }
+      if (o is num) {
+        return o.toInt();
+      }
+      return int.tryParse(o.toString()) ?? 0;
+    }
+
+    return <String, dynamic>{
+      'total_entradas': v('total_entradas'),
+      'total_saidas': v('total_saidas'),
+      'saldo_liquido': v('saldo_liquido'),
+      'ticket_medio': v('ticket_medio'),
+      'total_lavagens': i('total_lavagens'),
+      'total_dinheiro': v('total_dinheiro'),
+      'total_pix': v('total_pix'),
+      'total_debito': v('total_debito'),
+      'total_credito': v('total_credito'),
+      'total_link': v('total_link'),
+    };
+  }
+
   int? _toInt(Object? value) {
     if (value == null) {
       return null;
@@ -324,6 +701,15 @@ class ReportRepositoryImpl implements ReportRepository {
       return value.toDouble();
     }
     return double.tryParse(value.toString());
+  }
+
+  /// `YYYY-MM-DD` for [data_referencia] (DATE) filters, local calendar day.
+  String _dateKeyLocal(DateTime day) {
+    final DateTime local = DateTime(day.year, day.month, day.day);
+    final String y = local.year.toString().padLeft(4, '0');
+    final String m = local.month.toString().padLeft(2, '0');
+    final String d = local.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
   }
 }
 

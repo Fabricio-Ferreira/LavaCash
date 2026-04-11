@@ -22,15 +22,15 @@ class DashboardStatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      elevation: 0,
+      borderRadius: BorderRadius.circular(20),
+      elevation: 2,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: AppColors.outlineVariant.withValues(alpha: 0.25),
             ),
@@ -45,8 +45,8 @@ class DashboardStatCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: iconColor, size: 26),
-              const SizedBox(height: 10),
+              Icon(icon, color: iconColor, size: 22),
+              const SizedBox(height: 6),
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -56,7 +56,7 @@ class DashboardStatCard extends StatelessWidget {
                   fontSize: 9,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               SizedBox(
                 width: double.infinity,
                 child: FittedBox(
@@ -65,7 +65,7 @@ class DashboardStatCard extends StatelessWidget {
                   child: Text(
                     value,
                     maxLines: 1,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                       color: AppColors.onSurface,
                       letterSpacing: -0.8,

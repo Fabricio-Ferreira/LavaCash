@@ -30,6 +30,7 @@ class MonthlyReportTab extends GetView<ReportController> {
       return ThemedRefreshIndicator(
         onRefresh: () async {
           await controller.loadMonthly();
+          await controller.loadWeekly(controller.monthlyReportMonth.value);
         },
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints c) {
@@ -64,8 +65,11 @@ class MonthlyReportTab extends GetView<ReportController> {
                 ],
               );
             }
-            final MonthlyReport? highlight =
-                ReportController.resolveHighlightMonth(monthlyList);
+            final DateTime selectedMonth = controller.monthlyReportMonth.value;
+            final MonthlyReport? highlight = ReportController.resolveMonthInList(
+              monthlyList,
+              selectedMonth,
+            );
             final double? growthPct = computeGrowthPercentVsPreviousMonth(
               monthlyList,
               highlight,
@@ -106,17 +110,12 @@ class MonthlyReportTab extends GetView<ReportController> {
                 const SizedBox(height: 24),
                 WeeklyPerformanceSection(
                   key: ValueKey<String>(
-                    highlight == null
-                        ? 'none'
-                        : '${highlight.mes.year}-${highlight.mes.month}',
+                    '${selectedMonth.year}-${selectedMonth.month}',
                   ),
-                  monthLabel:
-                      highlight == null
-                          ? '—'
-                          : DateFormat(
-                            'MMMM',
-                            'pt_BR',
-                          ).format(highlight.mes).toUpperCase(),
+                  monthLabel: DateFormat(
+                    'MMMM',
+                    'pt_BR',
+                  ).format(selectedMonth).toUpperCase(),
                   weeklyData: controller.weeklyReports.toList(),
                   isLoading: controller.isWeeklyLoading.value,
                 ),

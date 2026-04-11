@@ -13,6 +13,12 @@ class RegistrationRepositoryImpl implements RegistrationRepository {
 
   final SupabaseClient? _client;
 
+  static const String _sessionRequiredMessage =
+      'Sessão expirada. Entre novamente.';
+
+  static const String _empresaRequiredMessage =
+      'Nenhuma empresa vinculada a esta conta. Reinicie o aplicativo.';
+
   @override
   Future<Either<Failure, Vehicle>> registerClientAndVehicle({
     required String nome,
@@ -22,14 +28,29 @@ class RegistrationRepositoryImpl implements RegistrationRepository {
     if (_client == null) {
       return const Left(ServerFailure('Supabase not configured'));
     }
+    final Session? session = _client.auth.currentSession;
+    if (session == null) {
+      return const Left(ServerFailure(_sessionRequiredMessage));
+    }
     final String normalizedPlate = AppFormatters.formatPlate(placa);
     try {
+      final Map<String, dynamic>? empresaRow =
+          await _client
+              .from('empresas')
+              .select('id')
+              .limit(1)
+              .maybeSingle();
+      if (empresaRow == null) {
+        return const Left(ServerFailure(_empresaRequiredMessage));
+      }
+      final String empresaId = empresaRow['id']! as String;
       final Map<String, dynamic> clientInsert =
           await _client
               .from('clientes')
               .insert(<String, dynamic>{
                 'nome': nome.trim(),
                 'telefone': telefone.trim(),
+                'empresa_id': empresaId,
               })
               .select()
               .single();
@@ -40,8 +61,9 @@ class RegistrationRepositoryImpl implements RegistrationRepository {
               .insert(<String, dynamic>{
                 'placa': normalizedPlate,
                 'cliente_id': clientModel.id,
+                'empresa_id': empresaId,
               })
-              .select('*, clientes(*)')
+              .select()
               .single();
       return Right(
         Vehicle(

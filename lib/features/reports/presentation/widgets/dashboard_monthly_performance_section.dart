@@ -44,7 +44,7 @@ class DashboardMonthlyPerformanceSection extends StatelessWidget {
       if (reports.isMonthlyLoading.value) {
         return const Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: EdgeInsets.all(16),
             child: CircularProgressIndicator(),
           ),
         );
@@ -95,7 +95,7 @@ class DashboardMonthlyPerformanceSection extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Material(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
@@ -103,7 +103,7 @@ class DashboardMonthlyPerformanceSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               onTap: onOpenMonthly,
               child: Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
@@ -136,9 +136,9 @@ class DashboardMonthlyPerformanceSection extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
                     SizedBox(
-                      height: 120,
+                      height: 108,
                       child:
                           last6.isEmpty
                               ? Center(

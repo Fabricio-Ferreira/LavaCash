@@ -14,6 +14,9 @@ class ServiceRepositoryImpl implements ServiceRepository {
 
   final SupabaseClient? _client;
 
+  static const String _vehicleTenantMessage =
+      'Veículo não encontrado ou sem permissão.';
+
   @override
   Future<Either<Failure, VehicleWithClient>> getVehicleWithClient(
     String vehicleId,
@@ -47,7 +50,9 @@ class ServiceRepositoryImpl implements ServiceRepository {
   }
 
   @override
-  Future<Either<Failure, ServiceRecord>> getServiceById(String serviceId) async {
+  Future<Either<Failure, ServiceRecord>> getServiceById(
+    String serviceId,
+  ) async {
     if (_client == null) {
       return const Left(ServerFailure('Supabase not configured'));
     }
@@ -71,13 +76,28 @@ class ServiceRepositoryImpl implements ServiceRepository {
     if (_client == null) {
       return const Left(ServerFailure('Supabase not configured'));
     }
+
     try {
+      final Map<String, dynamic>? veiculoRow =
+          await _client
+              .from('veiculos')
+              .select('empresa_id')
+              .eq('id', vehicleId)
+              .maybeSingle();
+      if (veiculoRow == null) {
+        return const Left(ServerFailure(_vehicleTenantMessage));
+      }
+      final String? empresaId = veiculoRow['empresa_id']?.toString();
+      if (empresaId == null || empresaId.isEmpty) {
+        return const Left(ServerFailure(_vehicleTenantMessage));
+      }
       final Map<String, dynamic> row =
           await _client
               .from('atendimentos')
               .insert(<String, dynamic>{
                 'veiculo_id': vehicleId,
                 'status': 'em_andamento',
+                'empresa_id': empresaId,
               })
               .select()
               .single();

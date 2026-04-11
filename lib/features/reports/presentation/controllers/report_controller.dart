@@ -1,7 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../../app/app_global_controller.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/utils/app_snackbar.dart';
 import '../../../../domain/entities/best_weekday_report.dart';
 import '../../../../domain/entities/daily_report.dart';
 import '../../../../domain/entities/monthly_report.dart';
@@ -13,6 +19,9 @@ import '../../domain/usecases/get_in_progress_services.dart';
 import '../../domain/usecases/get_monthly_reports.dart';
 import '../../domain/usecases/get_today_services.dart';
 import '../../domain/usecases/get_weekly_report.dart';
+import '../../domain/repositories/report_repository.dart';
+import '../../services/report_pdf_service.dart';
+import '../../../license/presentation/services/license_status_refresh.dart';
 
 class ReportController extends GetxController {
   ReportController({
@@ -51,6 +60,20 @@ class ReportController extends GetxController {
   final Rxn<BestWeekdayReport> bestWeekday = Rxn<BestWeekdayReport>();
   final RxString errorMessage = ''.obs;
 
+  /// Calendar day for daily report, PDF, and [loadDaily] / today-services list.
+  final Rx<DateTime> dailyReportDay = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  ).obs;
+
+  /// First day of month for monthly UI, weekly RPCs, and monthly PDF.
+  final Rx<DateTime> monthlyReportMonth = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    1,
+  ).obs;
+
   static const Duration _reportStaleThreshold = Duration(minutes: 5);
 
   DateTime? _lastSuccessfulDailyLoadAt;
@@ -71,17 +94,47 @@ class ReportController extends GetxController {
     }
   }
 
-  static MonthlyReport? resolveHighlightMonth(List<MonthlyReport> list) {
-    if (list.isEmpty) {
-      return null;
-    }
-    final DateTime now = DateTime.now();
+  /// Row in [list] matching [monthAnchor] (year + month), or null.
+  static MonthlyReport? resolveMonthInList(
+    List<MonthlyReport> list,
+    DateTime monthAnchor,
+  ) {
     for (final MonthlyReport m in list) {
-      if (m.mes.year == now.year && m.mes.month == now.month) {
+      if (m.mes.year == monthAnchor.year && m.mes.month == monthAnchor.month) {
         return m;
       }
     }
-    return list.first;
+    return null;
+  }
+
+  void setDailyReportDay(DateTime d) {
+    final DateTime normalized = DateTime(d.year, d.month, d.day);
+    if (dailyReportDay.value == normalized) {
+      return;
+    }
+    dailyReportDay.value = normalized;
+    loadDaily();
+  }
+
+  void setMonthlyReportMonth(DateTime m) {
+    final DateTime first = DateTime(m.year, m.month, 1);
+    if (monthlyReportMonth.value.year == first.year &&
+        monthlyReportMonth.value.month == first.month) {
+      return;
+    }
+    monthlyReportMonth.value = first;
+    loadWeekly(first);
+  }
+
+  /// Call when switching to the dashboard tab so KPIs stay “hoje / este mês”.
+  void resetSelectionsToTodayAndThisMonth() {
+    final DateTime n = DateTime.now();
+    final DateTime today = DateTime(n.year, n.month, n.day);
+    final DateTime monthFirst = DateTime(n.year, n.month, 1);
+    dailyReportDay.value = today;
+    monthlyReportMonth.value = monthFirst;
+    loadDaily();
+    loadWeekly(monthFirst);
   }
 
   @override
@@ -95,10 +148,10 @@ class ReportController extends GetxController {
     isDailyLoading.value = true;
     isTodayServicesLoading.value = true;
     isInProgressLoading.value = true;
-    final DateTime now = DateTime.now();
+    final DateTime day = dailyReportDay.value;
     final List<dynamic> parallel = await Future.wait<dynamic>(<Future<dynamic>>[
-      _getDailyReport(now),
-      _getTodayServices(now),
+      _getDailyReport(day),
+      _getTodayServices(day),
       _getInProgressServices(),
     ]);
     final Either<Failure, DailyReport> dailyEither =
@@ -163,7 +216,7 @@ class ReportController extends GetxController {
   Future<void> loadTodayServices() async {
     isTodayServicesLoading.value = true;
     final Either<Failure, List<ServiceSummary>> result =
-        await _getTodayServices(DateTime.now());
+        await _getTodayServices(dailyReportDay.value);
     result.fold(
       (Failure failure) {
         todayServices.clear();
@@ -192,14 +245,7 @@ class ReportController extends GetxController {
         errorMessage.value = '';
         monthlyReports.assignAll(list);
         _lastSuccessfulMonthlyLoadAt = DateTime.now();
-        final MonthlyReport? highlight = resolveHighlightMonth(list);
-        if (highlight != null) {
-          await loadWeekly(highlight.mes);
-        } else {
-          weeklyReports.clear();
-          bestWeekday.value = null;
-          isWeeklyLoading.value = false;
-        }
+        await loadWeekly(monthlyReportMonth.value);
       },
     );
     isMonthlyLoading.value = false;
@@ -233,5 +279,169 @@ class ReportController extends GetxController {
       },
     );
     isWeeklyLoading.value = false;
+  }
+
+  Future<void> exportDailyPdf() async {
+    final bool ok = await LicenseStatusRefresh.verifyAndSyncOrExit();
+    if (!ok) {
+      return;
+    }
+    final ReportRepository repo = Get.find<ReportRepository>();
+    final ReportPdfService pdf = Get.find<ReportPdfService>();
+    final AppGlobalController global = Get.find<AppGlobalController>();
+    final DateTime day = dailyReportDay.value;
+    final PackageInfo info = await PackageInfo.fromPlatform();
+    final Either<Failure, Map<String, dynamic>> sumRes =
+        await repo.getPdfDailySummary(day);
+    await sumRes.fold(
+      (Failure f) async {
+        AppSnackbar.showError(f.message);
+      },
+      (Map<String, dynamic> summary) async {
+        final Either<Failure, List<Map<String, dynamic>>> attRes =
+            await repo.getPdfDailyAttendanceRows(day);
+        await attRes.fold(
+          (Failure f) async {
+            AppSnackbar.showError(f.message);
+          },
+          (List<Map<String, dynamic>> att) async {
+            final Either<Failure, List<Map<String, dynamic>>> expRes =
+                await repo.getPdfDailyExpenseRows(day);
+            await expRes.fold(
+              (Failure f) async {
+                AppSnackbar.showError(f.message);
+              },
+              (List<Map<String, dynamic>> exp) async {
+                final Uint8List bytes = await pdf.generateDailyReportPdf(
+                  companyName: global.establishmentName.value,
+                  reportDate: day,
+                  summary: summary,
+                  attendances: att,
+                  expenses: exp,
+                  appVersionLabel: '${info.version}+${info.buildNumber}',
+                );
+                final String name =
+                    'lavacash-relatorio-diario-${DateFormat('yyyy-MM-dd').format(day)}.pdf';
+                await pdf.sharePdf(bytes: bytes, filename: name);
+                AppSnackbar.showSuccess('PDF pronto para compartilhar.');
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> printDailyPdf() async {
+    final bool ok = await LicenseStatusRefresh.verifyAndSyncOrExit();
+    if (!ok) {
+      return;
+    }
+    final ReportRepository repo = Get.find<ReportRepository>();
+    final ReportPdfService pdf = Get.find<ReportPdfService>();
+    final AppGlobalController global = Get.find<AppGlobalController>();
+    final DateTime day = dailyReportDay.value;
+    final PackageInfo info = await PackageInfo.fromPlatform();
+    final Either<Failure, Map<String, dynamic>> sumRes =
+        await repo.getPdfDailySummary(day);
+    await sumRes.fold(
+      (Failure f) async {
+        AppSnackbar.showError(f.message);
+      },
+      (Map<String, dynamic> summary) async {
+        final Either<Failure, List<Map<String, dynamic>>> attRes =
+            await repo.getPdfDailyAttendanceRows(day);
+        await attRes.fold(
+          (Failure f) async {
+            AppSnackbar.showError(f.message);
+          },
+          (List<Map<String, dynamic>> att) async {
+            final Either<Failure, List<Map<String, dynamic>>> expRes =
+                await repo.getPdfDailyExpenseRows(day);
+            await expRes.fold(
+              (Failure f) async {
+                AppSnackbar.showError(f.message);
+              },
+              (List<Map<String, dynamic>> exp) async {
+                final Uint8List bytes = await pdf.generateDailyReportPdf(
+                  companyName: global.establishmentName.value,
+                  reportDate: day,
+                  summary: summary,
+                  attendances: att,
+                  expenses: exp,
+                  appVersionLabel: '${info.version}+${info.buildNumber}',
+                );
+                await pdf.printPdf(bytes);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> exportMonthlyPdf() async {
+    final bool ok = await LicenseStatusRefresh.verifyAndSyncOrExit();
+    if (!ok) {
+      return;
+    }
+    final DateTime month = monthlyReportMonth.value;
+    await loadWeekly(month);
+    final ReportRepository repo = Get.find<ReportRepository>();
+    final ReportPdfService pdf = Get.find<ReportPdfService>();
+    final AppGlobalController global = Get.find<AppGlobalController>();
+    final PackageInfo info = await PackageInfo.fromPlatform();
+    final Either<Failure, Map<String, dynamic>> sumRes =
+        await repo.getPdfMonthlySummary(month);
+    await sumRes.fold(
+      (Failure f) async {
+        AppSnackbar.showError(f.message);
+      },
+      (Map<String, dynamic> summary) async {
+        final Uint8List bytes = await pdf.generateMonthlyReportPdf(
+          companyName: global.establishmentName.value,
+          referenceMonth: DateTime(month.year, month.month),
+          summary: summary,
+          weeklyReports: weeklyReports.toList(),
+          bestWeekday: bestWeekday.value,
+          appVersionLabel: '${info.version}+${info.buildNumber}',
+        );
+        final String name =
+            'lavacash-relatorio-mensal-${DateFormat('yyyy-MM').format(month)}.pdf';
+        await pdf.sharePdf(bytes: bytes, filename: name);
+        AppSnackbar.showSuccess('PDF pronto para compartilhar.');
+      },
+    );
+  }
+
+  Future<void> printMonthlyPdf() async {
+    final bool ok = await LicenseStatusRefresh.verifyAndSyncOrExit();
+    if (!ok) {
+      return;
+    }
+    final DateTime month = monthlyReportMonth.value;
+    await loadWeekly(month);
+    final ReportRepository repo = Get.find<ReportRepository>();
+    final ReportPdfService pdf = Get.find<ReportPdfService>();
+    final AppGlobalController global = Get.find<AppGlobalController>();
+    final PackageInfo info = await PackageInfo.fromPlatform();
+    final Either<Failure, Map<String, dynamic>> sumRes =
+        await repo.getPdfMonthlySummary(month);
+    await sumRes.fold(
+      (Failure f) async {
+        AppSnackbar.showError(f.message);
+      },
+      (Map<String, dynamic> summary) async {
+        final Uint8List bytes = await pdf.generateMonthlyReportPdf(
+          companyName: global.establishmentName.value,
+          referenceMonth: DateTime(month.year, month.month),
+          summary: summary,
+          weeklyReports: weeklyReports.toList(),
+          bestWeekday: bestWeekday.value,
+          appVersionLabel: '${info.version}+${info.buildNumber}',
+        );
+        await pdf.printPdf(bytes);
+      },
+    );
   }
 }

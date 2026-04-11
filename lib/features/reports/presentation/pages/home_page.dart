@@ -62,7 +62,9 @@ class _HomePageState extends State<HomePage> {
               return;
             }
             tabs.setTab(selectedIndex);
-            if (selectedIndex == 0 || selectedIndex == 1) {
+            if (selectedIndex == 0) {
+              reports.resetSelectionsToTodayAndThisMonth();
+            } else if (selectedIndex == 1) {
               reports.refreshIfStaleForHomeTab();
             }
           },
