@@ -9,11 +9,28 @@ e o versionamento segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
-- Este arquivo de changelog.
+- (Próximas mudanças.)
+
+---
+
+## [1.0.1+2] — 2026-04-11
+
+### Adicionado
+
+- Pipeline **GitHub Actions** (`release-android`): build de APK (split **arm64-v8a**, ofuscação, ícones *tree-shaken*), upload para Storage `app-releases` e `PATCH` em `public.app_version` (versão, `release_notes`, `is_mandatory`).
 
 ### Alterado
 
-- (Preencha aqui antes do próximo release.)
+- **README:** GitFlow (`main` / `development` / `release/*`), secrets do CI, impacto do release nos dados e notas sobre `apk_storage_path`.
+- Ajustes gerais de UI e layout (dashboard, home, relatórios, cartões de pagamento).
+
+### Corrigido
+
+- **Despesas:** limpeza dos itens quando o carregamento do dia selecionado falha.
+
+### Refatorado
+
+- **Relatórios:** extração de helpers partilhados de saída PDF (partilhar vs impressão).
 
 ---
 

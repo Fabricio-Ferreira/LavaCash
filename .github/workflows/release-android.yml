@@ -88,6 +88,9 @@ jobs:
             echo 'EOF'
           } >> "$GITHUB_ENV"
 
+      - name: Install jq
+        run: sudo apt-get update -qq && sudo apt-get install -y jq
+
       - name: Write dart defines for CI
         env:
           DART_DEFINES_JSON: ${{ secrets.DART_DEFINES_JSON }}
@@ -96,10 +99,50 @@ jobs:
             echo "Missing DART_DEFINES_JSON repository secret (same keys as dart_defines.json)."
             exit 1
           fi
-          printf '%s' "${DART_DEFINES_JSON}" > dart_defines.ci.json
+          python3 << 'PY'
+          import json
+          import os
+          import pathlib
+          import sys
 
-      - name: Install jq
-        run: sudo apt-get update -qq && sudo apt-get install -y jq
+          raw = os.environ["DART_DEFINES_JSON"].lstrip("\ufeff").strip()
+          if raw.startswith("```"):
+            print(
+              "::error::Remove markdown fences from the secret. "
+              "Paste only raw JSON (starts with {).",
+              file=sys.stderr,
+            )
+            sys.exit(1)
+          try:
+            data = json.loads(raw)
+          except json.JSONDecodeError as err:
+            print(
+              "::error::DART_DEFINES_JSON is not valid JSON. "
+              "No trailing commas, double quotes on keys. "
+              "Locally: jq -c . dart_defines.json and paste one line.",
+              file=sys.stderr,
+            )
+            print(err, file=sys.stderr)
+            sys.exit(1)
+          if not isinstance(data, dict):
+            print("::error::Root must be a JSON object.", file=sys.stderr)
+            sys.exit(1)
+          out: dict[str, str] = {}
+          for key, value in data.items():
+            k = str(key)
+            if isinstance(value, bool):
+              out[k] = "true" if value else "false"
+            elif isinstance(value, (int, float)):
+              out[k] = str(value)
+            elif isinstance(value, str):
+              out[k] = value
+            else:
+              out[k] = json.dumps(value, separators=(",", ":"))
+          pathlib.Path("dart_defines.ci.json").write_text(
+              json.dumps(out, separators=(",", ":"), ensure_ascii=False),
+              encoding="utf-8",
+          )
+          PY
 
       - name: Flutter pub get
         run: flutter pub get
