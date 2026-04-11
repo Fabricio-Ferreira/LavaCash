@@ -354,6 +354,11 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# Public APK URL: gateway JWT check would 401 if anon/user JWT mismatches;
+# function uses service role only (see supabase/functions/download-apk).
+[functions.download-apk]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
