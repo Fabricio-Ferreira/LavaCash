@@ -56,18 +56,15 @@ class DailyReportTab extends GetView<ReportController> {
                       ),
                     ),
                   ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 EliteHeroCard.dailyReport(
                   isLoading: daily.isLoading,
                   totalRecebido: daily.totalRecebido,
                   totalDespesas: daily.totalDespesas,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 20),
                 LayoutBuilder(
-                  builder: (
-                    BuildContext context,
-                    BoxConstraints constraints,
-                  ) {
+                  builder: (BuildContext context, BoxConstraints constraints) {
                     final bool narrow = constraints.maxWidth < 340;
                     final double gap = narrow ? 6 : 8;
                     return DashboardStatGrid(
@@ -94,21 +91,21 @@ class DailyReportTab extends GetView<ReportController> {
                     );
                   },
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 Text(
                   'Formas de Pagamento',
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 PaymentListCard(
                   entries: daily.paymentEntries,
                   isLoading: daily.isLoading,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 DashboardDespesasSection(daily: daily),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 if (controller.todayServices.isNotEmpty) ...[
                   DashboardAtendimentosSection(onVerTodos: _openTodayServices),
                 ] else ...[

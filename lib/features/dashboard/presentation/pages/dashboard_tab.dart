@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lava_cash/core/domain/entities/service_status.dart';
+
 import '../../../../app/routes/app_routes.dart';
-import '../../../../core/utils/constants.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
 import 'package:lava_cash/features/reports/presentation/models/daily_report_state.dart';
 import '../controllers/dashboard_controller.dart';
@@ -16,8 +16,7 @@ import '../widgets/dashboard_quick_actions.dart';
 import '../widgets/dashboard_recebimento_section.dart';
 
 /// Stitch "Dashboard — Versão Elite Suprema" layout with live report data.
-/// When [AppConstants.useMockReportData] is true, data comes from
-/// `ReportRepositoryMock` (see `HomeBinding`).
+/// Estrutura de scroll alinhada ao [DailyReportTab] (refresh + LayoutBuilder + ListView).
 class DashboardTab extends StatefulWidget {
   const DashboardTab({super.key});
 
@@ -67,97 +66,72 @@ class _DashboardTabState extends State<DashboardTab>
       final DailyReportState daily = DailyReportState.fromController(
         dashboard.reportController,
       );
-      return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final double maxW = constraints.maxWidth;
-          final double horizontalPad = maxW > 600 ? 32 : 24;
-          final double contentMax = maxW > 900 ? 560 : maxW;
-          return ThemedRefreshIndicator(
-            onRefresh: dashboard.refreshDashboard,
-            child: CustomScrollView(
+      return ThemedRefreshIndicator(
+        onRefresh: dashboard.refreshDashboard,
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints c) {
+            final double pad = c.maxWidth > 600 ? 20 : 14;
+            return ListView(
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
-              slivers: [
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(
-                    horizontalPad,
-                    0,
-                    horizontalPad,
-                    72,
+              padding: EdgeInsets.fromLTRB(pad, 4, pad, 72),
+              children: <Widget>[
+                _fade(0, const DashboardGreetingHeader()),
+                const SizedBox(height: 8),
+                _fade(
+                  1,
+                  EliteHeroCard.dashboard(
+                    isLoading: daily.isLoading,
+                    totalRecebido: daily.totalRecebido,
+                    totalDespesas: daily.totalDespesas,
                   ),
-                  sliver: SliverToBoxAdapter(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: contentMax),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _fade(0, const DashboardGreetingHeader()),
-                            const SizedBox(height: 8),
-                            _fade(
-                              1,
-                              EliteHeroCard.dashboard(
-                                isLoading: daily.isLoading,
-                                totalRecebido: daily.totalRecebido,
-                                totalDespesas: daily.totalDespesas,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            _fade(
-                              2,
-                              DashboardStatsRow(
-                                cars: daily.totalCarros,
-                                inProgress: daily.emAndamento,
-                                onInProgressTap:
-                                    () => dashboard.openInProgressServices(
-                                      status: ServiceStatus.emAndamento,
-                                    ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            _fade(
-                              3,
-                              DashboardQuickActions(
-                                onNovoAtendimento:
-                                    () =>
-                                        Get.toNamed(AppRoutes.novoAtendimento),
-                                onRelatorioDiario: dashboard.openDailyReport,
-                                onRelatorioPeriodo:
-                                    dashboard.openIntervalReport,
-                                onDespesas: dashboard.openExpenses,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            _fade(4, DashboardRecebimentoSection(daily: daily)),
-                            const SizedBox(height: 10),
-                            _fade(5, DashboardDespesasSection(daily: daily)),
-                            const SizedBox(height: 10),
-                            _fade(
-                              6,
-                              DashboardMonthlyPerformanceSection(
-                                reports: dashboard.reportController,
-                                onOpenMonthly: dashboard.openMonthlyReport,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            _fade(
-                              7,
-                              DashboardAtendimentosSection(
-                                onVerTodos:
-                                    () => dashboard.openInProgressServices(),
-                              ),
-                            ),
-                          ],
+                ),
+                _fade(
+                  2,
+                  DashboardStatsRow(
+                    cars: daily.totalCarros,
+                    inProgress: daily.emAndamento,
+                    onInProgressTap:
+                        () => dashboard.openInProgressServices(
+                          status: ServiceStatus.emAndamento,
                         ),
-                      ),
-                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                _fade(
+                  3,
+                  DashboardQuickActions(
+                    onNovoAtendimento:
+                        () => Get.toNamed(AppRoutes.novoAtendimento),
+                    onRelatorioDiario: dashboard.openDailyReport,
+                    onRelatorioPeriodo: dashboard.openIntervalReport,
+                    onDespesas: dashboard.openExpenses,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _fade(4, DashboardRecebimentoSection(daily: daily)),
+                const SizedBox(height: 10),
+                _fade(5, DashboardDespesasSection(daily: daily)),
+                const SizedBox(height: 10),
+                _fade(
+                  6,
+                  DashboardMonthlyPerformanceSection(
+                    reports: dashboard.reportController,
+                    onOpenMonthly: dashboard.openMonthlyReport,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _fade(
+                  7,
+                  DashboardAtendimentosSection(
+                    onVerTodos: () => dashboard.openInProgressServices(),
                   ),
                 ),
               ],
-            ),
-          );
-        },
+            );
+          },
+        ),
       );
     });
   }

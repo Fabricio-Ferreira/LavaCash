@@ -39,7 +39,7 @@ class DailyReportDayHeader extends GetView<ReportController> {
               color: AppColors.primary,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 8),
           Material(
             color: AppColors.primary.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(12),
@@ -52,14 +52,14 @@ class DailyReportDayHeader extends GetView<ReportController> {
                   children: <Widget>[
                     Icon(
                       Icons.calendar_month_outlined,
-                      size: 18,
+                      size: 20,
                       color: AppColors.primary,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         dayTitle,
-                        style: textTheme.labelSmall?.copyWith(
+                        style: textTheme.titleSmall?.copyWith(
                           color: AppColors.onSurfaceVariant,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.8,
@@ -68,7 +68,7 @@ class DailyReportDayHeader extends GetView<ReportController> {
                     ),
                     Icon(
                       Icons.edit_calendar_outlined,
-                      size: 18,
+                      size: 24,
                       color: AppColors.outline,
                     ),
                   ],
