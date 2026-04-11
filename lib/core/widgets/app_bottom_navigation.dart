@@ -63,15 +63,15 @@ class AppBottomNavigation extends StatelessWidget {
                   onTap: () => onSelect(1),
                 ),
                 NavPill(
-                  icon: Icons.dashboard,
-                  label: 'Dashboard',
+                  icon: Icons.home,
+                  label: 'HOME',
                   selected: currentIndex == 0,
                   onTap: () => onSelect(0),
                 ),
                 NavPill(
                   icon: Icons.add_circle_outline,
                   label: 'Atendimento',
-                  selected: false,
+                  selected: currentIndex == 2,
                   onTap: () => onSelect(2),
                 ),
               ],

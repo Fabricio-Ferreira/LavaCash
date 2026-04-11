@@ -7,10 +7,7 @@ import 'package:lava_cash/features/reports/presentation/controllers/report_contr
 import 'dashboard_atendimentos_preview_body.dart';
 
 class DashboardAtendimentosSection extends StatelessWidget {
-  const DashboardAtendimentosSection({
-    super.key,
-    required this.onVerTodos,
-  });
+  const DashboardAtendimentosSection({super.key, required this.onVerTodos});
 
   final VoidCallback onVerTodos;
 
@@ -53,20 +50,25 @@ class DashboardAtendimentosSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(20),
-              border: const Border(
-                left: BorderSide(color: AppColors.primary, width: 4),
+          Material(
+            color: Colors.transparent,
+            elevation: 2,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+                border: const Border(
+                  left: BorderSide(color: AppColors.primary, width: 4),
+                ),
               ),
-            ),
-            child: DashboardAtendimentosPreviewBody(
-              textTheme: textTheme,
-              isLoading: isLoading,
-              preview: preview,
-              errorMessage: err,
+              child: DashboardAtendimentosPreviewBody(
+                textTheme: textTheme,
+                isLoading: isLoading,
+                preview: preview,
+                errorMessage: err,
+              ),
             ),
           ),
         ],

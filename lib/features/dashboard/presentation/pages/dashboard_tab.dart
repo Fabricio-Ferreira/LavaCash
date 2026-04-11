@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lava_cash/core/domain/entities/service_status.dart';
 
 import '../../../../app/routes/app_routes.dart';
+import '../../../../core/utils/home_tab_scroll_padding.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
 import 'package:lava_cash/features/reports/presentation/models/daily_report_state.dart';
 import '../controllers/dashboard_controller.dart';
@@ -75,7 +76,12 @@ class _DashboardTabState extends State<DashboardTab>
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
-              padding: EdgeInsets.fromLTRB(pad, 4, pad, 72),
+              padding: EdgeInsets.fromLTRB(
+                pad,
+                4,
+                pad,
+                homeTabListBottomPadding(context),
+              ),
               children: <Widget>[
                 _fade(0, const DashboardGreetingHeader()),
                 const SizedBox(height: 8),

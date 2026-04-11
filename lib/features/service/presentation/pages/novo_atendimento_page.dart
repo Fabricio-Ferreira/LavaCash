@@ -4,9 +4,11 @@ import 'package:lava_cash/core/utils/app_snackbar.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/app_bottom_navigation.dart';
 import '../../../../core/services/recent_clients_cache.dart';
 import '../../../../core/utils/formatters.dart';
 import 'package:lava_cash/core/domain/entities/vehicle_with_client.dart';
+import 'package:lava_cash/features/dashboard/presentation/controllers/home_tab_controller.dart';
 import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
 import 'package:lava_cash/features/search/presentation/controllers/search_controller.dart';
 import 'widgets/client_result_card.dart';
@@ -83,6 +85,27 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
     Get.back<void>();
   }
 
+  void _onBottomNavSelect(int selectedIndex) {
+    if (selectedIndex == 2) {
+      return;
+    }
+    if (!Get.isRegistered<HomeTabController>()) {
+      Get.back<void>();
+      return;
+    }
+    final HomeTabController tabs = Get.find<HomeTabController>();
+    final ReportController? reports = Get.isRegistered<ReportController>()
+        ? Get.find<ReportController>()
+        : null;
+    Get.back<void>();
+    tabs.setTab(selectedIndex);
+    if (selectedIndex == 0) {
+      reports?.resetSelectionsToTodayAndThisMonth();
+    } else if (selectedIndex == 1) {
+      reports?.refreshIfStaleForHomeTab();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +136,7 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
                         ),
                         const SizedBox(height: 24),
                         NovoAtendimentoResultsHeader(
-                          title: hasQuery ? 'Resultados' : 'Clientes recentes',
+                          title: hasQuery ? 'Resultados' : 'Buscas Recentes',
                           monthLabel:
                               NovoAtendimentoResultsHeader.currentMonthLabel(),
                         ),
@@ -195,9 +218,18 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
           ),
         ],
       ),
-      bottomNavigationBar: NovoAtendimentoBottomCta(
-        isEnabled: _selectedVehicleId != null,
-        onPressed: _startService,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          NovoAtendimentoBottomCta(
+            isEnabled: _selectedVehicleId != null,
+            onPressed: _startService,
+          ),
+          AppBottomNavigation(
+            currentIndex: 2,
+            onSelect: _onBottomNavSelect,
+          ),
+        ],
       ),
     );
   }

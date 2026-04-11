@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/home_tab_scroll_padding.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
 import '../../../../shared/widgets/dashboard_stats/dashboard_stat_card.dart';
 import '../../../../shared/widgets/dashboard_stats/dashboard_stat_grid.dart';
@@ -41,7 +42,12 @@ class DailyReportTab extends GetView<ReportController> {
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
-              padding: EdgeInsets.fromLTRB(pad, 4, pad, 72),
+              padding: EdgeInsets.fromLTRB(
+                pad,
+                4,
+                pad,
+                homeTabListBottomPadding(context),
+              ),
               children: [
                 const DailyReportDayHeader(),
                 if (errorMessage.isNotEmpty &&

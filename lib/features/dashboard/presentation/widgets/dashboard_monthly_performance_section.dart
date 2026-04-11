@@ -99,6 +99,7 @@ class DashboardMonthlyPerformanceSection extends StatelessWidget {
           Material(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
+            elevation: 2,
             child: InkWell(
               borderRadius: BorderRadius.circular(24),
               onTap: onOpenMonthly,

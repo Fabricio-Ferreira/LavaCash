@@ -14,7 +14,6 @@ class NovoAtendimentoBottomCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double bottom = MediaQuery.paddingOf(context).bottom;
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOut,
@@ -25,7 +24,7 @@ class NovoAtendimentoBottomCta extends StatelessWidget {
         scale: isEnabled ? 1 : 0.98,
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.fromLTRB(24, 12, 24, 24 + bottom),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,

@@ -19,47 +19,52 @@ class PaymentListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.outlineVariant.withValues(alpha: 0.2),
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+    return Material(
+      color: Colors.transparent,
+      elevation: 2,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppColors.outlineVariant.withValues(alpha: 0.2),
           ),
-        ],
-      ),
-      child:
-          isLoading
-              ? const Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(child: CircularProgressIndicator()),
-              )
-              : entries.isEmpty
-              ? Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  emptyMessage ?? 'Nenhum recebimento hoje',
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.onSurfaceVariant,
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child:
+            isLoading
+                ? const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+                : entries.isEmpty
+                ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    emptyMessage ?? 'Nenhum recebimento hoje',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
                   ),
+                )
+                : Column(
+                  children:
+                      entries
+                          .map(
+                            (MapEntry<String, double> e) =>
+                                PaymentEntryTile(entry: e),
+                          )
+                          .toList(),
                 ),
-              )
-              : Column(
-                children:
-                    entries
-                        .map(
-                          (MapEntry<String, double> e) =>
-                              PaymentEntryTile(entry: e),
-                        )
-                        .toList(),
-              ),
+      ),
     );
   }
 }
