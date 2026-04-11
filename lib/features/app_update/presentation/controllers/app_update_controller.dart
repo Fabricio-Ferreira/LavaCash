@@ -5,9 +5,9 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/error/failures.dart';
-import '../../domain/entities/update_check_result.dart';
-import '../../domain/usecases/check_for_update.dart';
-import '../../domain/usecases/get_apk_download_url.dart';
+import 'package:lava_cash/core/domain/app_update/entities/update_check_result.dart';
+import 'package:lava_cash/core/domain/app_update/usecases/check_for_update.dart';
+import 'package:lava_cash/core/domain/app_update/usecases/get_apk_download_url.dart';
 import '../widgets/update_dialog.dart';
 
 class AppUpdateController extends GetxController {

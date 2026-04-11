@@ -20,6 +20,12 @@ abstract class AppFormatters {
     return currency.format(value);
   }
 
+  /// Expense line on dark backgrounds: always `- R$ …` (minus before currency).
+  static String formatCurrencyExpenseOutflow(double value) {
+    final double safe = value < 0 ? 0 : value;
+    return '- ${currency.format(safe)}';
+  }
+
   static String formatCurrencyInputFromCentavos(int centavos) {
     int safe = centavos;
     if (safe < 0) {
@@ -82,6 +88,32 @@ abstract class AppFormatters {
 
   static String formatDateTime(DateTime dateTime) {
     return DateFormat('dd/MM/yyyy HH:mm').format(dateTime.toLocal());
+  }
+
+  /// Parses `dd/MM/yyyy` from masked input; returns null if invalid.
+  static DateTime? tryParseBrazilianDateDdMmYyyy(String raw) {
+    final String t = AppStringUtils.stripWhitespace(raw);
+    if (t.length != 10) {
+      return null;
+    }
+    final RegExp re = RegExp(r'^(\d{2})/(\d{2})/(\d{4})$');
+    final Match? m = re.firstMatch(t);
+    if (m == null) {
+      return null;
+    }
+    final int? dd = int.tryParse(m[1]!);
+    final int? mm = int.tryParse(m[2]!);
+    final int? yyyy = int.tryParse(m[3]!);
+    if (dd == null || mm == null || yyyy == null) {
+      return null;
+    }
+    final DateTime constructed = DateTime(yyyy, mm, dd);
+    if (constructed.year != yyyy ||
+        constructed.month != mm ||
+        constructed.day != dd) {
+      return null;
+    }
+    return constructed;
   }
 
   static String formatMonthYear(DateTime dateTime) {

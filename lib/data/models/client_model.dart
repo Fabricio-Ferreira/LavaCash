@@ -1,4 +1,4 @@
-import '../../domain/entities/client.dart';
+import 'package:lava_cash/core/domain/entities/client.dart';
 
 class ClientModel {
   const ClientModel({

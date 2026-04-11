@@ -14,7 +14,15 @@ abstract class AppRoutes {
   /// ou `arguments: null` para todos os itens retornados pelo backend.
   static const String inProgressServices = '/in-progress-services';
 
+  /// Relatório diário. Opcional: `arguments` como [DateTime] (calendário do dia).
   static const String dailyReport = '/daily-report';
 
+  /// Relatório mensal. Opcional: `arguments` como [DateTime] (usa ano/mês).
   static const String monthlyReport = '/monthly-report';
+
+  /// Relatório por intervalo. Opcional: `arguments` como `Map` com
+  /// `start` e `end` [DateTime] (inclusivas).
+  static const String intervalReport = '/interval-report';
+
+  static const String expenses = '/expenses';
 }

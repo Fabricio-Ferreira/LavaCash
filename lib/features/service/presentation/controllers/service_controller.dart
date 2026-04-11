@@ -5,18 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
-import '../../../reports/presentation/controllers/home_tab_controller.dart';
+import '../../../dashboard/presentation/controllers/home_tab_controller.dart';
 import '../../../../core/widgets/app_confirmation_dialog.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/services/whatsapp_service.dart';
 import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../domain/entities/service_record.dart';
-import '../../../../domain/entities/service_status.dart';
-import '../../../../domain/entities/vehicle_with_client.dart';
-import '../../../reports/presentation/controllers/report_controller.dart';
-import '../../domain/repositories/service_repository.dart';
-import '../../domain/usecases/start_service.dart';
+import 'package:lava_cash/core/domain/entities/service_record.dart';
+import 'package:lava_cash/core/domain/entities/service_status.dart';
+import 'package:lava_cash/core/domain/entities/vehicle_with_client.dart';
+import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
+import 'package:lava_cash/core/domain/service/repositories/service_repository.dart';
+import 'package:lava_cash/core/domain/service/usecases/start_service.dart';
 
 class ServiceController extends GetxController {
   ServiceController({
@@ -52,8 +52,7 @@ class ServiceController extends GetxController {
   void _syncPaymentFormValidity() {
     final bool hasNome = nomeServicoController.text.trim().isNotEmpty;
     final double? valor = AppFormatters.parseMoneyInput(valorController.text);
-    paymentFormValid.value =
-        hasNome && valor != null && valor > 0;
+    paymentFormValid.value = hasNome && valor != null && valor > 0;
   }
 
   void _syncFormFromRecord(ServiceRecord record) {
@@ -123,8 +122,9 @@ class ServiceController extends GetxController {
       );
       return;
     }
-    final Either<Failure, ServiceRecord> serviceResult =
-        await _startService(vehicleId);
+    final Either<Failure, ServiceRecord> serviceResult = await _startService(
+      vehicleId,
+    );
     serviceResult.fold(
       (Failure failure) => errorMessage.value = failure.message,
       (ServiceRecord record) {
@@ -202,8 +202,7 @@ class ServiceController extends GetxController {
     Get.toNamed<void>(
       '${AppRoutes.payment}/${record.id}',
       arguments: <String, dynamic>{
-        'nomeServico':
-            nomeTrim.isNotEmpty ? nomeTrim : record.nomeServico,
+        'nomeServico': nomeTrim.isNotEmpty ? nomeTrim : record.nomeServico,
         'placa': v?.vehicle.placa,
         'horaEntrada': record.horaEntrada.toIso8601String(),
         'valorFormatted': valorController.text.trim(),

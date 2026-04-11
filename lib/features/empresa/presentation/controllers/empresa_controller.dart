@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 
 import '../../../../app/app_global_controller.dart';
 import '../../../../core/error/failures.dart';
-import '../../domain/entities/empresa.dart';
-import '../../domain/repositories/empresa_repository.dart';
+import 'package:lava_cash/core/domain/empresa/entities/empresa.dart';
+import 'package:lava_cash/core/domain/empresa/repositories/empresa_repository.dart';
 
 class EmpresaController extends GetxController {
   EmpresaController({required EmpresaRepository empresaRepository})

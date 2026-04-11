@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:lava_cash/core/utils/license_type_enum.dart';
+import 'package:lava_cash/core/common/enums/license_type_enum.dart';
 
 import 'formatters.dart';
 

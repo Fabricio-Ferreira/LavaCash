@@ -7,8 +7,8 @@ import '../../../../app/routes/app_routes.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/string_utils.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../../domain/entities/vehicle.dart';
-import '../../domain/usecases/register_client_and_vehicle.dart';
+import 'package:lava_cash/core/domain/entities/vehicle.dart';
+import 'package:lava_cash/core/domain/registration/usecases/register_client_and_vehicle.dart';
 
 class RegistrationController extends GetxController {
   RegistrationController({required RegisterClientAndVehicle register})

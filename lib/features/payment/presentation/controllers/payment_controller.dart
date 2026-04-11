@@ -4,10 +4,10 @@ import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/error/failures.dart';
-import '../../../reports/presentation/controllers/home_tab_controller.dart';
-import '../../../reports/presentation/controllers/report_controller.dart';
-import '../../../../domain/entities/payment_method.dart';
-import '../../domain/usecases/complete_payment.dart';
+import '../../../dashboard/presentation/controllers/home_tab_controller.dart';
+import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
+import 'package:lava_cash/core/domain/entities/payment_method.dart';
+import 'package:lava_cash/core/domain/payment/usecases/complete_payment.dart';
 
 class PaymentController extends GetxController {
   PaymentController({required CompletePayment completePayment})

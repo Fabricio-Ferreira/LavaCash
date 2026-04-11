@@ -3,6 +3,7 @@ import '../controllers/report_controller.dart';
 class DailyReportState {
   const DailyReportState({
     required this.totalRecebido,
+    required this.totalDespesas,
     required this.totalCarros,
     required this.emAndamento,
     required this.paymentEntries,
@@ -10,6 +11,7 @@ class DailyReportState {
   });
 
   final double totalRecebido;
+  final double totalDespesas;
   final int totalCarros;
   final int emAndamento;
   final List<MapEntry<String, double>> paymentEntries;
@@ -19,6 +21,7 @@ class DailyReportState {
     if (c.isDailyLoading.value) {
       return const DailyReportState(
         totalRecebido: 0,
+        totalDespesas: 0,
         totalCarros: 0,
         emAndamento: 0,
         paymentEntries: [],
@@ -29,6 +32,7 @@ class DailyReportState {
     if (report == null) {
       return const DailyReportState(
         totalRecebido: 0,
+        totalDespesas: 0,
         totalCarros: 0,
         emAndamento: 0,
         paymentEntries: [],
@@ -42,6 +46,7 @@ class DailyReportState {
         );
     return DailyReportState(
       totalRecebido: report.totalRecebido,
+      totalDespesas: report.totalDespesas,
       totalCarros: report.totalCarros,
       emAndamento: report.emAndamento,
       paymentEntries: entries,

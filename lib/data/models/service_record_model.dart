@@ -1,6 +1,6 @@
-import '../../domain/entities/payment_method.dart';
-import '../../domain/entities/service_record.dart';
-import '../../domain/entities/service_status.dart';
+import 'package:lava_cash/core/domain/entities/payment_method.dart';
+import 'package:lava_cash/core/domain/entities/service_record.dart';
+import 'package:lava_cash/core/domain/entities/service_status.dart';
 
 class ServiceRecordModel {
   const ServiceRecordModel({

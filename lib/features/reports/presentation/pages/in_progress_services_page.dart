@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lava_cash/app/routes/app_routes.dart';
-import 'package:lava_cash/domain/entities/service_status.dart';
-import 'package:lava_cash/domain/entities/service_summary.dart';
+import 'package:lava_cash/core/domain/entities/service_status.dart';
+import 'package:lava_cash/core/domain/entities/service_summary.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
 import '../controllers/report_controller.dart';
-import '../widgets/service_summary_tile.dart';
+import '../../../../shared/widgets/service_summary_tile.dart';
 
 /// All service records with status em andamento.
 class InProgressServicesPage extends GetView<ReportController> {

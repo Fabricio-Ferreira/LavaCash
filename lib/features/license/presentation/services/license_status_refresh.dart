@@ -7,8 +7,8 @@ import '../../../../app/app_global_controller.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/services/device_id_service.dart';
-import '../../../../domain/entities/license.dart';
-import '../../domain/usecases/check_license.dart';
+import 'package:lava_cash/core/domain/entities/license.dart';
+import 'package:lava_cash/core/domain/license/usecases/check_license.dart';
 import '../bindings/license_binding.dart';
 
 /// Re-validates license with the backend (same flow as startup check, without

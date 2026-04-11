@@ -2,17 +2,19 @@ import 'package:dartz/dartz.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/error/failures.dart';
-import '../../../../domain/entities/best_weekday_report.dart';
-import '../../../../domain/entities/daily_report.dart';
-import '../../../../domain/entities/monthly_report.dart';
-import '../../../../domain/entities/service_summary.dart';
-import '../../../../domain/entities/weekly_report.dart';
-import '../../domain/usecases/get_best_weekday_report.dart';
-import '../../domain/usecases/get_daily_report.dart';
-import '../../domain/usecases/get_in_progress_services.dart';
-import '../../domain/usecases/get_monthly_reports.dart';
-import '../../domain/usecases/get_today_services.dart';
-import '../../domain/usecases/get_weekly_report.dart';
+import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
+import 'package:lava_cash/core/domain/entities/daily_report.dart';
+import 'package:lava_cash/core/domain/entities/monthly_report.dart';
+import 'package:lava_cash/core/domain/entities/service_summary.dart';
+import 'package:lava_cash/core/domain/entities/weekly_report.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_best_weekday_report.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_daily_report.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_in_progress_services.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_monthly_reports.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_today_services.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_weekly_report.dart';
+import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
+import '../utils/report_pdf_output_helper.dart';
 
 class ReportController extends GetxController {
   ReportController({
@@ -51,6 +53,20 @@ class ReportController extends GetxController {
   final Rxn<BestWeekdayReport> bestWeekday = Rxn<BestWeekdayReport>();
   final RxString errorMessage = ''.obs;
 
+  /// Calendar day for daily report, PDF, and [loadDaily] / today-services list.
+  final Rx<DateTime> dailyReportDay = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  ).obs;
+
+  /// First day of month for monthly UI, weekly RPCs, and monthly PDF.
+  final Rx<DateTime> monthlyReportMonth = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    1,
+  ).obs;
+
   static const Duration _reportStaleThreshold = Duration(minutes: 5);
 
   DateTime? _lastSuccessfulDailyLoadAt;
@@ -71,17 +87,47 @@ class ReportController extends GetxController {
     }
   }
 
-  static MonthlyReport? resolveHighlightMonth(List<MonthlyReport> list) {
-    if (list.isEmpty) {
-      return null;
-    }
-    final DateTime now = DateTime.now();
+  /// Row in [list] matching [monthAnchor] (year + month), or null.
+  static MonthlyReport? resolveMonthInList(
+    List<MonthlyReport> list,
+    DateTime monthAnchor,
+  ) {
     for (final MonthlyReport m in list) {
-      if (m.mes.year == now.year && m.mes.month == now.month) {
+      if (m.mes.year == monthAnchor.year && m.mes.month == monthAnchor.month) {
         return m;
       }
     }
-    return list.first;
+    return null;
+  }
+
+  void setDailyReportDay(DateTime d) {
+    final DateTime normalized = DateTime(d.year, d.month, d.day);
+    if (dailyReportDay.value == normalized) {
+      return;
+    }
+    dailyReportDay.value = normalized;
+    loadDaily();
+  }
+
+  void setMonthlyReportMonth(DateTime m) {
+    final DateTime first = DateTime(m.year, m.month, 1);
+    if (monthlyReportMonth.value.year == first.year &&
+        monthlyReportMonth.value.month == first.month) {
+      return;
+    }
+    monthlyReportMonth.value = first;
+    loadWeekly(first);
+  }
+
+  /// Call when switching to the dashboard tab so KPIs stay “hoje / este mês”.
+  void resetSelectionsToTodayAndThisMonth() {
+    final DateTime n = DateTime.now();
+    final DateTime today = DateTime(n.year, n.month, n.day);
+    final DateTime monthFirst = DateTime(n.year, n.month, 1);
+    dailyReportDay.value = today;
+    monthlyReportMonth.value = monthFirst;
+    loadDaily();
+    loadWeekly(monthFirst);
   }
 
   @override
@@ -95,10 +141,10 @@ class ReportController extends GetxController {
     isDailyLoading.value = true;
     isTodayServicesLoading.value = true;
     isInProgressLoading.value = true;
-    final DateTime now = DateTime.now();
+    final DateTime day = dailyReportDay.value;
     final List<dynamic> parallel = await Future.wait<dynamic>(<Future<dynamic>>[
-      _getDailyReport(now),
-      _getTodayServices(now),
+      _getDailyReport(day),
+      _getTodayServices(day),
       _getInProgressServices(),
     ]);
     final Either<Failure, DailyReport> dailyEither =
@@ -163,7 +209,7 @@ class ReportController extends GetxController {
   Future<void> loadTodayServices() async {
     isTodayServicesLoading.value = true;
     final Either<Failure, List<ServiceSummary>> result =
-        await _getTodayServices(DateTime.now());
+        await _getTodayServices(dailyReportDay.value);
     result.fold(
       (Failure failure) {
         todayServices.clear();
@@ -192,14 +238,7 @@ class ReportController extends GetxController {
         errorMessage.value = '';
         monthlyReports.assignAll(list);
         _lastSuccessfulMonthlyLoadAt = DateTime.now();
-        final MonthlyReport? highlight = resolveHighlightMonth(list);
-        if (highlight != null) {
-          await loadWeekly(highlight.mes);
-        } else {
-          weeklyReports.clear();
-          bestWeekday.value = null;
-          isWeeklyLoading.value = false;
-        }
+        await loadWeekly(monthlyReportMonth.value);
       },
     );
     isMonthlyLoading.value = false;
@@ -233,5 +272,49 @@ class ReportController extends GetxController {
       },
     );
     isWeeklyLoading.value = false;
+  }
+
+  Future<void> exportDailyPdf() async {
+    final ReportRepository repo = Get.find<ReportRepository>();
+    await runDailyReportPdfOutput(
+      repository: repo,
+      day: dailyReportDay.value,
+      sink: shareReportPdfSink,
+    );
+  }
+
+  Future<void> printDailyPdf() async {
+    final ReportRepository repo = Get.find<ReportRepository>();
+    await runDailyReportPdfOutput(
+      repository: repo,
+      day: dailyReportDay.value,
+      sink: printReportPdfSink,
+    );
+  }
+
+  Future<void> exportMonthlyPdf() async {
+    final DateTime month = monthlyReportMonth.value;
+    await loadWeekly(month);
+    final ReportRepository repo = Get.find<ReportRepository>();
+    await runMonthlyReportPdfOutput(
+      repository: repo,
+      month: month,
+      weeklyReports: weeklyReports.toList(),
+      bestWeekday: bestWeekday.value,
+      sink: shareReportPdfSink,
+    );
+  }
+
+  Future<void> printMonthlyPdf() async {
+    final DateTime month = monthlyReportMonth.value;
+    await loadWeekly(month);
+    final ReportRepository repo = Get.find<ReportRepository>();
+    await runMonthlyReportPdfOutput(
+      repository: repo,
+      month: month,
+      weeklyReports: weeklyReports.toList(),
+      bestWeekday: bestWeekday.value,
+      sink: printReportPdfSink,
+    );
   }
 }
