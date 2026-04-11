@@ -1,17 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:dartz/dartz.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../../../app/app_global_controller.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/utils/app_snackbar.dart';
 import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_interval_report.dart';
-import '../../services/report_pdf_service.dart';
-import 'package:lava_cash/features/license/presentation/services/license_status_refresh.dart';
+import '../utils/report_pdf_output_helper.dart';
 
 class IntervalReportController extends GetxController {
   IntervalReportController({
@@ -108,105 +101,20 @@ class IntervalReportController extends GetxController {
   }
 
   Future<void> exportPdf() async {
-    final bool ok = await LicenseStatusRefresh.verifyAndSyncOrExit();
-    if (!ok) {
-      return;
-    }
-    final ReportPdfService pdf = Get.find<ReportPdfService>();
-    final AppGlobalController global = Get.find<AppGlobalController>();
-    final DateTime start = rangeStart.value;
-    final DateTime end = rangeEnd.value;
-    final PackageInfo info = await PackageInfo.fromPlatform();
-    final Either<Failure, Map<String, dynamic>> sumRes =
-        await _reportRepository.getIntervalSummary(start, end);
-    await sumRes.fold(
-      (Failure f) async {
-        AppSnackbar.showError(f.message);
-      },
-      (Map<String, dynamic> summaryMap) async {
-        final Either<Failure, List<Map<String, dynamic>>> attRes =
-            await _reportRepository.getIntervalAttendanceRows(start, end);
-        await attRes.fold(
-          (Failure f) async {
-            AppSnackbar.showError(f.message);
-          },
-          (List<Map<String, dynamic>> att) async {
-            final Either<Failure, List<Map<String, dynamic>>> expRes =
-                await _reportRepository.getIntervalExpenseRows(start, end);
-            await expRes.fold(
-              (Failure f) async {
-                AppSnackbar.showError(f.message);
-              },
-              (List<Map<String, dynamic>> exp) async {
-                final Uint8List bytes = await pdf.generateIntervalReportPdf(
-                  companyName: global.establishmentName.value,
-                  rangeStart: start,
-                  rangeEnd: end,
-                  summary: summaryMap,
-                  attendances: att,
-                  expenses: exp,
-                  appVersionLabel: '${info.version}+${info.buildNumber}',
-                );
-                final String name =
-                    'lavacash-relatorio-periodo-'
-                    '${DateFormat('yyyy-MM-dd').format(start)}_'
-                    '${DateFormat('yyyy-MM-dd').format(end)}.pdf';
-                await pdf.sharePdf(bytes: bytes, filename: name);
-                AppSnackbar.showSuccess('PDF pronto para compartilhar.');
-              },
-            );
-          },
-        );
-      },
+    await runIntervalReportPdfOutput(
+      repository: _reportRepository,
+      rangeStart: rangeStart.value,
+      rangeEnd: rangeEnd.value,
+      sink: shareReportPdfSink,
     );
   }
 
   Future<void> printPdf() async {
-    final bool ok = await LicenseStatusRefresh.verifyAndSyncOrExit();
-    if (!ok) {
-      return;
-    }
-    final ReportPdfService pdf = Get.find<ReportPdfService>();
-    final AppGlobalController global = Get.find<AppGlobalController>();
-    final DateTime start = rangeStart.value;
-    final DateTime end = rangeEnd.value;
-    final PackageInfo info = await PackageInfo.fromPlatform();
-    final Either<Failure, Map<String, dynamic>> sumRes =
-        await _reportRepository.getIntervalSummary(start, end);
-    await sumRes.fold(
-      (Failure f) async {
-        AppSnackbar.showError(f.message);
-      },
-      (Map<String, dynamic> summaryMap) async {
-        final Either<Failure, List<Map<String, dynamic>>> attRes =
-            await _reportRepository.getIntervalAttendanceRows(start, end);
-        await attRes.fold(
-          (Failure f) async {
-            AppSnackbar.showError(f.message);
-          },
-          (List<Map<String, dynamic>> att) async {
-            final Either<Failure, List<Map<String, dynamic>>> expRes =
-                await _reportRepository.getIntervalExpenseRows(start, end);
-            await expRes.fold(
-              (Failure f) async {
-                AppSnackbar.showError(f.message);
-              },
-              (List<Map<String, dynamic>> exp) async {
-                final Uint8List bytes = await pdf.generateIntervalReportPdf(
-                  companyName: global.establishmentName.value,
-                  rangeStart: start,
-                  rangeEnd: end,
-                  summary: summaryMap,
-                  attendances: att,
-                  expenses: exp,
-                  appVersionLabel: '${info.version}+${info.buildNumber}',
-                );
-                await pdf.printPdf(bytes);
-              },
-            );
-          },
-        );
-      },
+    await runIntervalReportPdfOutput(
+      repository: _reportRepository,
+      rangeStart: rangeStart.value,
+      rangeEnd: rangeEnd.value,
+      sink: printReportPdfSink,
     );
   }
 }
