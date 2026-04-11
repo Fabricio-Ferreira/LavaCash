@@ -54,6 +54,7 @@ class ExpenseController extends GetxController {
     );
     result.fold(
       (Failure failure) {
+        items.clear();
         errorMessage.value = failure.message;
       },
       (List<Expense> list) {
