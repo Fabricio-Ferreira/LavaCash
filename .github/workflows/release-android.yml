@@ -168,15 +168,40 @@ jobs:
         run: |
           set -e
           if [ -z "${ANDROID_KEYSTORE_BASE64}" ]; then
-            echo "::error::Missing ANDROID_KEYSTORE_BASE64. Encode locally: base64 -i android/lavacash-release.jks | tr -d '\n'"
+            echo "::error::Missing ANDROID_KEYSTORE_BASE64. Encode: openssl base64 -A -in android/lavacash-release.jks"
             exit 1
           fi
           KEY_ALIAS="${ANDROID_KEY_ALIAS:-lavacash}"
-          printf '%s' "${ANDROID_KEYSTORE_BASE64}" | base64 -d > "${GITHUB_WORKSPACE}/android/lavacash-release.jks"
-          if [ ! -s "${GITHUB_WORKSPACE}/android/lavacash-release.jks" ]; then
-            echo "::error::Decoded keystore is empty. Check ANDROID_KEYSTORE_BASE64."
-            exit 1
-          fi
+          python3 << 'PY'
+          import base64
+          import os
+          import pathlib
+          import re
+          import sys
+
+          raw = os.environ["ANDROID_KEYSTORE_BASE64"].lstrip("\ufeff")
+          # Strip wrapping / paste noise (GNU base64 -d fails on whitespace).
+          clean = re.sub(r"\s+", "", raw)
+          clean = re.sub(r"[^A-Za-z0-9+/=]", "", clean)
+          if not clean:
+              print("::error::ANDROID_KEYSTORE_BASE64 is empty after cleaning.", file=sys.stderr)
+              sys.exit(1)
+          try:
+              data = base64.b64decode(clean, validate=False)
+          except Exception as err:
+              print(
+                  "::error::Invalid base64 in ANDROID_KEYSTORE_BASE64. "
+                  "Re-paste one line from: openssl base64 -A -in android/lavacash-release.jks",
+                  file=sys.stderr,
+              )
+              print(err, file=sys.stderr)
+              sys.exit(1)
+          out = pathlib.Path(os.environ["GITHUB_WORKSPACE"]) / "android" / "lavacash-release.jks"
+          out.write_bytes(data)
+          if out.stat().st_size == 0:
+              print("::error::Decoded keystore is empty.", file=sys.stderr)
+              sys.exit(1)
+          PY
           printf '%s\n' \
             "keyAlias=${KEY_ALIAS}" \
             "storeFile=lavacash-release.jks" \
