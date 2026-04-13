@@ -13,6 +13,18 @@ e o versionamento segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.0.1+3] — 2026-04-13
+
+### Alterado
+
+- **CI (`release-android`):** assinatura de release com keystore a partir de secrets (`ANDROID_KEYSTORE_BASE64`, `LAVACASH_STORE_PASSWORD`, `LAVACASH_KEY_PASSWORD`; opcional `ANDROID_KEY_ALIAS`), alinhada ao `android/app/build.gradle.kts` e ao `key.properties` local.
+
+### Corrigido
+
+- APK gerado no GitHub Actions deixou de usar assinatura de **debug** quando o keystore de release não estava disponível no runner — cenário que gerava conflito de pacote ao atualizar sobre instalações já assinadas com o keystore de release.
+
+---
+
 ## [1.0.1+2] — 2026-04-11
 
 ### Adicionado

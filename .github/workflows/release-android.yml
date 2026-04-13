@@ -1,6 +1,9 @@
 # Release Android: build APK, upload to Supabase Storage (app-releases), PATCH public.app_version.
 # Triggers: manual (workflow_dispatch) or tag v* on a commit that is on main.
-# Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DART_DEFINES_JSON (see README).
+# Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DART_DEFINES_JSON,
+#   ANDROID_KEYSTORE_BASE64 (base64 of lavacash-release.jks, one line),
+#   LAVACASH_STORE_PASSWORD, LAVACASH_KEY_PASSWORD,
+#   optional ANDROID_KEY_ALIAS (default: lavacash — must match keytool alias).
 # Docs: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 
 name: Release Android
@@ -158,9 +161,37 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build APK
+      - name: Configure Android release signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           set -e
+          if [ -z "${ANDROID_KEYSTORE_BASE64}" ]; then
+            echo "::error::Missing ANDROID_KEYSTORE_BASE64. Encode locally: base64 -i android/lavacash-release.jks | tr -d '\n'"
+            exit 1
+          fi
+          KEY_ALIAS="${ANDROID_KEY_ALIAS:-lavacash}"
+          printf '%s' "${ANDROID_KEYSTORE_BASE64}" | base64 -d > "${GITHUB_WORKSPACE}/android/lavacash-release.jks"
+          if [ ! -s "${GITHUB_WORKSPACE}/android/lavacash-release.jks" ]; then
+            echo "::error::Decoded keystore is empty. Check ANDROID_KEYSTORE_BASE64."
+            exit 1
+          fi
+          printf '%s\n' \
+            "keyAlias=${KEY_ALIAS}" \
+            "storeFile=lavacash-release.jks" \
+            > "${GITHUB_WORKSPACE}/android/key.properties"
+
+      - name: Build APK
+        env:
+          LAVACASH_STORE_PASSWORD: ${{ secrets.LAVACASH_STORE_PASSWORD }}
+          LAVACASH_KEY_PASSWORD: ${{ secrets.LAVACASH_KEY_PASSWORD }}
+        run: |
+          set -e
+          if [ -z "${LAVACASH_STORE_PASSWORD}" ] || [ -z "${LAVACASH_KEY_PASSWORD}" ]; then
+            echo "::error::Missing LAVACASH_STORE_PASSWORD or LAVACASH_KEY_PASSWORD repository secrets."
+            exit 1
+          fi
           SYMBOLS_DIR="${GITHUB_WORKSPACE}/build/symbols/android"
           mkdir -p "${SYMBOLS_DIR}"
           flutter build apk --release \
