@@ -13,6 +13,20 @@ e o versionamento segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.1.0+1] — 2026-04-21
+
+### Adicionado
+
+- **Relatórios — Histórico:** nova aba com atendimentos **finalizados**, filtro por **período** e **cliente ou placa** (mesma normalização da busca), resumo e lista por veículo (expansível).
+- **Paginação:** carregamento de **10 veículos** por vez, indicador ao carregar mais e aviso ao **fim da lista** (total de veículos no filtro).
+- **PDF / impressão** do histórico (período + termo de busca; exportação usa todos os veículos do filtro, com teto de linhas no backend).
+
+### Alterado
+
+- **Supabase:** RPC `get_attendance_history` com paginação por veículo, contagem total e modo exportação; ajuste de fuso para exibição em horário de São Paulo (migrations `009` / `010` conforme aplicadas no projeto).
+
+---
+
 ## [1.0.1+3] — 2026-04-13
 
 ### Alterado
