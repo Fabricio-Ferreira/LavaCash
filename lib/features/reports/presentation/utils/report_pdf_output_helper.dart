@@ -8,7 +8,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../app/app_global_controller.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/app_snackbar.dart';
+import 'package:lava_cash/core/domain/entities/attendance_history_page_result.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
+import 'package:lava_cash/core/domain/entities/vehicle_attendance_history_group.dart';
+import 'package:lava_cash/core/domain/reports/attendance_history_grouping.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
 import '../../services/report_pdf_service.dart';
@@ -36,6 +39,59 @@ Future<void> printReportPdfSink({
   required String filename,
 }) async {
   await pdf.printPdf(bytes);
+}
+
+Future<void> runAttendanceHistoryPdfOutput({
+  required ReportRepository repository,
+  required DateTime rangeStart,
+  required DateTime rangeEnd,
+  required String? query,
+  required ReportPdfBytesSink sink,
+}) async {
+  final bool ok = await LicenseStatusRefresh.verifyAndSyncOrExit();
+  if (!ok) {
+    return;
+  }
+  final ReportPdfService pdf = Get.find<ReportPdfService>();
+  final AppGlobalController global = Get.find<AppGlobalController>();
+  final PackageInfo info = await PackageInfo.fromPlatform();
+  final Either<Failure, AttendanceHistoryPageResult> res =
+      await repository.getAttendanceHistory(
+        startInclusive: rangeStart,
+        endInclusive: rangeEnd,
+        query: query,
+        fetchAllVehicles: true,
+      );
+  await res.fold(
+    (Failure f) async {
+      AppSnackbar.showError(f.message);
+    },
+    (AttendanceHistoryPageResult page) async {
+      final List<VehicleAttendanceHistoryGroup> groups =
+          groupAttendanceHistoryLines(page.lines);
+      final String searchDescription =
+          (query == null || query.trim().isEmpty)
+          ? 'Busca: todos'
+          : 'Busca: ${query.trim()}';
+      final Uint8List bytes = await pdf.generateAttendanceHistoryPdf(
+        companyName: global.establishmentName.value,
+        rangeStart: rangeStart,
+        rangeEnd: rangeEnd,
+        searchDescription: searchDescription,
+        groups: groups,
+        appVersionLabel: '${info.version}+${info.buildNumber}',
+      );
+      final String filename =
+          'lavacash-historico-atendimentos-'
+          '${DateFormat('yyyy-MM-dd').format(rangeStart)}_'
+          '${DateFormat('yyyy-MM-dd').format(rangeEnd)}.pdf';
+      await sink(
+        pdf: pdf,
+        bytes: bytes,
+        filename: filename,
+      );
+    },
+  );
 }
 
 Future<void> runIntervalReportPdfOutput({

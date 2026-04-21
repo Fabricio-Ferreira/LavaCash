@@ -2,6 +2,9 @@ import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/error/failures.dart';
+import 'package:lava_cash/core/domain/entities/attendance_history_line.dart';
+import 'package:lava_cash/core/domain/entities/attendance_history_page_result.dart';
+import 'package:lava_cash/core/domain/reports/attendance_history_range_validation.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
 import 'package:lava_cash/core/domain/entities/daily_report.dart';
 import 'package:lava_cash/core/domain/entities/monthly_report.dart';
@@ -710,6 +713,127 @@ class ReportRepositoryImpl implements ReportRepository {
     final String m = local.month.toString().padLeft(2, '0');
     final String d = local.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
+  }
+
+  @override
+  Future<Either<Failure, AttendanceHistoryPageResult>> getAttendanceHistory({
+    required DateTime startInclusive,
+    required DateTime endInclusive,
+    String? query,
+    int vehicleLimit = 10,
+    int vehicleOffset = 0,
+    bool fetchAllVehicles = false,
+  }) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final String? rangeError = AttendanceHistoryRangeValidation.validate(
+        startInclusive,
+        endInclusive,
+      );
+      if (rangeError != null) {
+        return Left(ValidationFailure(rangeError));
+      }
+      final DateTime start = DateTime(
+        startInclusive.year,
+        startInclusive.month,
+        startInclusive.day,
+      );
+      final DateTime end = DateTime(
+        endInclusive.year,
+        endInclusive.month,
+        endInclusive.day,
+      );
+      final String startKey = _dateKeyLocal(start);
+      final String endKey = _dateKeyLocal(end);
+      final dynamic rawRows = await _client.rpc(
+        'get_attendance_history',
+        params: <String, dynamic>{
+          'p_start_date': startKey,
+          'p_end_date': endKey,
+          'p_query': query?.trim() ?? '',
+          'p_vehicle_limit': vehicleLimit,
+          'p_vehicle_offset': vehicleOffset,
+          'p_fetch_all_vehicles': fetchAllVehicles,
+        },
+      );
+      if (rawRows == null) {
+        return Right(
+          AttendanceHistoryPageResult(
+            lines: <AttendanceHistoryLine>[],
+            totalVehicles: vehicleOffset == 0 ? 0 : null,
+          ),
+        );
+      }
+      if (rawRows is! List<dynamic>) {
+        return const Left(
+          ServerFailure('Resposta inválida do histórico de atendimentos'),
+        );
+      }
+      if (rawRows.isEmpty) {
+        return Right(
+          AttendanceHistoryPageResult(
+            lines: <AttendanceHistoryLine>[],
+            totalVehicles: vehicleOffset == 0 ? 0 : null,
+          ),
+        );
+      }
+      final List<AttendanceHistoryLine> list = <AttendanceHistoryLine>[];
+      int? totalVehicles;
+      for (int i = 0; i < rawRows.length; i++) {
+        final dynamic row = rawRows[i];
+        if (row is! Map) {
+          continue;
+        }
+        final Map<String, dynamic> map = Map<String, dynamic>.from(row);
+        if (i == 0) {
+          totalVehicles = _toInt(map['total_veiculos']);
+        }
+        final AttendanceHistoryLine? line = _mapAttendanceHistoryRow(map);
+        if (line != null) {
+          list.add(line);
+        }
+      }
+      return Right(
+        AttendanceHistoryPageResult(
+          lines: list,
+          totalVehicles: totalVehicles,
+        ),
+      );
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  AttendanceHistoryLine? _mapAttendanceHistoryRow(Map<String, dynamic> map) {
+    final String? atId = map['atendimento_id']?.toString();
+    final String? vId = map['veiculo_id']?.toString();
+    final String? placa = map['placa'] as String?;
+    final String? nome = map['cliente_nome'] as String?;
+    final Object? horaRaw = map['hora_entrada_local'];
+    if (atId == null || vId == null || placa == null || nome == null) {
+      return null;
+    }
+    final String? horaStr = horaRaw?.toString();
+    if (horaStr == null || horaStr.isEmpty) {
+      return null;
+    }
+    final DateTime? hora = DateTime.tryParse(horaStr);
+    if (hora == null) {
+      return null;
+    }
+    return AttendanceHistoryLine(
+      atendimentoId: atId,
+      veiculoId: vId,
+      placa: placa,
+      clienteNome: nome,
+      horaEntradaLocal: hora,
+      valor: _toDouble(map['valor']),
+      formaPagamento: map['forma_pagamento'] as String?,
+    );
   }
 }
 

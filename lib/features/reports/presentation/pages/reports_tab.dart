@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../controllers/attendance_history_controller.dart';
 import '../controllers/interval_report_controller.dart';
 import '../controllers/report_controller.dart';
+import '../history/attendance_history_tab.dart';
 import '../daily/daily_report_tab.dart';
 import '../monthly/monthly_report_tab.dart';
 import '../period/interval_report_tab.dart';
@@ -23,7 +25,7 @@ class _ReportsTabState extends State<ReportsTab>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
@@ -77,6 +79,7 @@ class _ReportsTabState extends State<ReportsTab>
                   Tab(text: 'Diário'),
                   Tab(text: 'Mensal'),
                   Tab(text: 'Período'),
+                  Tab(text: 'Histórico'),
                 ],
               ),
             ),
@@ -97,8 +100,10 @@ class _ReportsTabState extends State<ReportsTab>
                     c.exportDailyPdf();
                   } else if (_tabController.index == 1) {
                     c.exportMonthlyPdf();
-                  } else {
+                  } else if (_tabController.index == 2) {
                     Get.find<IntervalReportController>().exportPdf();
+                  } else {
+                    Get.find<AttendanceHistoryController>().exportPdf();
                   }
                 },
               ),
@@ -112,8 +117,10 @@ class _ReportsTabState extends State<ReportsTab>
                     c.printDailyPdf();
                   } else if (_tabController.index == 1) {
                     c.printMonthlyPdf();
-                  } else {
+                  } else if (_tabController.index == 2) {
                     Get.find<IntervalReportController>().printPdf();
+                  } else {
+                    Get.find<AttendanceHistoryController>().printPdf();
                   }
                 },
               ),
@@ -128,6 +135,7 @@ class _ReportsTabState extends State<ReportsTab>
               DailyReportTab(),
               MonthlyReportTab(),
               IntervalReportTab(),
+              AttendanceHistoryTab(),
             ],
           ),
         ),

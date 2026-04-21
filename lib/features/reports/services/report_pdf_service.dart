@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:intl/intl.dart';
+import 'package:lava_cash/core/domain/entities/attendance_history_line.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
+import 'package:lava_cash/core/domain/entities/vehicle_attendance_history_group.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -233,6 +235,144 @@ class ReportPdfService {
       ),
     );
     return doc.save();
+  }
+
+  Future<Uint8List> generateAttendanceHistoryPdf({
+    required String companyName,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required String searchDescription,
+    required List<VehicleAttendanceHistoryGroup> groups,
+    String? appVersionLabel,
+  }) async {
+    final pw.Font base = await PdfGoogleFonts.notoSansRegular();
+    final pw.Font bold = await PdfGoogleFonts.notoSansBold();
+    final NumberFormat currency = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: r'R$',
+    );
+    final DateFormat dayFmt = DateFormat('dd/MM/yyyy', 'pt_BR');
+    final DateFormat dtFmt = DateFormat('dd/MM/yyyy HH:mm', 'pt_BR');
+    final pw.Document doc = pw.Document();
+    final String periodSubtitle =
+        '${dayFmt.format(rangeStart)} – ${dayFmt.format(rangeEnd)}';
+    final int totalAttendances = groups.fold<int>(
+      0,
+      (int a, VehicleAttendanceHistoryGroup g) => a + g.totalAtendimentos,
+    );
+    final int totalVehicles = groups.length;
+    double totalValor = 0;
+    bool hasValor = false;
+    for (final VehicleAttendanceHistoryGroup g in groups) {
+      for (final AttendanceHistoryLine line in g.lines) {
+        final double? v = line.valor;
+        if (v != null) {
+          totalValor += v;
+          hasValor = true;
+        }
+      }
+    }
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(24),
+        theme: pw.ThemeData.withFont(base: base, bold: bold),
+        build: (pw.Context ctx) {
+          final List<pw.Widget> page = <pw.Widget>[
+            _pdfHeader(
+              title: 'Histórico de atendimentos',
+              subtitle: '$periodSubtitle · $searchDescription',
+              companyName: companyName,
+              bold: bold,
+              base: base,
+              dtFmt: dtFmt,
+            ),
+            pw.SizedBox(height: 16),
+            pw.Text(
+              'Total: $totalAttendances atendimento(s) · '
+              '$totalVehicles veículo(s) · Valor total: '
+              '${hasValor ? currency.format(totalValor) : '—'}',
+              style: pw.TextStyle(font: bold, fontSize: 11),
+            ),
+            pw.SizedBox(height: 16),
+            _sectionTitle('Por veículo', bold),
+            pw.SizedBox(height: 8),
+          ];
+          if (groups.isEmpty) {
+            page.add(
+              _emptyBox(
+                'Nenhum atendimento finalizado no período.',
+                base,
+              ),
+            );
+          } else {
+            page.addAll(
+              _attendanceHistoryGroupWidgets(
+                groups: groups,
+                currency: currency,
+                bold: bold,
+                base: base,
+                dtFmt: dtFmt,
+              ),
+            );
+          }
+          page.add(pw.SizedBox(height: 16));
+          page.add(_pdfFooter(appVersionLabel: appVersionLabel, base: base));
+          return page;
+        },
+      ),
+    );
+    return doc.save();
+  }
+
+  List<pw.Widget> _attendanceHistoryGroupWidgets({
+    required List<VehicleAttendanceHistoryGroup> groups,
+    required NumberFormat currency,
+    required pw.Font bold,
+    required pw.Font base,
+    required DateFormat dtFmt,
+  }) {
+    final List<pw.Widget> out = <pw.Widget>[];
+    for (final VehicleAttendanceHistoryGroup g in groups) {
+      out.add(
+        pw.Text(
+          '${g.placa} — ${g.clienteNome} (${g.totalAtendimentos})',
+          style: pw.TextStyle(font: bold, fontSize: 10),
+        ),
+      );
+      out.add(pw.SizedBox(height: 6));
+      out.add(
+        pw.Table(
+          border: pw.TableBorder.all(color: PdfColors.grey400),
+          columnWidths: <int, pw.TableColumnWidth>{
+            0: const pw.FlexColumnWidth(2.2),
+            1: const pw.FlexColumnWidth(1.2),
+            2: const pw.FlexColumnWidth(1.2),
+          },
+          children: <pw.TableRow>[
+            _headerRow(
+              <String>['Data/hora', 'Valor', 'Pagamento'],
+              bold,
+              base,
+            ),
+            ...g.lines.map(
+              (AttendanceHistoryLine line) => _dataRow(
+                <String>[
+                  dtFmt.format(line.horaEntradaLocal),
+                  line.valor != null
+                      ? currency.format(line.valor!)
+                      : '—',
+                  line.formaPagamento ?? '—',
+                ],
+                base,
+              ),
+            ),
+          ],
+        ),
+      );
+      out.add(pw.SizedBox(height: 14));
+    }
+    return out;
   }
 
   Future<void> printPdf(Uint8List pdfBytes) async {

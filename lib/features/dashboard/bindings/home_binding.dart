@@ -19,10 +19,12 @@ import 'package:lava_cash/core/domain/reports/repositories/report_repository.dar
 import 'package:lava_cash/core/domain/reports/usecases/get_best_weekday_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_daily_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_in_progress_services.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_attendance_history.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_interval_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_monthly_reports.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_today_services.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_weekly_report.dart';
+import 'package:lava_cash/features/reports/presentation/controllers/attendance_history_controller.dart';
 import 'package:lava_cash/features/reports/presentation/controllers/interval_report_controller.dart';
 import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
 import 'package:lava_cash/features/reports/services/report_pdf_service.dart';
@@ -89,6 +91,17 @@ class HomeBinding extends Bindings {
     );
     Get.lazyPut<GetIntervalReport>(
       () => GetIntervalReport(repository: Get.find<ReportRepository>()),
+      fenix: true,
+    );
+    Get.lazyPut<GetAttendanceHistory>(
+      () => GetAttendanceHistory(repository: Get.find<ReportRepository>()),
+      fenix: true,
+    );
+    Get.lazyPut<AttendanceHistoryController>(
+      () => AttendanceHistoryController(
+        getAttendanceHistory: Get.find<GetAttendanceHistory>(),
+        reportRepository: Get.find<ReportRepository>(),
+      ),
       fenix: true,
     );
     Get.lazyPut<IntervalReportController>(
