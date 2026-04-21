@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../app/theme/app_theme.dart';
+import '../../../../../core/domain/reports/attendance_history_range_validation.dart';
 import '../../../../../core/utils/brazilian_date_input_formatter.dart';
 import '../../../../../core/utils/formatters.dart';
 
@@ -173,6 +174,13 @@ class _IntervalDateRangeDialogState extends State<_IntervalDateRangeDialog> {
     if (s.isAfter(e)) {
       setState(() {
         _errorMessage = 'A data inicial não pode ser depois da final.';
+      });
+      return;
+    }
+    final String? spanError = AttendanceHistoryRangeValidation.validate(s, e);
+    if (spanError != null) {
+      setState(() {
+        _errorMessage = spanError;
       });
       return;
     }

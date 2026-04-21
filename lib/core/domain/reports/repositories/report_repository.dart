@@ -63,8 +63,9 @@ abstract class ReportRepository {
 
   /// Finalized attendances in [startInclusive]..[endInclusive] (local days).
   /// Optional [query] filters by normalized client name or plate (substring).
-  /// [vehicleLimit] / [vehicleOffset] page distinct vehicles (newest activity
-  /// first). Set [fetchAllVehicles] for PDF (caps at 5000 rows server-side).
+  /// [vehicleLimit] / [vehicleOffset] page distinct vehicles in the same order
+  /// as the UI: client name A–Z, then plate. Set [fetchAllVehicles] for PDF
+  /// (caps at 5000 rows server-side).
   Future<Either<Failure, AttendanceHistoryPageResult>> getAttendanceHistory({
     required DateTime startInclusive,
     required DateTime endInclusive,

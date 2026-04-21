@@ -121,6 +121,15 @@ class AttendanceHistoryTab extends GetView<AttendanceHistoryController> {
                           color: AppColors.primary,
                         ),
                       ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Ordem alfabética por cliente e placa; cada página '
+                        'mostra os próximos veículos nessa ordem.',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                          height: 1.3,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       if (list.isEmpty)
                         Text(

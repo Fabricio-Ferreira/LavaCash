@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/domain/reports/attendance_history_range_validation.dart';
 import '../../../../core/error/failures.dart';
 import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_interval_report.dart';
@@ -51,6 +52,12 @@ class IntervalReportController extends GetxController {
     if (a == rangeStart.value && b == rangeEnd.value) {
       return;
     }
+    final String? rangeError = AttendanceHistoryRangeValidation.validate(a, b);
+    if (rangeError != null) {
+      errorMessage.value = rangeError;
+      return;
+    }
+    errorMessage.value = '';
     rangeStart.value = a;
     rangeEnd.value = b;
     load();

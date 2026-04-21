@@ -7,6 +7,7 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/utils/constants.dart';
 import 'package:lava_cash/core/domain/entities/attendance_history_load_result.dart';
 import 'package:lava_cash/core/domain/entities/vehicle_attendance_history_group.dart';
+import 'package:lava_cash/core/domain/reports/attendance_history_range_validation.dart';
 import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_attendance_history.dart';
 import '../utils/report_pdf_output_helper.dart';
@@ -35,6 +36,10 @@ class AttendanceHistoryController extends GetxController {
   final RxString searchQuery = ''.obs;
 
   int _nextVehicleOffset = 0;
+
+  /// Bumps on every full [load]. [loadMore] snapshots this so late responses
+  /// after a refresh cannot append or mutate the wrong list.
+  int _historyGeneration = 0;
 
   Timer? _debounce;
 
@@ -71,7 +76,14 @@ class AttendanceHistoryController extends GetxController {
   void onSearchChanged(String value) {
     searchQuery.value = value;
     _debounce?.cancel();
-    _debounce = Timer(AppConstants.searchDebounce, load);
+    _debounce = Timer(
+      AppConstants.attendanceHistorySearchDebounce,
+      _executeDebouncedSearchLoad,
+    );
+  }
+
+  void _executeDebouncedSearchLoad() {
+    load();
   }
 
   void setRange(DateTime start, DateTime end) {
@@ -83,6 +95,12 @@ class AttendanceHistoryController extends GetxController {
     if (a == rangeStart.value && b == rangeEnd.value) {
       return;
     }
+    final String? rangeError = AttendanceHistoryRangeValidation.validate(a, b);
+    if (rangeError != null) {
+      errorMessage.value = rangeError;
+      return;
+    }
+    errorMessage.value = '';
     rangeStart.value = a;
     rangeEnd.value = b;
     load();
@@ -115,6 +133,8 @@ class AttendanceHistoryController extends GetxController {
   }
 
   Future<void> load() async {
+    _debounce?.cancel();
+    final int generation = ++_historyGeneration;
     isLoading.value = true;
     errorMessage.value = '';
     _nextVehicleOffset = 0;
@@ -127,6 +147,9 @@ class AttendanceHistoryController extends GetxController {
           vehicleLimit: vehiclePageSize,
           vehicleOffset: 0,
         );
+    if (generation != _historyGeneration) {
+      return;
+    }
     result.fold(
       (Failure failure) {
         errorMessage.value = failure.message;
@@ -136,9 +159,7 @@ class AttendanceHistoryController extends GetxController {
       (AttendanceHistoryLoadResult r) {
         errorMessage.value = '';
         groups.assignAll(r.groups);
-        if (r.totalVehicles != null) {
-          totalVehicles.value = r.totalVehicles;
-        }
+        totalVehicles.value = r.totalVehicles;
         _nextVehicleOffset = r.groups.length;
       },
     );
@@ -149,6 +170,7 @@ class AttendanceHistoryController extends GetxController {
     if (!canLoadMore || isLoadingMore.value || isLoading.value) {
       return;
     }
+    final int generation = _historyGeneration;
     isLoadingMore.value = true;
     errorMessage.value = '';
     final String trimmed = searchQuery.value.trim();
@@ -160,6 +182,10 @@ class AttendanceHistoryController extends GetxController {
           vehicleLimit: vehiclePageSize,
           vehicleOffset: _nextVehicleOffset,
         );
+    if (generation != _historyGeneration) {
+      isLoadingMore.value = false;
+      return;
+    }
     result.fold(
       (Failure failure) {
         errorMessage.value = failure.message;

@@ -787,9 +787,7 @@ class ReportRepositoryImpl implements ReportRepository {
           continue;
         }
         final Map<String, dynamic> map = Map<String, dynamic>.from(row);
-        if (i == 0) {
-          totalVehicles = _toInt(map['total_veiculos']);
-        }
+        totalVehicles ??= _toInt(map['total_veiculos']);
         final AttendanceHistoryLine? line = _mapAttendanceHistoryRow(map);
         if (line != null) {
           list.add(line);
