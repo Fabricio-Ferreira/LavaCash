@@ -24,123 +24,213 @@ class DailyReportTab extends GetView<ReportController> {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    return Obx(() {
-      final DailyReportState daily = DailyReportState.fromController(
-        controller,
-      );
-      final String errorMessage = controller.errorMessage.value;
-      final double ticketMedio =
-          daily.totalCarros > 0 ? daily.totalRecebido / daily.totalCarros : 0;
-      return ThemedRefreshIndicator(
-        onRefresh: () async {
-          await controller.loadDaily();
+    return ThemedRefreshIndicator(
+      onRefresh: () async {
+        await controller.loadDaily();
+      },
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints c) {
+          final double pad = c.maxWidth > 600 ? 20 : 14;
+          final double bottomInset = homeTabListBottomPadding(context);
+          return CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: <Widget>[
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(pad, 4, pad, 0),
+                sliver: const SliverToBoxAdapter(
+                  child: DailyReportDayHeader(),
+                ),
+              ),
+              _DailyErrorSliver(horizontalPadding: pad),
+              _DailySummarySliver(
+                horizontalPadding: pad,
+                textTheme: textTheme,
+              ),
+              _DailyAttendimentosBlockSliver(
+                horizontalPadding: pad,
+                textTheme: textTheme,
+                bottomPadding: bottomInset,
+                onVerTodos: _openTodayServices,
+              ),
+            ],
+          );
         },
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints c) {
-            final double pad = c.maxWidth > 600 ? 20 : 14;
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              padding: EdgeInsets.fromLTRB(
-                pad,
-                4,
-                pad,
-                homeTabListBottomPadding(context),
-              ),
-              children: [
-                const DailyReportDayHeader(),
-                if (errorMessage.isNotEmpty &&
-                    !daily.isLoading &&
-                    controller.dailyReport.value == null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: SelectableText.rich(
-                      TextSpan(
-                        text: errorMessage,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 10),
-                EliteHeroCard.dailyReport(
-                  isLoading: daily.isLoading,
-                  totalRecebido: daily.totalRecebido,
-                  totalDespesas: daily.totalDespesas,
-                ),
-                const SizedBox(height: 20),
-                LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    final bool narrow = constraints.maxWidth < 340;
-                    final double gap = narrow ? 6 : 8;
-                    return DashboardStatGrid(
-                      crossAxisSpacing: gap,
-                      mainAxisSpacing: gap,
-                      childAspectRatio: narrow ? 1.32 : 1.5,
-                      children: <Widget>[
-                        DashboardStatCard(
-                          icon: Icons.directions_car_outlined,
-                          iconColor: AppColors.primary,
-                          label: 'CARROS',
-                          value: daily.isLoading ? '—' : '${daily.totalCarros}',
-                        ),
-                        DashboardStatCard(
-                          icon: Icons.payments_outlined,
-                          iconColor: AppColors.primary,
-                          label: 'TICKET MÉDIO',
-                          value:
-                              daily.isLoading
-                                  ? '—'
-                                  : AppFormatters.formatCurrency(ticketMedio),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Formas de Pagamento',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                PaymentListCard(
-                  entries: daily.paymentEntries,
-                  isLoading: daily.isLoading,
-                ),
-                const SizedBox(height: 20),
-                DashboardDespesasSection(daily: daily),
-                const SizedBox(height: 20),
-                if (controller.todayServices.isNotEmpty) ...[
-                  DashboardAtendimentosSection(onVerTodos: _openTodayServices),
-                ] else ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Atendimentos do dia',
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const DailyAttendimentosPlaceholder(),
-                ],
-              ],
-            );
-          },
-        ),
-      );
-    });
+      ),
+    );
   }
 
   void _openTodayServices() {
     controller.loadInProgressServices();
     Get.toNamed<void>(AppRoutes.inProgressServices);
+  }
+}
+
+class _DailyErrorSliver extends GetView<ReportController> {
+  const _DailyErrorSliver({required this.horizontalPadding});
+
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final String errorMessage = controller.errorMessage.value;
+      final DailyReportState daily = DailyReportState.fromController(
+        controller,
+      );
+      if (errorMessage.isEmpty ||
+          daily.isLoading ||
+          controller.dailyReport.value != null) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 8),
+        sliver: SliverToBoxAdapter(
+          child: SelectableText.rich(
+            TextSpan(
+              text: errorMessage,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// Receita, stats e pagamentos: não reconstrói quando só [todayServices] muda.
+class _DailySummarySliver extends GetView<ReportController> {
+  const _DailySummarySliver({
+    required this.horizontalPadding,
+    required this.textTheme,
+  });
+
+  final double horizontalPadding;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final DailyReportState daily = DailyReportState.fromController(
+        controller,
+      );
+      final double ticketMedio =
+          daily.totalCarros > 0 ? daily.totalRecebido / daily.totalCarros : 0;
+      return SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const SizedBox(height: 10),
+              EliteHeroCard.dailyReport(
+                isLoading: daily.isLoading,
+                totalRecebido: daily.totalRecebido,
+                totalDespesas: daily.totalDespesas,
+              ),
+              const SizedBox(height: 20),
+              LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final bool narrow = constraints.maxWidth < 340;
+                  final double gap = narrow ? 6 : 8;
+                  return DashboardStatGrid(
+                    crossAxisSpacing: gap,
+                    mainAxisSpacing: gap,
+                    childAspectRatio: narrow ? 1.32 : 1.5,
+                    children: <Widget>[
+                      DashboardStatCard(
+                        icon: Icons.directions_car_outlined,
+                        iconColor: AppColors.primary,
+                        label: 'CARROS',
+                        value: daily.isLoading ? '—' : '${daily.totalCarros}',
+                      ),
+                      DashboardStatCard(
+                        icon: Icons.payments_outlined,
+                        iconColor: AppColors.primary,
+                        label: 'TICKET MÉDIO',
+                        value: daily.isLoading
+                            ? '—'
+                            : AppFormatters.formatCurrency(ticketMedio),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Formas de Pagamento',
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 10),
+              PaymentListCard(
+                entries: daily.paymentEntries,
+                isLoading: daily.isLoading,
+              ),
+              const SizedBox(height: 20),
+              DashboardDespesasSection(daily: daily),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _DailyAttendimentosBlockSliver extends GetView<ReportController> {
+  const _DailyAttendimentosBlockSliver({
+    required this.horizontalPadding,
+    required this.textTheme,
+    required this.bottomPadding,
+    required this.onVerTodos,
+  });
+
+  final double horizontalPadding;
+  final TextTheme textTheme;
+  final double bottomPadding;
+  final VoidCallback onVerTodos;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final bool hasServices = controller.todayServices.isNotEmpty;
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          0,
+          horizontalPadding,
+          bottomPadding,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const SizedBox(height: 20),
+              if (hasServices)
+                DashboardAtendimentosSection(onVerTodos: onVerTodos)
+              else ...<Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        'Atendimentos do dia',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const DailyAttendimentosPlaceholder(),
+              ],
+            ],
+          ),
+        ),
+      );
+    });
   }
 }

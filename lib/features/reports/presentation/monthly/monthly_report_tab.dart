@@ -24,16 +24,123 @@ class MonthlyReportTab extends GetView<ReportController> {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    return ThemedRefreshIndicator(
+      onRefresh: () async {
+        await controller.loadMonthly();
+        await controller.loadWeekly(controller.monthlyReportMonth.value);
+      },
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints c) {
+          final double pad = c.maxWidth > 600 ? 24 : 16;
+          return CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: <Widget>[
+              _MonthlyLoadingSliver(horizontalPadding: pad),
+              _MonthlyErrorSliver(horizontalPadding: pad),
+              _MonthlyHeroAndStatsSliver(
+                horizontalPadding: pad,
+                textTheme: textTheme,
+              ),
+              _MonthlyWeeklyBlockSliver(horizontalPadding: pad),
+              _MonthlyHistorySliver(
+                horizontalPadding: pad,
+                bottomPadding: 120,
+                textTheme: textTheme,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+bool _monthlyBodyVisible(ReportController c) {
+  if (c.isMonthlyLoading.value) {
+    return false;
+  }
+  final String err = c.errorMessage.value;
+  final List<MonthlyReport> list = c.monthlyReports.toList();
+  if (err.isNotEmpty && list.isEmpty) {
+    return false;
+  }
+  return true;
+}
+
+class _MonthlyLoadingSliver extends GetView<ReportController> {
+  const _MonthlyLoadingSliver({required this.horizontalPadding});
+
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
-      final bool isMonthlyLoading = controller.isMonthlyLoading.value;
-      final String errorMessage = controller.errorMessage.value;
+      if (!controller.isMonthlyLoading.value) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 120),
+        sliver: const SliverToBoxAdapter(
+          child: SizedBox(
+            height: 240,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _MonthlyErrorSliver extends GetView<ReportController> {
+  const _MonthlyErrorSliver({required this.horizontalPadding});
+
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final String err = controller.errorMessage.value;
+      final bool loading = controller.isMonthlyLoading.value;
+      final List<MonthlyReport> list = controller.monthlyReports.toList();
+      if (err.isEmpty || loading || list.isNotEmpty) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 120),
+        sliver: SliverToBoxAdapter(
+          child: SelectableText.rich(
+            TextSpan(
+              text: err,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// Hero + grid: só reage a dados mensais (não a weekly isolado).
+class _MonthlyHeroAndStatsSliver extends GetView<ReportController> {
+  const _MonthlyHeroAndStatsSliver({
+    required this.horizontalPadding,
+    required this.textTheme,
+  });
+
+  final double horizontalPadding;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (!_monthlyBodyVisible(controller)) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
       final List<MonthlyReport> monthlyList =
           controller.monthlyReports.toList();
       final DateTime selectedMonth = controller.monthlyReportMonth.value;
-      final List<WeeklyReport> weeklyList = controller.weeklyReports.toList();
-      final bool isWeeklyLoading = controller.isWeeklyLoading.value;
-      final BestWeekdayReport? bestWeekdayReport =
-          controller.bestWeekday.value;
       final MonthlyReport? highlight = ReportController.resolveMonthInList(
         monthlyList,
         selectedMonth,
@@ -43,94 +150,124 @@ class MonthlyReportTab extends GetView<ReportController> {
         highlight,
       );
       final int totalMeses = monthlyList.length;
-      return ThemedRefreshIndicator(
-        onRefresh: () async {
-          await controller.loadMonthly();
-          await controller.loadWeekly(controller.monthlyReportMonth.value);
-        },
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints c) {
-            final double pad = c.maxWidth > 600 ? 24 : 16;
-            if (isMonthlyLoading) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
-                children: const [
-                  SizedBox(
-                    height: 240,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                ],
-              );
-            }
-            if (errorMessage.isNotEmpty && monthlyList.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
-                children: [
-                  SelectableText.rich(
-                    TextSpan(
-                      text: errorMessage,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
-              );
-            }
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 0),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const MonthlyReportHeader(),
+              const SizedBox(height: 16),
+              EliteHeroCard.monthly(
+                highlight: highlight,
+                growthPercentVsPrevious: growthPct,
               ),
-              padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
-              children: [
-                const MonthlyReportHeader(),
-                const SizedBox(height: 16),
-                EliteHeroCard.monthly(
-                  highlight: highlight,
-                  growthPercentVsPrevious: growthPct,
-                ),
-                const SizedBox(height: 16),
-                DashboardStatGrid(
-                  children: <Widget>[
-                    DashboardStatCard(
-                      icon: Icons.local_car_wash_outlined,
-                      iconColor: AppColors.primary,
-                      label: 'ATENDIMENTOS',
-                      value:
-                          highlight == null
-                              ? '0'
-                              : '${highlight.totalAtendimentos}',
-                    ),
-                    DashboardStatCard(
-                      icon: Icons.calendar_month_outlined,
-                      iconColor: AppColors.primary,
-                      label: 'MESES REGISTRADOS',
-                      value: '$totalMeses',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                WeeklyPerformanceSection(
-                  key: ValueKey<String>(
-                    '${selectedMonth.year}-${selectedMonth.month}',
+              const SizedBox(height: 16),
+              DashboardStatGrid(
+                children: <Widget>[
+                  DashboardStatCard(
+                    icon: Icons.local_car_wash_outlined,
+                    iconColor: AppColors.primary,
+                    label: 'ATENDIMENTOS',
+                    value: highlight == null
+                        ? '0'
+                        : '${highlight.totalAtendimentos}',
                   ),
-                  monthLabel: DateFormat(
-                    'MMMM',
-                    'pt_BR',
-                  ).format(selectedMonth).toUpperCase(),
-                  weeklyData: weeklyList,
-                  isLoading: isWeeklyLoading,
+                  DashboardStatCard(
+                    icon: Icons.calendar_month_outlined,
+                    iconColor: AppColors.primary,
+                    label: 'MESES REGISTRADOS',
+                    value: '$totalMeses',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// Gráfico semanal + melhor dia: reage a weekly / bestWeekday sem reconstruir hero.
+class _MonthlyWeeklyBlockSliver extends GetView<ReportController> {
+  const _MonthlyWeeklyBlockSliver({required this.horizontalPadding});
+
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (!_monthlyBodyVisible(controller)) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      final DateTime selectedMonth = controller.monthlyReportMonth.value;
+      final List<WeeklyReport> weeklyList = controller.weeklyReports.toList();
+      final bool isWeeklyLoading = controller.isWeeklyLoading.value;
+      final BestWeekdayReport? bestWeekdayReport =
+          controller.bestWeekday.value;
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 0),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const SizedBox(height: 24),
+              WeeklyPerformanceSection(
+                key: ValueKey<String>(
+                  '${selectedMonth.year}-${selectedMonth.month}',
                 ),
-                const SizedBox(height: 12),
-                MonthlyBestWeekdayCard(
-                  isLoading: isWeeklyLoading,
-                  report: bestWeekdayReport,
-                ),
-                const SizedBox(height: 24),
+                monthLabel: DateFormat(
+                  'MMMM',
+                  'pt_BR',
+                ).format(selectedMonth).toUpperCase(),
+                weeklyData: weeklyList,
+                isLoading: isWeeklyLoading,
+              ),
+              const SizedBox(height: 12),
+              MonthlyBestWeekdayCard(
+                isLoading: isWeeklyLoading,
+                report: bestWeekdayReport,
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _MonthlyHistorySliver extends GetView<ReportController> {
+  const _MonthlyHistorySliver({
+    required this.horizontalPadding,
+    required this.bottomPadding,
+    required this.textTheme,
+  });
+
+  final double horizontalPadding;
+  final double bottomPadding;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (!_monthlyBodyVisible(controller)) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      final List<MonthlyReport> monthlyList =
+          controller.monthlyReports.toList();
+      if (monthlyList.isEmpty) {
+        return SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            24,
+            horizontalPadding,
+            bottomPadding,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
                 Text(
                   'Histórico por mês',
                   style: textTheme.titleMedium?.copyWith(
@@ -138,27 +275,54 @@ class MonthlyReportTab extends GetView<ReportController> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                if (monthlyList.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 32),
-                    child: Text(
-                      'Sem dados',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                    ),
-                  )
-                else
-                  ...monthlyList.map(
-                    (MonthlyReport item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: MonthlyListCard(item: item),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Text(
+                    'Sem dados',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.onSurfaceVariant,
                     ),
                   ),
+                ),
               ],
-            );
-          },
+            ),
+          ),
+        );
+      }
+      final int childCount = 1 + monthlyList.length;
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          24,
+          horizontalPadding,
+          bottomPadding,
+        ),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              if (index == 0) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(
+                      'Histórico por mês',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                );
+              }
+              final MonthlyReport item = monthlyList[index - 1];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: MonthlyListCard(item: item),
+              );
+            },
+            childCount: childCount,
+          ),
         ),
       );
     });

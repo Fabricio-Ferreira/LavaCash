@@ -75,10 +75,83 @@ class IntervalReportTab extends GetView<IntervalReportController> {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    return ThemedRefreshIndicator(
+      onRefresh: () async {
+        await controller.load();
+      },
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints c) {
+          final double pad = c.maxWidth > 600 ? 24 : 16;
+          return CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: <Widget>[
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(pad, 8, pad, 0),
+                sliver: const SliverToBoxAdapter(
+                  child: IntervalReportRangeHeader(),
+                ),
+              ),
+              _IntervalErrorSliver(horizontalPadding: pad),
+              _IntervalBodySliver(
+                horizontalPadding: pad,
+                bottomPadding: 120,
+                textTheme: textTheme,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _IntervalErrorSliver extends GetView<IntervalReportController> {
+  const _IntervalErrorSliver({required this.horizontalPadding});
+
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final String err = controller.errorMessage.value;
+      final bool loading = controller.isLoading.value;
+      final Map<String, dynamic>? sum = controller.summary.value;
+      if (err.isEmpty || loading || sum != null) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 12),
+        sliver: SliverToBoxAdapter(
+          child: SelectableText.rich(
+            TextSpan(
+              text: err,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _IntervalBodySliver extends GetView<IntervalReportController> {
+  const _IntervalBodySliver({
+    required this.horizontalPadding,
+    required this.bottomPadding,
+    required this.textTheme,
+  });
+
+  final double horizontalPadding;
+  final double bottomPadding;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
       final bool loading = controller.isLoading.value;
       final Map<String, dynamic>? sum = controller.summary.value;
-      final String err = controller.errorMessage.value;
       final double totalEntradas = _summaryDouble(sum, 'total_entradas');
       final double totalSaidas = _summaryDouble(sum, 'total_saidas');
       final double saldo = _summaryDouble(sum, 'saldo_liquido');
@@ -87,89 +160,72 @@ class IntervalReportTab extends GetView<IntervalReportController> {
           lavagens > 0 ? totalEntradas / lavagens : 0;
       final List<MapEntry<String, double>> paymentEntries =
           _paymentEntriesFromSummary(sum);
-      return ThemedRefreshIndicator(
-        onRefresh: () async {
-          await controller.load();
-        },
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints c) {
-            final double pad = c.maxWidth > 600 ? 24 : 16;
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          0,
+          horizontalPadding,
+          bottomPadding,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const SizedBox(height: 8),
+              EliteHeroCard.intervalReport(
+                isLoading: loading,
+                totalRecebido: totalEntradas,
               ),
-              padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
-              children: <Widget>[
-                const IntervalReportRangeHeader(),
-                if (err.isNotEmpty && !loading && sum == null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: SelectableText.rich(
-                      TextSpan(
-                        text: err,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
+              const SizedBox(height: 16),
+              DashboardStatGrid(
+                children: <Widget>[
+                  DashboardStatCard(
+                    icon: Icons.directions_car_outlined,
+                    iconColor: AppColors.primary,
+                    label: 'LAVAGENS',
+                    value: loading ? '—' : '$lavagens',
                   ),
-                const SizedBox(height: 8),
-                EliteHeroCard.intervalReport(
-                  isLoading: loading,
-                  totalRecebido: totalEntradas,
-                ),
-                const SizedBox(height: 16),
-                DashboardStatGrid(
-                  children: <Widget>[
-                    DashboardStatCard(
-                      icon: Icons.directions_car_outlined,
-                      iconColor: AppColors.primary,
-                      label: 'LAVAGENS',
-                      value: loading ? '—' : '$lavagens',
-                    ),
-                    DashboardStatCard(
-                      icon: Icons.payments_outlined,
-                      iconColor: AppColors.primary,
-                      label: 'TICKET MÉDIO',
-                      value:
-                          loading
-                              ? '—'
-                              : AppFormatters.formatCurrency(ticketMedio),
-                    ),
-                    DashboardStatCard(
-                      icon: Icons.trending_down_outlined,
-                      iconColor: AppColors.tertiary,
-                      label: 'DESPESAS',
-                      value:
-                          loading
-                              ? '—'
-                              : AppFormatters.formatCurrency(totalSaidas),
-                    ),
-                    DashboardStatCard(
-                      icon: Icons.account_balance_wallet_outlined,
-                      iconColor: AppColors.primary,
-                      label: 'SALDO',
-                      value:
-                          loading
-                              ? '—'
-                              : AppFormatters.formatCurrency(saldo),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Formas de Pagamento',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+                  DashboardStatCard(
+                    icon: Icons.payments_outlined,
+                    iconColor: AppColors.primary,
+                    label: 'TICKET MÉDIO',
+                    value: loading
+                        ? '—'
+                        : AppFormatters.formatCurrency(ticketMedio),
                   ),
+                  DashboardStatCard(
+                    icon: Icons.trending_down_outlined,
+                    iconColor: AppColors.tertiary,
+                    label: 'DESPESAS',
+                    value: loading
+                        ? '—'
+                        : AppFormatters.formatCurrency(totalSaidas),
+                  ),
+                  DashboardStatCard(
+                    icon: Icons.account_balance_wallet_outlined,
+                    iconColor: AppColors.primary,
+                    label: 'SALDO',
+                    value: loading
+                        ? '—'
+                        : AppFormatters.formatCurrency(saldo),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Formas de Pagamento',
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
-                const SizedBox(height: 12),
-                PaymentListCard(
-                  entries: paymentEntries,
-                  isLoading: loading,
-                  emptyMessage: 'Nenhum recebimento no período',
-                ),
-              ],
-            );
-          },
+              ),
+              const SizedBox(height: 12),
+              PaymentListCard(
+                entries: paymentEntries,
+                isLoading: loading,
+                emptyMessage: 'Nenhum recebimento no período',
+              ),
+            ],
+          ),
         ),
       );
     });

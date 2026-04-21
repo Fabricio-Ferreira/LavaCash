@@ -81,7 +81,10 @@ class AttendanceHistoryPaginationFooter
         );
       }
       final int? cap = controller.totalVehicles.value;
-      if (cap != null && loaded >= cap) {
+      final int pageSize = AttendanceHistoryController.vehiclePageSize;
+      if (cap != null &&
+          cap > pageSize &&
+          loaded >= cap) {
         return Padding(
           padding: const EdgeInsets.only(top: 16, bottom: 8),
           child: DecoratedBox(

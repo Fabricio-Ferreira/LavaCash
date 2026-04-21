@@ -24,134 +24,249 @@ class AttendanceHistoryTab extends GetView<AttendanceHistoryController> {
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints c) {
           final double pad = c.maxWidth > 600 ? 24 : 16;
-          return ListView(
+          return CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            padding: EdgeInsets.fromLTRB(pad, 8, pad, 120),
-            children: <Widget>[
-              const AttendanceHistoryPeriodHeader(),
-              const SizedBox(height: 16),
-              Text(
-                'Cliente ou placa',
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
+            slivers: <Widget>[
+              _AttendanceHistoryTopSliver(
+                horizontalPadding: pad,
+                textTheme: textTheme,
+                controller: controller,
               ),
-              const SizedBox(height: 8),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Nome do cliente ou placa…',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: AppColors.outlineVariant.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  prefixIcon: const Icon(Icons.search, size: 22),
-                ),
-                textCapitalization: TextCapitalization.words,
-                onChanged: controller.onSearchChanged,
+              _AttendanceHistoryErrorSliver(horizontalPadding: pad),
+              _AttendanceHistoryLoadingSliver(horizontalPadding: pad),
+              _AttendanceHistoryContentSliver(
+                horizontalPadding: pad,
+                bottomPadding: 120,
+                textTheme: textTheme,
               ),
-              Obx(() {
-                final bool loading = controller.isLoading.value;
-                final String err = controller.errorMessage.value;
-                final List<VehicleAttendanceHistoryGroup> list =
-                    controller.groups.toList();
-                final int totalAtt = list.fold<int>(
-                  0,
-                  (int a, VehicleAttendanceHistoryGroup g) =>
-                      a + g.totalAtendimentos,
-                );
-                final int totalVehLoaded = list.length;
-                final int? filterVehicleCount = controller.totalVehicles.value;
-                final String vehiclesValue =
-                    '${filterVehicleCount ?? totalVehLoaded}';
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    if (err.isNotEmpty && !loading && list.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: SelectableText.rich(
-                          TextSpan(
-                            text: err,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-                    if (loading)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else ...<Widget>[
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: AttendanceHistorySummaryChip(
-                              label: 'Atendimentos',
-                              value: '$totalAtt',
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: AttendanceHistorySummaryChip(
-                              label: 'Veículos',
-                              value: vehiclesValue,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Por veículo',
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Ordem alfabética por cliente e placa; cada página '
-                        'mostra os próximos veículos nessa ordem.',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (list.isEmpty)
-                        Text(
-                          'Nenhum atendimento finalizado no período.',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        )
-                      else
-                        ...list.map(
-                          (VehicleAttendanceHistoryGroup g) =>
-                              AttendanceHistoryVehicleTile(group: g),
-                        ),
-                      const AttendanceHistoryPaginationFooter(),
-                    ],
-                  ],
-                );
-              }),
             ],
           );
         },
       ),
     );
+  }
+}
+
+class _AttendanceHistoryTopSliver extends StatelessWidget {
+  const _AttendanceHistoryTopSliver({
+    required this.horizontalPadding,
+    required this.textTheme,
+    required this.controller,
+  });
+
+  final double horizontalPadding;
+  final TextTheme textTheme;
+  final AttendanceHistoryController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 0),
+      sliver: SliverList(
+        delegate: SliverChildListDelegate(
+          <Widget>[
+            const AttendanceHistoryPeriodHeader(),
+            const SizedBox(height: 16),
+            Text(
+              'Cliente ou placa',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Nome do cliente ou placa…',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: AppColors.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                prefixIcon: const Icon(Icons.search, size: 22),
+              ),
+              textCapitalization: TextCapitalization.words,
+              onChanged: controller.onSearchChanged,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Só reage a erro / loading vazio — não reconstrói a lista de veículos.
+class _AttendanceHistoryErrorSliver extends GetView<AttendanceHistoryController> {
+  const _AttendanceHistoryErrorSliver({required this.horizontalPadding});
+
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final String err = controller.errorMessage.value;
+      final bool loading = controller.isLoading.value;
+      final bool empty = controller.groups.isEmpty;
+      if (err.isEmpty || loading || !empty) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 0),
+        sliver: SliverToBoxAdapter(
+          child: SelectableText.rich(
+            TextSpan(
+              text: err,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// Indicador global de carga inicial — isolado da lista paginada.
+class _AttendanceHistoryLoadingSliver
+    extends GetView<AttendanceHistoryController> {
+  const _AttendanceHistoryLoadingSliver({required this.horizontalPadding});
+
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (!controller.isLoading.value) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      return SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        sliver: const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// Chips, lazy list de veículos e rodapé — só quando não está em loading inicial.
+class _AttendanceHistoryContentSliver
+    extends GetView<AttendanceHistoryController> {
+  const _AttendanceHistoryContentSliver({
+    required this.horizontalPadding,
+    required this.bottomPadding,
+    required this.textTheme,
+  });
+
+  final double horizontalPadding;
+  final double bottomPadding;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      final List<VehicleAttendanceHistoryGroup> list =
+          controller.groups.toList();
+      final int totalAtt = list.fold<int>(
+        0,
+        (int a, VehicleAttendanceHistoryGroup g) => a + g.totalAtendimentos,
+      );
+      final int totalVehLoaded = list.length;
+      final int? filterVehicleCount = controller.totalVehicles.value;
+      final String vehiclesValue =
+          '${filterVehicleCount ?? totalVehLoaded}';
+      final int childCount =
+          list.isEmpty ? 2 : 1 + list.length + 1;
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          0,
+          horizontalPadding,
+          bottomPadding,
+        ),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              if (index == 0) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: AttendanceHistorySummaryChip(
+                            label: 'Atendimentos',
+                            value: '$totalAtt',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: AttendanceHistorySummaryChip(
+                            label: 'Veículos',
+                            value: vehiclesValue,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Por veículo',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Ordem alfabética por cliente e placa; cada página '
+                      'mostra os próximos veículos nessa ordem.',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (list.isEmpty)
+                      Text(
+                        'Nenhum atendimento finalizado no período.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                );
+              }
+              if (list.isEmpty) {
+                return const AttendanceHistoryPaginationFooter();
+              }
+              if (index <= list.length) {
+                return AttendanceHistoryVehicleTile(
+                  group: list[index - 1],
+                );
+              }
+              return const AttendanceHistoryPaginationFooter();
+            },
+            childCount: childCount,
+          ),
+        ),
+      );
+    });
   }
 }

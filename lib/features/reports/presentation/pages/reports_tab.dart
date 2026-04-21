@@ -10,7 +10,7 @@ import '../daily/daily_report_tab.dart';
 import '../monthly/monthly_report_tab.dart';
 import '../period/interval_report_tab.dart';
 
-/// Relatórios with Diário / Mensal sub-tabs (Stitch-style shell).
+/// Relatórios with Diário / Mensal / Período / Histórico sub-tabs (Stitch-style shell).
 class ReportsTab extends StatefulWidget {
   const ReportsTab({super.key});
 
@@ -20,15 +20,12 @@ class ReportsTab extends StatefulWidget {
 
 class _ReportsTabState extends State<ReportsTab>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _tabController.addListener(() {
-      setState(() {});
-    });
   }
 
   @override
@@ -37,11 +34,43 @@ class _ReportsTabState extends State<ReportsTab>
     super.dispose();
   }
 
+  void _exportPdfForIndex(int index) {
+    final ReportController reports = Get.find<ReportController>();
+    switch (index) {
+      case 0:
+        reports.exportDailyPdf();
+      case 1:
+        reports.exportMonthlyPdf();
+      case 2:
+        Get.find<IntervalReportController>().exportPdf();
+      case 3:
+        Get.find<AttendanceHistoryController>().exportPdf();
+      default:
+        break;
+    }
+  }
+
+  void _printPdfForIndex(int index) {
+    final ReportController reports = Get.find<ReportController>();
+    switch (index) {
+      case 0:
+        reports.printDailyPdf();
+      case 1:
+        reports.printMonthlyPdf();
+      case 2:
+        Get.find<IntervalReportController>().printPdf();
+      case 3:
+        Get.find<AttendanceHistoryController>().printPdf();
+      default:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 2, 14, 6),
           child: Material(
@@ -75,7 +104,7 @@ class _ReportsTabState extends State<ReportsTab>
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
-                tabs: const [
+                tabs: const <Widget>[
                   Tab(text: 'Diário'),
                   Tab(text: 'Mensal'),
                   Tab(text: 'Período'),
@@ -94,35 +123,13 @@ class _ReportsTabState extends State<ReportsTab>
                 tooltip: 'Exportar PDF',
                 icon: const Icon(Icons.picture_as_pdf_outlined, size: 22),
                 color: AppColors.primary,
-                onPressed: () {
-                  final ReportController c = Get.find<ReportController>();
-                  if (_tabController.index == 0) {
-                    c.exportDailyPdf();
-                  } else if (_tabController.index == 1) {
-                    c.exportMonthlyPdf();
-                  } else if (_tabController.index == 2) {
-                    Get.find<IntervalReportController>().exportPdf();
-                  } else {
-                    Get.find<AttendanceHistoryController>().exportPdf();
-                  }
-                },
+                onPressed: () => _exportPdfForIndex(_tabController.index),
               ),
               IconButton(
                 tooltip: 'Imprimir',
                 icon: const Icon(Icons.print_outlined, size: 22),
                 color: AppColors.primary,
-                onPressed: () {
-                  final ReportController c = Get.find<ReportController>();
-                  if (_tabController.index == 0) {
-                    c.printDailyPdf();
-                  } else if (_tabController.index == 1) {
-                    c.printMonthlyPdf();
-                  } else if (_tabController.index == 2) {
-                    Get.find<IntervalReportController>().printPdf();
-                  } else {
-                    Get.find<AttendanceHistoryController>().printPdf();
-                  }
-                },
+                onPressed: () => _printPdfForIndex(_tabController.index),
               ),
             ],
           ),
@@ -131,7 +138,7 @@ class _ReportsTabState extends State<ReportsTab>
           child: TabBarView(
             controller: _tabController,
             physics: const BouncingScrollPhysics(),
-            children: const [
+            children: const <Widget>[
               DailyReportTab(),
               MonthlyReportTab(),
               IntervalReportTab(),
