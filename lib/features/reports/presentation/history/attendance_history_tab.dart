@@ -73,9 +73,9 @@ class AttendanceHistoryTab extends GetView<AttendanceHistoryController> {
                       a + g.totalAtendimentos,
                 );
                 final int totalVehLoaded = list.length;
-                final int? cap = controller.totalVehicles.value;
+                final int? filterVehicleCount = controller.totalVehicles.value;
                 final String vehiclesValue =
-                    cap != null ? '$totalVehLoaded / $cap' : '$totalVehLoaded';
+                    '${filterVehicleCount ?? totalVehLoaded}';
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
