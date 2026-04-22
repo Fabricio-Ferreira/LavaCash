@@ -3,6 +3,10 @@ abstract class AppConstants {
 
   static const Duration searchDebounce = Duration(milliseconds: 350);
 
+  /// Histórico de atendimentos: aguarda pausa na digitação antes do RPC.
+  static const Duration attendanceHistorySearchDebounce =
+      Duration(milliseconds: 500);
+
   static const int minPhoneDigits = 10;
 
   /// Digits only (DDD + number, no country code). Used for license support

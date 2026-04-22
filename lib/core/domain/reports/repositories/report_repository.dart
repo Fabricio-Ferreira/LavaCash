@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/failures.dart';
+import 'package:lava_cash/core/domain/entities/attendance_history_page_result.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
 import 'package:lava_cash/core/domain/entities/daily_report.dart';
 import 'package:lava_cash/core/domain/entities/monthly_report.dart';
@@ -59,4 +60,18 @@ abstract class ReportRepository {
     DateTime startInclusive,
     DateTime endInclusive,
   );
+
+  /// Finalized attendances in [startInclusive]..[endInclusive] (local days).
+  /// Optional [query] filters by normalized client name or plate (substring).
+  /// [vehicleLimit] / [vehicleOffset] page distinct vehicles in the same order
+  /// as the UI: client name A–Z, then plate. Set [fetchAllVehicles] for PDF
+  /// (caps at 5000 rows server-side).
+  Future<Either<Failure, AttendanceHistoryPageResult>> getAttendanceHistory({
+    required DateTime startInclusive,
+    required DateTime endInclusive,
+    String? query,
+    int vehicleLimit = 10,
+    int vehicleOffset = 0,
+    bool fetchAllVehicles = false,
+  });
 }

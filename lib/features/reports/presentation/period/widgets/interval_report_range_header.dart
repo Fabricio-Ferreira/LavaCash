@@ -39,7 +39,7 @@ class IntervalReportRangeHeader extends GetView<IntervalReportController> {
               Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: Text(
-                  'Atalhos',
+                  'Filtros',
                   style: textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.onSurfaceVariant,

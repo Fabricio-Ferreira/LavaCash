@@ -1,6 +1,6 @@
 # LavaCash
 
-App Flutter para operação de lavagem de veículos: cadastro, atendimento com serviços e pagamento, **dashboard** com visão do dia e **relatórios** diário e mensal (incluindo desempenho por semana do mês e melhor dia da semana). Backend **Supabase**; arquitetura **feature-first** com camadas *domain* → *data* → *presentation*, **GetX** e **Either** (dartz).
+App Flutter para operação de lavagem de veículos: cadastro, atendimento com serviços e pagamento, **dashboard** com visão do dia e **relatórios** — diário, mensal, **por período** e **histórico de atendimentos** (filtro por cliente/placa, período, paginação por veículo, PDF). Inclui desempenho por semana do mês e melhor dia da semana. Backend **Supabase**; arquitetura **feature-first** com camadas *domain* → *data* → *presentation*, **GetX** e **Either** (dartz).
 
 **Identidade visual:** tipografia **Inter**, verde principal **#006B2C** — ver [`lib/app/theme/app_colors.dart`](lib/app/theme/app_colors.dart).
 
@@ -39,7 +39,7 @@ features/<nome>/
     widgets/
 ```
 
-Código **compartilhado:** `lib/core/` (erros, rede, utilitários, widgets genéricos). Entidades globais reutilizáveis: `lib/domain/entities/` e modelos DTO em `lib/data/models/` quando aplicável.
+Código **compartilhado:** `lib/core/` (erros, rede, utilitários, widgets genéricos). Entidades globais reutilizáveis: `lib/core/domain/entities/` e modelos DTO em `lib/data/models/` quando aplicável.
 
 **Regra de dependência:** *presentation* → *domain* ← *data*. O domínio não importa Flutter nem Supabase.
 
@@ -131,7 +131,7 @@ Inicialização assíncrona roda dentro de **`runZonedGuarded`**, com **`Widgets
 1. **Splash** — checagem de licença por dispositivo antes de entrar no app.
 2. **Home** — duas áreas principais:
    - **Dashboard** — resumo do dia (total, carros, em andamento), recebimento por forma de pagamento, atalhos para novo atendimento e relatório diário, e seção de **desempenho mensal** (semanas do mês + tendência).
-   - **Relatórios** — sub-abas **Diário** e **Mensal**: métricas detalhadas, lista de meses com destaque e crescimento vs. mês anterior, **melhor dia da semana** no mês, e performance semanal (`get_weekly_report` / `get_best_weekday_report` no Supabase).
+   - **Relatórios** — sub-abas **Diário**, **Mensal**, **Período** (intervalo de datas) e **Histórico** (atendimentos finalizados com busca por nome/placa, paginação de 10 veículos, exportação PDF/impressão). Diário e mensal: métricas, lista de meses, **melhor dia da semana** e RPCs `get_weekly_report` / `get_best_weekday_report` no Supabase. Barra de ações: ícones PDF e impressão conforme a aba ativa.
 3. **Barra inferior** — **Relatórios** | **Dashboard** | **Novo** (abre **Novo atendimento**: busca por placa/nome, clientes recentes e fluxo para atendimento).
 4. **Busca** — `VehicleSearchController` + repositório em `features/search`; busca normalizada (case e acentos) via RPC `search_vehicles_normalized`; UI principal em **Novo atendimento**; no relatório diário, lista ampliada via **VER TODOS** ao lado de “Atendimentos do dia”.
 5. **Fluxo operacional** — cadastro (rota dedicada) → atendimento por veículo → pagamento (Pix, dinheiro, débito, crédito).
@@ -151,6 +151,8 @@ Fluxo e visão geral das principais superfícies:
 | **Dashboard** | Hero do dia, estatísticas, recebimento, atalhos e performance mensal (semanas + link para relatório mensal). |
 | **Relatórios → Diário** | Relatório do dia, formas de pagamento, atendimentos; busca ampliada via **VER TODOS**. |
 | **Relatórios → Mensal** | Histórico de meses, crescimento, gráfico semanal, melhor dia da semana. |
+| **Relatórios → Período** | Resumo financeiro e listas de atendimentos/despesas em intervalo de datas (inclusivo). |
+| **Relatórios → Histórico** | Atendimentos **finalizados** por período; filtro texto (cliente ou placa, mesma lógica de `search_vehicles_normalized`); lista agrupada por veículo; **carregar mais** (10 veículos); PDF/impressão com todos os veículos do filtro (teto de linhas no RPC). |
 | **Novo atendimento** | Busca, recentes e sequência serviço → pagamento; cadastro acessível a partir da mesma tela. |
 | **Licença bloqueada** | Dispositivo sem licença ativa ou fluxo de ativação por chave (dados do aparelho + suporte). |
 
@@ -168,7 +170,7 @@ Fluxo e visão geral das principais superfícies:
 - **Cadastro** — cliente + veículo (`features/registration`).
 - **Serviço** — detalhes, total, status e timer; caso de uso `StartService` no binding (`features/service`).
 - **Pagamento** — conclusão com método (`features/payment`).
-- **Relatórios** — diário e mensal; agregações semanais e melhor dia da semana via RPC (`features/reports`).
+- **Relatórios** — diário, mensal, intervalo e histórico de atendimentos; PDF (`pdf` + `printing`); agregações semanais e melhor dia da semana via RPC; histórico via RPC `get_attendance_history` (`features/reports`).
 - **Backend** — repositórios Supabase em `features/*/data/repositories`.
 - **Core** — `core/utils`, `core/services` (ex.: ID do dispositivo, cache de recentes), widgets compartilhados.
 
@@ -176,7 +178,7 @@ Fluxo e visão geral das principais superfícies:
 
 ## Arquitetura (resumo técnico)
 
-- **Domain:** entidades em `lib/domain/entities/`, contratos de repositório e casos de uso por feature (`features/<feature>/domain/`).
+- **Domain:** entidades em `lib/core/domain/entities/`, contratos de repositório e casos de uso por feature (`features/<feature>/domain/` ou `lib/core/domain/` para relatórios compartilhados).
 - **Data:** `*RepositoryImpl` com Supabase; **adapters** em `features/<feature>/data/adapters/` para linhas RPC ou JSON heterogéneo; modelos em `lib/data/models/` quando aplicável.
 - **Presentation:** páginas, `Controller` + `Binding` por rota ([`lib/app/routes/app_pages.dart`](lib/app/routes/app_pages.dart)).
 - **Erros:** `Either` com `Failure`; tratamento nas camadas de dados e UI.
@@ -262,18 +264,24 @@ Guarde em local seguro a pasta `build/symbols/android/` para decifrar stack trac
 
 ## Banco de dados (Supabase)
 
-Aplicar as migrações na ordem em `supabase/migrations/`:
+Aplicar as migrações na ordem numérica em [`supabase/migrations/`](supabase/migrations/):
 
 | Arquivo | Conteúdo (resumo) |
 |---------|-------------------|
-| `001_initial.sql` | Schema base (clientes, veículos, atendimentos, views; sem tabelas de licença) |
-| `002_views_security_invoker.sql` | Views com `security_invoker` |
-| `003_weekly_report_fn.sql` | Funções RPC `get_weekly_report` e `get_best_weekday_report` |
-| `004_atendimentos_service_details.sql` | Detalhes de serviço nos atendimentos |
-| `007_search_vehicles_normalized.sql` | Extensão `unaccent`, `normalize_search`, RPC `search_vehicles_normalized` |
-| `008_drop_licencas_and_activation_keys.sql` | Remove legado `licencas` / `activation_keys` / `activate_license` em DBs antigos |
+| `001_schema.sql` | Schema base multi-tenant (empresas, clientes, veículos, atendimentos), `normalize_search`, `search_vehicles_normalized`, RPCs semanais |
+| `002_app_version.sql` | Tabela `app_version` (atualizações do app) |
+| `003_apk_storage_path.sql` | Caminho do APK no Storage |
+| `004_rls_tenant_ownership.sql` | RLS e posse por `empresa` / `owner` |
+| `005_despesas.sql` | Despesas e políticas |
+| `006_report_pdf_views.sql` | Views para relatórios PDF (diário/mensal, detalhes) |
+| `007_report_views_grants_and_notes.sql` | `GRANT SELECT` nas views de relatório |
+| `008_get_attendance_history.sql` | RPC `get_attendance_history` (histórico filtrado) |
+| `009_fix_get_attendance_history_timezone.sql` | Correção de fuso (`America/Sao_Paulo`) no histórico |
+| `010_attendance_history_vehicle_pagination.sql` | Paginação por veículo + total + modo exportação PDF no histórico |
 
 **Recomendado:** [Supabase CLI](https://supabase.com/docs/guides/cli) — `supabase link` e `supabase db push`. Alternativa: colar cada arquivo no SQL Editor do dashboard (na ordem).
+
+**Versão atual do app:** ver `version` em [`pubspec.yaml`](pubspec.yaml) e notas em [`CHANGELOG.md`](CHANGELOG.md) (ex.: **1.1.0** — histórico de atendimentos).
 
 Detalhes e seed de desenvolvimento: [`supabase/README.md`](supabase/README.md).
 

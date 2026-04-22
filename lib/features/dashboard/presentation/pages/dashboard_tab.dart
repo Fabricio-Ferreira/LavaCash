@@ -17,7 +17,7 @@ import '../widgets/dashboard_quick_actions.dart';
 import '../widgets/dashboard_recebimento_section.dart';
 
 /// Stitch "Dashboard — Versão Elite Suprema" layout with live report data.
-/// Estrutura de scroll alinhada ao [DailyReportTab] (refresh + LayoutBuilder + ListView).
+/// Scroll + refresh alinhados ao [DailyReportTab]; Obx só onde o diário muda.
 class DashboardTab extends StatefulWidget {
   const DashboardTab({super.key});
 
@@ -27,8 +27,8 @@ class DashboardTab extends StatefulWidget {
 
 class _DashboardTabState extends State<DashboardTab>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late List<Animation<double>> _fadeAnimations;
+  late final AnimationController _animationController;
+  late final List<Animation<double>> _fadeAnimations;
 
   @override
   void initState() {
@@ -63,83 +63,52 @@ class _DashboardTabState extends State<DashboardTab>
   @override
   Widget build(BuildContext context) {
     final DashboardController dashboard = Get.find<DashboardController>();
-    return Obx(() {
-      final DailyReportState daily = DailyReportState.fromController(
-        dashboard.reportController,
-      );
-      return ThemedRefreshIndicator(
-        onRefresh: dashboard.refreshDashboard,
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints c) {
-            final double pad = c.maxWidth > 600 ? 20 : 14;
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              padding: EdgeInsets.fromLTRB(
-                pad,
-                4,
-                pad,
-                homeTabListBottomPadding(context),
-              ),
-              children: <Widget>[
-                _fade(0, const DashboardGreetingHeader()),
-                const SizedBox(height: 8),
-                _fade(
-                  1,
-                  EliteHeroCard.dashboard(
-                    isLoading: daily.isLoading,
-                    totalRecebido: daily.totalRecebido,
-                    totalDespesas: daily.totalDespesas,
-                  ),
-                ),
-                _fade(
-                  2,
-                  DashboardStatsRow(
-                    cars: daily.totalCarros,
-                    inProgress: daily.emAndamento,
-                    onInProgressTap:
-                        () => dashboard.openInProgressServices(
-                          status: ServiceStatus.emAndamento,
+    return ThemedRefreshIndicator(
+      onRefresh: dashboard.refreshDashboard,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints c) {
+          final double pad = c.maxWidth > 600 ? 20 : 14;
+          final double bottomInset = homeTabListBottomPadding(context);
+          return CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: <Widget>[
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(pad, 4, pad, bottomInset),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(
+                    <Widget>[
+                      _fade(0, const DashboardGreetingHeader()),
+                      const SizedBox(height: 8),
+                      _DashboardReportDrivenFadeBlock(
+                        fade: _fade,
+                        dashboard: dashboard,
+                      ),
+                      const SizedBox(height: 10),
+                      _fade(
+                        6,
+                        DashboardMonthlyPerformanceSection(
+                          reports: dashboard.reportController,
+                          onOpenMonthly: dashboard.openMonthlyReport,
                         ),
+                      ),
+                      const SizedBox(height: 10),
+                      _fade(
+                        7,
+                        DashboardAtendimentosSection(
+                          onVerTodos: () => dashboard.openInProgressServices(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 6),
-                _fade(
-                  3,
-                  DashboardQuickActions(
-                    onNovoAtendimento:
-                        () => Get.toNamed(AppRoutes.novoAtendimento),
-                    onRelatorioDiario: dashboard.openDailyReport,
-                    onRelatorioPeriodo: dashboard.openIntervalReport,
-                    onDespesas: dashboard.openExpenses,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _fade(4, DashboardRecebimentoSection(daily: daily)),
-                const SizedBox(height: 10),
-                _fade(5, DashboardDespesasSection(daily: daily)),
-                const SizedBox(height: 10),
-                _fade(
-                  6,
-                  DashboardMonthlyPerformanceSection(
-                    reports: dashboard.reportController,
-                    onOpenMonthly: dashboard.openMonthlyReport,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _fade(
-                  7,
-                  DashboardAtendimentosSection(
-                    onVerTodos: () => dashboard.openInProgressServices(),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-    });
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Widget _fade(int index, Widget child) {
@@ -153,5 +122,68 @@ class _DashboardTabState extends State<DashboardTab>
         child: child,
       ),
     );
+  }
+}
+
+typedef _FadeBuilder = Widget Function(int index, Widget child);
+
+/// Bloco ligado ao relatório diário: um único [Obx] (evita duplicar
+/// [DailyReportState.fromController]). Quick actions entra no meio só por layout.
+class _DashboardReportDrivenFadeBlock extends StatelessWidget {
+  const _DashboardReportDrivenFadeBlock({
+    required this.fade,
+    required this.dashboard,
+  });
+
+  final _FadeBuilder fade;
+  final DashboardController dashboard;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final DailyReportState daily = DailyReportState.fromController(
+        dashboard.reportController,
+      );
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          fade(
+            1,
+            EliteHeroCard.dashboard(
+              isLoading: daily.isLoading,
+              totalRecebido: daily.totalRecebido,
+              totalDespesas: daily.totalDespesas,
+            ),
+          ),
+          fade(
+            2,
+            DashboardStatsRow(
+              cars: daily.totalCarros,
+              inProgress: daily.emAndamento,
+              onInProgressTap:
+                  () => dashboard.openInProgressServices(
+                    status: ServiceStatus.emAndamento,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          fade(
+            3,
+            DashboardQuickActions(
+              onNovoAtendimento:
+                  () => Get.toNamed(AppRoutes.novoAtendimento),
+              onRelatorioDiario: dashboard.openDailyReport,
+              onRelatorioPeriodo: dashboard.openIntervalReport,
+              onDespesas: dashboard.openExpenses,
+            ),
+          ),
+          const SizedBox(height: 10),
+          fade(4, DashboardRecebimentoSection(daily: daily)),
+          const SizedBox(height: 10),
+          fade(5, DashboardDespesasSection(daily: daily)),
+        ],
+      );
+    });
   }
 }
