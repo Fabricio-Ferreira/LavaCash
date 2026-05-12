@@ -6,6 +6,13 @@ import 'string_utils.dart';
 /// `(AA) NNNN-NNNN` (landline). Mobile is detected when the first digit
 /// after the area code is `9`.
 class BrazilianPhoneInputFormatter extends TextInputFormatter {
+  /// Formats digits-only phone strings from storage for seeded text fields.
+  static String maskedFromStored(String stored) {
+    final String digits = AppStringUtils.digitsOnly(stored);
+    final String capped = _capDigits(digits);
+    return _formatBrazilianPhone(capped);
+  }
+
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,

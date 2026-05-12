@@ -9,12 +9,14 @@ class ClientResultCard extends StatelessWidget {
     required this.plateFormatted,
     required this.isSelected,
     required this.onTap,
+    this.onEditPressed,
   });
 
   final String clientName;
   final String plateFormatted;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback? onEditPressed;
 
   static String initialsFromName(String name) {
     final List<String> parts = name.trim().split(RegExp(r'\s+'));
@@ -139,6 +141,16 @@ class ClientResultCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onEditPressed != null) ...<Widget>[
+                IconButton(
+                  tooltip: 'Editar cliente',
+                  icon: Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.primary.withValues(alpha: 0.9),
+                  ),
+                  onPressed: onEditPressed,
+                ),
+              ],
               Icon(
                 Icons.chevron_right,
                 color:

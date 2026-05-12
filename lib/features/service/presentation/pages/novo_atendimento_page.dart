@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_bottom_navigation.dart';
 import '../../../../core/services/recent_clients_cache.dart';
 import '../../../../core/utils/formatters.dart';
 import 'package:lava_cash/core/domain/entities/vehicle_with_client.dart';
+import 'package:lava_cash/features/registration/presentation/registration_navigation.dart';
 import 'package:lava_cash/features/dashboard/presentation/controllers/home_tab_controller.dart';
 import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
 import 'package:lava_cash/features/search/presentation/controllers/search_controller.dart';
@@ -41,7 +42,21 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
   }
 
   void _navigateToRegistration() {
-    Get.toNamed<void>(AppRoutes.registration);
+    RegistrationNavigation.pushModal();
+  }
+
+  Future<void> _navigateToEditCliente(VehicleWithClient vehicle) async {
+    final VehicleWithClient? updated =
+        await RegistrationNavigation.pushModal(editInitial: vehicle);
+    if (!mounted) {
+      return;
+    }
+    if (updated != null) {
+      _recentCache.save(updated);
+    }
+    if (_search.query.value.trim().isNotEmpty) {
+      await _search.refreshSearch();
+    }
   }
 
   void _startService() {
@@ -94,9 +109,10 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
       return;
     }
     final HomeTabController tabs = Get.find<HomeTabController>();
-    final ReportController? reports = Get.isRegistered<ReportController>()
-        ? Get.find<ReportController>()
-        : null;
+    final ReportController? reports =
+        Get.isRegistered<ReportController>()
+            ? Get.find<ReportController>()
+            : null;
     Get.back<void>();
     tabs.setTab(selectedIndex);
     if (selectedIndex == 0) {
@@ -180,6 +196,7 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
                                 entries: recentEntries,
                                 selectedVehicleId: _selectedVehicleId,
                                 onSelectVehicle: _onSelectVehicle,
+                                onEditCliente: _navigateToEditCliente,
                               )
                         else if (items.isEmpty)
                           NovoAtendimentoEmptyState(
@@ -202,13 +219,18 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
                                 ),
                                 isSelected: isSelected,
                                 onTap: () => _onSelectVehicle(id),
+                                onEditPressed:
+                                    () => _navigateToEditCliente(item),
                               ),
                             );
                           }),
-                        const SizedBox(height: 24),
-                        NovoAtendimentoRegisterButton(
-                          onPressed: _navigateToRegistration,
-                        ),
+
+                        if (items.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 24),
+                          NovoAtendimentoRegisterButton(
+                            onPressed: _navigateToRegistration,
+                          ),
+                        ],
                       ],
                     ),
                   );
@@ -225,10 +247,7 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
             isEnabled: _selectedVehicleId != null,
             onPressed: _startService,
           ),
-          AppBottomNavigation(
-            currentIndex: 2,
-            onSelect: _onBottomNavSelect,
-          ),
+          AppBottomNavigation(currentIndex: 2, onSelect: _onBottomNavSelect),
         ],
       ),
     );

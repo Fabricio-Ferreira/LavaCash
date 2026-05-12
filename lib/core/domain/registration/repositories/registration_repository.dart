@@ -9,4 +9,12 @@ abstract class RegistrationRepository {
     required String telefone,
     required String placa,
   });
+
+  Future<Either<Failure, Vehicle>> updateClientAndVehicle({
+    required String clienteId,
+    required String veiculoId,
+    required String nome,
+    required String telefone,
+    required String placa,
+  });
 }

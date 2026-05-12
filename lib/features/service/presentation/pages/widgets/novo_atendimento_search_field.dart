@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../../app/theme/app_colors.dart';
+import '../../../../../core/utils/plate_or_name_search_input_formatter.dart';
 
 class NovoAtendimentoSearchField extends StatelessWidget {
   const NovoAtendimentoSearchField({super.key, required this.onChanged});
@@ -11,6 +13,9 @@ class NovoAtendimentoSearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       onChanged: onChanged,
+      inputFormatters: <TextInputFormatter>[
+        PlateOrNameSearchInputFormatter(),
+      ],
       textCapitalization: TextCapitalization.characters,
       decoration: InputDecoration(
         hintText: 'Buscar por placa ou nome',
