@@ -16,10 +16,13 @@ import 'package:lava_cash/features/search/presentation/controllers/search_contro
     show VehicleSearchController;
 import 'package:lava_cash/core/data/reports/repositories/report_repository_impl.dart';
 import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_attendance_history.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_best_weekday_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_daily_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_in_progress_services.dart';
-import 'package:lava_cash/core/domain/reports/usecases/get_attendance_history.dart';
+import 'package:lava_cash/core/data/service_catalog/repositories/service_catalog_repository_impl.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_service_breakdown.dart';
+import 'package:lava_cash/core/domain/service_catalog/repositories/service_catalog_repository.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_interval_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_monthly_reports.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_today_services.dart';
@@ -30,6 +33,7 @@ import 'package:lava_cash/features/reports/presentation/controllers/report_contr
 import 'package:lava_cash/features/reports/services/report_pdf_service.dart';
 import '../presentation/controllers/dashboard_controller.dart';
 import '../presentation/controllers/home_tab_controller.dart';
+import 'package:lava_cash/features/service_catalog/presentation/controllers/service_catalog_controller.dart';
 
 class HomeBinding extends Bindings {
   /// Ensures [DashboardController] exists (cold start via [dependencies], or
@@ -89,8 +93,24 @@ class HomeBinding extends Bindings {
       () => GetBestWeekdayReport(repository: Get.find<ReportRepository>()),
       fenix: true,
     );
+    Get.lazyPut<GetServiceBreakdown>(
+      () => GetServiceBreakdown(repository: Get.find<ReportRepository>()),
+      fenix: true,
+    );
     Get.lazyPut<GetIntervalReport>(
       () => GetIntervalReport(repository: Get.find<ReportRepository>()),
+      fenix: true,
+    );
+    if (!Get.isRegistered<ServiceCatalogRepository>()) {
+      Get.lazyPut<ServiceCatalogRepository>(
+        () => ServiceCatalogRepositoryImpl(client: client),
+        fenix: true,
+      );
+    }
+    Get.lazyPut<ServiceCatalogController>(
+      () => ServiceCatalogController(
+        repository: Get.find<ServiceCatalogRepository>(),
+      ),
       fenix: true,
     );
     Get.lazyPut<GetAttendanceHistory>(
@@ -119,6 +139,7 @@ class HomeBinding extends Bindings {
         getMonthlyReports: Get.find<GetMonthlyReports>(),
         getWeeklyReport: Get.find<GetWeeklyReport>(),
         getBestWeekdayReport: Get.find<GetBestWeekdayReport>(),
+        getServiceBreakdown: Get.find<GetServiceBreakdown>(),
       ),
       fenix: true,
     );

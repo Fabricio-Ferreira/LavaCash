@@ -12,6 +12,7 @@ import 'package:lava_cash/core/domain/entities/attendance_history_page_result.da
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
 import 'package:lava_cash/core/domain/entities/vehicle_attendance_history_group.dart';
 import 'package:lava_cash/core/domain/reports/attendance_history_grouping.dart';
+import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
 import '../../services/report_pdf_service.dart';
@@ -128,6 +129,22 @@ Future<void> runIntervalReportPdfOutput({
               AppSnackbar.showError(f.message);
             },
             (List<Map<String, dynamic>> exp) async {
+              final DateTime brStart = DateTime(
+                rangeStart.year,
+                rangeStart.month,
+                rangeStart.day,
+              );
+              final DateTime brEnd = DateTime(
+                rangeEnd.year,
+                rangeEnd.month,
+                rangeEnd.day,
+              );
+              final Either<Failure, List<ServiceBreakdownRow>> breakdownRes =
+                  await repository.getServiceBreakdown(brStart, brEnd);
+              final List<ServiceBreakdownRow> breakdown = breakdownRes.fold(
+                (Failure failure) => <ServiceBreakdownRow>[],
+                (List<ServiceBreakdownRow> list) => list,
+              );
               final Uint8List bytes = await pdf.generateIntervalReportPdf(
                 companyName: global.establishmentName.value,
                 rangeStart: rangeStart,
@@ -135,6 +152,7 @@ Future<void> runIntervalReportPdfOutput({
                 summary: summaryMap,
                 attendances: att,
                 expenses: exp,
+                serviceBreakdown: breakdown,
                 appVersionLabel: '${info.version}+${info.buildNumber}',
               );
               final String filename =
@@ -187,12 +205,20 @@ Future<void> runDailyReportPdfOutput({
               AppSnackbar.showError(f.message);
             },
             (List<Map<String, dynamic>> exp) async {
+              final DateTime dayStart = DateTime(day.year, day.month, day.day);
+              final Either<Failure, List<ServiceBreakdownRow>> breakdownRes =
+                  await repository.getServiceBreakdown(dayStart, dayStart);
+              final List<ServiceBreakdownRow> breakdown = breakdownRes.fold(
+                (Failure failure) => <ServiceBreakdownRow>[],
+                (List<ServiceBreakdownRow> list) => list,
+              );
               final Uint8List bytes = await pdf.generateDailyReportPdf(
                 companyName: global.establishmentName.value,
                 reportDate: day,
                 summary: summary,
                 attendances: att,
                 expenses: exp,
+                serviceBreakdown: breakdown,
                 appVersionLabel: '${info.version}+${info.buildNumber}',
               );
               final String filename =
@@ -231,12 +257,22 @@ Future<void> runMonthlyReportPdfOutput({
       AppSnackbar.showError(f.message);
     },
     (Map<String, dynamic> summary) async {
+      final DateTime m = DateTime(month.year, month.month);
+      final DateTime monthStart = DateTime(m.year, m.month, 1);
+      final DateTime monthEnd = DateTime(m.year, m.month + 1, 0);
+      final Either<Failure, List<ServiceBreakdownRow>> breakdownRes =
+          await repository.getServiceBreakdown(monthStart, monthEnd);
+      final List<ServiceBreakdownRow> breakdown = breakdownRes.fold(
+        (Failure failure) => <ServiceBreakdownRow>[],
+        (List<ServiceBreakdownRow> list) => list,
+      );
       final Uint8List bytes = await pdf.generateMonthlyReportPdf(
         companyName: global.establishmentName.value,
         referenceMonth: DateTime(month.year, month.month),
         summary: summary,
         weeklyReports: weeklyReports,
         bestWeekday: bestWeekday,
+        serviceBreakdown: breakdown,
         appVersionLabel: '${info.version}+${info.buildNumber}',
       );
       final String filename =

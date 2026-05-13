@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:lava_cash/core/domain/entities/attendance_history_line.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
+import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import 'package:lava_cash/core/domain/entities/vehicle_attendance_history_group.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 import 'package:pdf/pdf.dart';
@@ -18,6 +19,7 @@ class ReportPdfService {
     required Map<String, dynamic> summary,
     required List<Map<String, dynamic>> attendances,
     required List<Map<String, dynamic>> expenses,
+    List<ServiceBreakdownRow> serviceBreakdown = const <ServiceBreakdownRow>[],
     String? appVersionLabel,
   }) async {
     final pw.Font base = await PdfGoogleFonts.notoSansRegular();
@@ -59,6 +61,17 @@ class ReportPdfService {
             base: base,
             summary: summary,
           ),
+          if (serviceBreakdown.isNotEmpty) ...<pw.Widget>[
+            pw.SizedBox(height: 16),
+            _sectionTitle('Por serviço', bold),
+            pw.SizedBox(height: 8),
+            _serviceBreakdownTable(
+              rows: serviceBreakdown,
+              currency: currency,
+              bold: bold,
+              base: base,
+            ),
+          ],
           pw.SizedBox(height: 20),
           _sectionTitle('Atendimentos', bold),
           pw.SizedBox(height: 8),
@@ -93,6 +106,7 @@ class ReportPdfService {
     required Map<String, dynamic> summary,
     required List<WeeklyReport> weeklyReports,
     BestWeekdayReport? bestWeekday,
+    List<ServiceBreakdownRow> serviceBreakdown = const <ServiceBreakdownRow>[],
     String? appVersionLabel,
   }) async {
     final pw.Font base = await PdfGoogleFonts.notoSansRegular();
@@ -133,6 +147,17 @@ class ReportPdfService {
             base: base,
             summary: summary,
           ),
+          if (serviceBreakdown.isNotEmpty) ...<pw.Widget>[
+            pw.SizedBox(height: 16),
+            _sectionTitle('Por serviço', bold),
+            pw.SizedBox(height: 8),
+            _serviceBreakdownTable(
+              rows: serviceBreakdown,
+              currency: currency,
+              bold: bold,
+              base: base,
+            ),
+          ],
           pw.SizedBox(height: 16),
           _sectionTitle('Desempenho por semana do mês', bold),
           pw.SizedBox(height: 8),
@@ -164,6 +189,7 @@ class ReportPdfService {
     required Map<String, dynamic> summary,
     required List<Map<String, dynamic>> attendances,
     required List<Map<String, dynamic>> expenses,
+    List<ServiceBreakdownRow> serviceBreakdown = const <ServiceBreakdownRow>[],
     String? appVersionLabel,
   }) async {
     final pw.Font base = await PdfGoogleFonts.notoSansRegular();
@@ -207,6 +233,17 @@ class ReportPdfService {
             base: base,
             summary: summary,
           ),
+          if (serviceBreakdown.isNotEmpty) ...<pw.Widget>[
+            pw.SizedBox(height: 16),
+            _sectionTitle('Por serviço', bold),
+            pw.SizedBox(height: 8),
+            _serviceBreakdownTable(
+              rows: serviceBreakdown,
+              currency: currency,
+              bold: bold,
+              base: base,
+            ),
+          ],
           pw.SizedBox(height: 20),
           _sectionTitle('Atendimentos', bold),
           pw.SizedBox(height: 8),
@@ -563,6 +600,35 @@ class ReportPdfService {
     return pw.Text(
       text,
       style: pw.TextStyle(font: bold, fontSize: 12),
+    );
+  }
+
+  pw.Widget _serviceBreakdownTable({
+    required List<ServiceBreakdownRow> rows,
+    required NumberFormat currency,
+    required pw.Font bold,
+    required pw.Font base,
+  }) {
+    if (rows.isEmpty) {
+      return _emptyBox('Nenhum dado por serviço no período.', base);
+    }
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey400),
+      columnWidths: <int, pw.TableColumnWidth>{
+        0: const pw.FlexColumnWidth(3),
+        1: const pw.FlexColumnWidth(1.2),
+        2: const pw.FlexColumnWidth(2),
+      },
+      children: <pw.TableRow>[
+        _headerRow(<String>['Serviço', 'Qtd', 'Faturamento'], bold, base),
+        ...rows.map(
+          (ServiceBreakdownRow r) => _dataRow(<String>[
+            r.nomeExibicao,
+            '${r.quantidade}',
+            currency.format(r.faturamento),
+          ], base),
+        ),
+      ],
     );
   }
 

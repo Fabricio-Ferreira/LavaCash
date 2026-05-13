@@ -5,12 +5,14 @@ import '../../../../core/error/failures.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
 import 'package:lava_cash/core/domain/entities/daily_report.dart';
 import 'package:lava_cash/core/domain/entities/monthly_report.dart';
+import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import 'package:lava_cash/core/domain/entities/service_summary.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_best_weekday_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_daily_report.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_in_progress_services.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_monthly_reports.dart';
+import 'package:lava_cash/core/domain/reports/usecases/get_service_breakdown.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_today_services.dart';
 import 'package:lava_cash/core/domain/reports/usecases/get_weekly_report.dart';
 import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
@@ -24,12 +26,14 @@ class ReportController extends GetxController {
     required GetMonthlyReports getMonthlyReports,
     required GetWeeklyReport getWeeklyReport,
     required GetBestWeekdayReport getBestWeekdayReport,
+    required GetServiceBreakdown getServiceBreakdown,
   }) : _getDailyReport = getDailyReport,
        _getTodayServices = getTodayServices,
        _getInProgressServices = getInProgressServices,
        _getMonthlyReports = getMonthlyReports,
        _getWeeklyReport = getWeeklyReport,
-       _getBestWeekdayReport = getBestWeekdayReport;
+       _getBestWeekdayReport = getBestWeekdayReport,
+       _getServiceBreakdown = getServiceBreakdown;
 
   final GetDailyReport _getDailyReport;
   final GetTodayServices _getTodayServices;
@@ -37,6 +41,7 @@ class ReportController extends GetxController {
   final GetMonthlyReports _getMonthlyReports;
   final GetWeeklyReport _getWeeklyReport;
   final GetBestWeekdayReport _getBestWeekdayReport;
+  final GetServiceBreakdown _getServiceBreakdown;
 
   final RxBool isDailyLoading = false.obs;
   final RxBool isTodayServicesLoading = false.obs;
@@ -52,6 +57,13 @@ class ReportController extends GetxController {
   final RxList<WeeklyReport> weeklyReports = <WeeklyReport>[].obs;
   final Rxn<BestWeekdayReport> bestWeekday = Rxn<BestWeekdayReport>();
   final RxString errorMessage = ''.obs;
+
+  final RxList<ServiceBreakdownRow> dailyServiceBreakdown =
+      <ServiceBreakdownRow>[].obs;
+  final RxString dailyServiceBreakdownError = ''.obs;
+  final RxList<ServiceBreakdownRow> monthlyServiceBreakdown =
+      <ServiceBreakdownRow>[].obs;
+  final RxString monthlyServiceBreakdownError = ''.obs;
 
   /// Calendar day for daily report, PDF, and [loadDaily] / today-services list.
   final Rx<DateTime> dailyReportDay = DateTime(
@@ -142,10 +154,12 @@ class ReportController extends GetxController {
     isTodayServicesLoading.value = true;
     isInProgressLoading.value = true;
     final DateTime day = dailyReportDay.value;
+    final DateTime dayStart = DateTime(day.year, day.month, day.day);
     final List<dynamic> parallel = await Future.wait<dynamic>(<Future<dynamic>>[
       _getDailyReport(day),
       _getTodayServices(day),
       _getInProgressServices(),
+      _getServiceBreakdown(dayStart, dayStart),
     ]);
     final Either<Failure, DailyReport> dailyEither =
         parallel[0] as Either<Failure, DailyReport>;
@@ -153,6 +167,8 @@ class ReportController extends GetxController {
         parallel[1] as Either<Failure, List<ServiceSummary>>;
     final Either<Failure, List<ServiceSummary>> inProgressEither =
         parallel[2] as Either<Failure, List<ServiceSummary>>;
+    final Either<Failure, List<ServiceBreakdownRow>> breakdownEither =
+        parallel[3] as Either<Failure, List<ServiceBreakdownRow>>;
     dailyEither.fold(
       (Failure failure) {
         errorMessage.value = failure.message;
@@ -182,6 +198,16 @@ class ReportController extends GetxController {
       (List<ServiceSummary> list) {
         inProgressError.value = '';
         inProgressServices.assignAll(list);
+      },
+    );
+    breakdownEither.fold(
+      (Failure failure) {
+        dailyServiceBreakdown.clear();
+        dailyServiceBreakdownError.value = failure.message;
+      },
+      (List<ServiceBreakdownRow> list) {
+        dailyServiceBreakdownError.value = '';
+        dailyServiceBreakdown.assignAll(list);
       },
     );
     isDailyLoading.value = false;
@@ -233,6 +259,8 @@ class ReportController extends GetxController {
         monthlyReports.clear();
         weeklyReports.clear();
         bestWeekday.value = null;
+        monthlyServiceBreakdown.clear();
+        monthlyServiceBreakdownError.value = failure.message;
       },
       (List<MonthlyReport> list) async {
         errorMessage.value = '';
@@ -269,6 +297,20 @@ class ReportController extends GetxController {
       },
       (BestWeekdayReport? value) {
         bestWeekday.value = value;
+      },
+    );
+    final DateTime start = DateTime(month.year, month.month, 1);
+    final DateTime end = DateTime(month.year, month.month + 1, 0);
+    final Either<Failure, List<ServiceBreakdownRow>> breakdownEither =
+        await _getServiceBreakdown(start, end);
+    breakdownEither.fold(
+      (Failure failure) {
+        monthlyServiceBreakdown.clear();
+        monthlyServiceBreakdownError.value = failure.message;
+      },
+      (List<ServiceBreakdownRow> list) {
+        monthlyServiceBreakdownError.value = '';
+        monthlyServiceBreakdown.assignAll(list);
       },
     );
     isWeeklyLoading.value = false;

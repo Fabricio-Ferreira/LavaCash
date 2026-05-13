@@ -1,7 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:lava_cash/core/domain/entities/service_status.dart';
 
+import '../../../../../app/routes/app_routes.dart';
 import '../../../../../app/theme/app_colors.dart';
 
 class NovoAtendimentoAppBar extends StatelessWidget {
@@ -52,14 +55,36 @@ class NovoAtendimentoAppBar extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: AppColors.onSurface,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-              Text(
-                'LavaCash',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              TextButton.icon(
+                onPressed:
+                    () => Get.toNamed<void>(
+                      AppRoutes.inProgressServices,
+                      arguments: ServiceStatus.emAndamento,
+                    ),
+                icon: Icon(
+                  Icons.pending_actions_rounded,
+                  size: 20,
                   color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                  fontStyle: FontStyle.italic,
+                ),
+                label: Text(
+                  'Ver Atendimentos',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
                 ),
               ),
             ],

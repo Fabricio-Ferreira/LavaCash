@@ -6,7 +6,9 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
 import 'package:lava_cash/core/domain/entities/monthly_report.dart';
+import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
+import 'package:lava_cash/core/utils/formatters.dart';
 import '../../../../shared/widgets/dashboard_stats/dashboard_stat_card.dart';
 import '../../../../shared/widgets/dashboard_stats/dashboard_stat_grid.dart';
 import '../../../../shared/widgets/elite_hero_card.dart';
@@ -44,6 +46,10 @@ class MonthlyReportTab extends GetView<ReportController> {
                 textTheme: textTheme,
               ),
               _MonthlyWeeklyBlockSliver(horizontalPadding: pad),
+              _MonthlyServiceBreakdownSliver(
+                horizontalPadding: pad,
+                textTheme: textTheme,
+              ),
               _MonthlyHistorySliver(
                 horizontalPadding: pad,
                 bottomPadding: 120,
@@ -181,6 +187,80 @@ class _MonthlyHeroAndStatsSliver extends GetView<ReportController> {
                   ),
                 ],
               ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _MonthlyServiceBreakdownSliver extends GetView<ReportController> {
+  const _MonthlyServiceBreakdownSliver({
+    required this.horizontalPadding,
+    required this.textTheme,
+  });
+
+  final double horizontalPadding;
+  final TextTheme textTheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      if (!_monthlyBodyVisible(controller)) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      final String err = controller.monthlyServiceBreakdownError.value;
+      final List<ServiceBreakdownRow> rows =
+          controller.monthlyServiceBreakdown.toList();
+      final bool loading = controller.isWeeklyLoading.value;
+      if (loading) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+      return SliverPadding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          8,
+          horizontalPadding,
+          0,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              if (err.isNotEmpty)
+                SelectableText.rich(
+                  TextSpan(
+                    text: err,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                )
+              else if (rows.isNotEmpty) ...<Widget>[
+                Text(
+                  'Por serviço (mês)',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...rows.map((ServiceBreakdownRow r) {
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      r.nomeExibicao,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text('Qtd: ${r.quantidade}'),
+                    trailing: Text(
+                      AppFormatters.formatCurrency(r.faturamento),
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  );
+                }),
+              ],
             ],
           ),
         ),

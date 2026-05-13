@@ -5,6 +5,7 @@ import 'package:lava_cash/core/domain/entities/attendance_history_page_result.da
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
 import 'package:lava_cash/core/domain/entities/daily_report.dart';
 import 'package:lava_cash/core/domain/entities/monthly_report.dart';
+import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import 'package:lava_cash/core/domain/entities/service_summary.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 
@@ -74,4 +75,11 @@ abstract class ReportRepository {
     int vehicleOffset = 0,
     bool fetchAllVehicles = false,
   });
+
+  /// Inclusive local calendar days [startInclusive]..[endInclusive];
+  /// finalizados only (RPC).
+  Future<Either<Failure, List<ServiceBreakdownRow>>> getServiceBreakdown(
+    DateTime startInclusive,
+    DateTime endInclusive,
+  );
 }
