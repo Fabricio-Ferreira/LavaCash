@@ -119,6 +119,7 @@ class _ServiceCatalogSelectPageState extends State<ServiceCatalogSelectPage> {
     }
     final ServiceController controller = Get.find<ServiceController>();
     await controller.addSelectedCatalogItemsToAttendance(picked);
+    await controller.loadQuickSuggestions();
     Get.close(1);
   }
 

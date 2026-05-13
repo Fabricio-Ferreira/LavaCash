@@ -34,8 +34,8 @@ class ServiceDetailFormFields extends StatelessWidget {
     this.primaryButtonLabel = 'Adicionar ao atendimento',
     this.showPrimaryIcon = true,
     this.beforePrimaryButton,
-    this.obsMinLines = 3,
-    this.obsMaxLines = 5,
+    this.obsMinLines = 1,
+    this.obsMaxLines = 3,
   });
 
   final TextEditingController nomeController;

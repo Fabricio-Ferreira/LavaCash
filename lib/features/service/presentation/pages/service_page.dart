@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lava_cash/app/theme/app_colors.dart';
-import 'package:lava_cash/core/domain/entities/service_catalog_item.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../dashboard/presentation/controllers/home_tab_controller.dart';
 import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
-import 'service_catalog_select_page.dart';
 import '../controllers/service_controller.dart';
 import 'widgets/service_attendance_sections.dart';
 import 'widgets/service_client_header.dart';
@@ -28,13 +26,6 @@ class ServicePage extends GetView<ServiceController> {
         Get.find<ReportController>().loadMonthly();
       }
     });
-  }
-
-  void _openServiceCatalogSelect() {
-    if (controller.serviceRecord.value == null) {
-      return;
-    }
-    Get.to<void>(() => const ServiceCatalogSelectPage());
   }
 
   @override
@@ -96,28 +87,10 @@ class ServicePage extends GetView<ServiceController> {
                 );
               }),
               const SizedBox(height: 28),
-              Obx(() {
-                return SelectedServicesSection(
-                  lines: controller.attendanceLines.toList(),
-                  onRemove: controller.removeLine,
-                );
-              }),
-              Obx(() {
-                final List<ServiceCatalogItem> chips =
-                    controller.quickSuggestions.toList();
-                if (chips.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: QuickSuggestionsChips(
-                    items: chips,
-                    onTap: controller.addLineFromCatalogItem,
-                  ),
-                );
-              }),
+              SelectedServicesSection(),
+              QuickSuggestionsChipsSection(),
               const SizedBox(height: 20),
-              DashedAddServiceButton(onPressed: _openServiceCatalogSelect),
+              DashedAddServiceButton(),
               const SizedBox(height: 20),
               Obx(() {
                 final double total = controller.attendanceTotalValor;

@@ -18,6 +18,7 @@ import 'package:lava_cash/core/domain/entities/service_status.dart';
 import 'package:lava_cash/core/domain/entities/vehicle_with_client.dart';
 import 'package:lava_cash/core/domain/service_catalog/repositories/service_catalog_repository.dart';
 import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
+import 'package:lava_cash/features/service/presentation/pages/service_catalog_select_page.dart';
 import 'package:lava_cash/core/domain/service/repositories/service_repository.dart';
 import 'package:lava_cash/core/domain/service/usecases/start_service.dart';
 import '../logic/service_attendance_pricing.dart';
@@ -149,7 +150,7 @@ class ServiceController extends GetxController {
     if (!isVehicleOk) {
       return;
     }
-    await _loadQuickSuggestions();
+    await loadQuickSuggestions();
     if (resumeServiceId != null && resumeServiceId.isNotEmpty) {
       await _bootstrapResume(
         vehicleId: vehicleId,
@@ -219,7 +220,7 @@ class ServiceController extends GetxController {
   }
 
   // —— Catalog suggestions ——
-  Future<void> _loadQuickSuggestions() async {
+  Future<void> loadQuickSuggestions() async {
     final Either<Failure, List<ServiceCatalogItem>> result =
         await _catalogRepository.listMaisUtilizados();
     result.fold(
@@ -402,6 +403,13 @@ class ServiceController extends GetxController {
     AppSnackbar.showSuccess(successMessage);
     _syncPaymentFormValidity();
     _refreshReportsIfRegistered();
+  }
+
+  void openServiceCatalogSelect() {
+    if (serviceRecord.value == null) {
+      return;
+    }
+    Get.to<void>(() => const ServiceCatalogSelectPage());
   }
 
   Future<void> removeLine(AttendanceServiceLine line) async {
