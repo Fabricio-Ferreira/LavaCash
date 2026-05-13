@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:lava_cash/core/domain/entities/service_status.dart';
-
 import '../../features/license/presentation/bindings/license_binding.dart';
 import '../../features/license/presentation/pages/blocked_page.dart';
 import '../../features/license/presentation/pages/splash_page.dart';
@@ -34,7 +33,7 @@ ServiceStatus? _inProgressServicesStatusFromArguments() {
 }
 
 abstract class AppPages {
-  static final List<GetPage<dynamic>> pages = <GetPage<dynamic>>[
+  static final List<GetPage<dynamic>> pages = [
     GetPage<void>(
       name: AppRoutes.splash,
       page: () => const SplashPage(),

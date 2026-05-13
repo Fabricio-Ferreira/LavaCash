@@ -5,23 +5,50 @@ import 'package:lava_cash/core/utils/app_snackbar.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/utils/brazilian_phone_input_formatter.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/string_utils.dart';
 import '../../../../core/utils/validators.dart';
+import 'package:lava_cash/core/domain/entities/client.dart';
 import 'package:lava_cash/core/domain/entities/vehicle.dart';
+import 'package:lava_cash/core/domain/entities/vehicle_with_client.dart';
 import 'package:lava_cash/core/domain/registration/usecases/register_client_and_vehicle.dart';
+import 'package:lava_cash/core/domain/registration/usecases/update_client_and_vehicle.dart';
 
 class RegistrationController extends GetxController {
-  RegistrationController({required RegisterClientAndVehicle register})
-    : _register = register;
+  RegistrationController({
+    required RegisterClientAndVehicle register,
+    required UpdateClientAndVehicle updateClientAndVehicle,
+  }) : _register = register,
+       _updateClientAndVehicle = updateClientAndVehicle;
 
   final RegisterClientAndVehicle _register;
+  final UpdateClientAndVehicle _updateClientAndVehicle;
 
   final TextEditingController nomeController = TextEditingController();
   final TextEditingController telefoneController = TextEditingController();
   final TextEditingController placaController = TextEditingController();
 
+  VehicleWithClient? _editInitial;
+
+  bool get isEditMode => _editInitial != null;
+
   final RxBool isSaving = false.obs;
   final RxString errorMessage = ''.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final dynamic raw = Get.arguments;
+    if (raw is VehicleWithClient) {
+      _editInitial = raw;
+      nomeController.text = raw.client.nome;
+      telefoneController.text = BrazilianPhoneInputFormatter.maskedFromStored(
+        raw.client.telefone,
+      );
+      placaController.text = AppFormatters.formatPlate(raw.vehicle.placa);
+    }
+  }
 
   Future<void> submit() async {
     errorMessage.value = '';
@@ -45,6 +72,34 @@ class RegistrationController extends GetxController {
       return;
     }
     isSaving.value = true;
+    if (_editInitial != null) {
+      final Either<Failure, Vehicle> result = await _updateClientAndVehicle(
+        clienteId: _editInitial!.client.id,
+        veiculoId: _editInitial!.vehicle.id,
+        nome: nome,
+        telefone: telefone,
+        placa: placa,
+      );
+      result.fold(
+        (Failure failure) {
+          errorMessage.value = failure.message;
+          isSaving.value = false;
+        },
+        (Vehicle vehicle) {
+          final Client clientResolved = vehicle.client ?? _editInitial!.client;
+          final VehicleWithClient payload = VehicleWithClient(
+            vehicle: vehicle,
+            client: clientResolved,
+          );
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppSnackbar.showSuccess('Cliente atualizado.');
+          });
+          Get.back<VehicleWithClient>(result: payload);
+        },
+      );
+      return;
+    }
     final Either<Failure, Vehicle> result = await _register(
       nome: nome,
       telefone: telefone,

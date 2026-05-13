@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../../app/theme/app_colors.dart';
 
 class RegistrationHeader extends StatelessWidget {
-  const RegistrationHeader({super.key});
+  final bool isEditMode;
+  const RegistrationHeader({super.key, required this.isEditMode});
 
   static const double _horizontalPadding = 24;
   static const double _titleTopSpacing = 36;
@@ -22,7 +23,7 @@ class RegistrationHeader extends StatelessWidget {
             children: <Widget>[
               const SizedBox(height: _titleTopSpacing),
               Text(
-                'Novo Registro',
+                isEditMode ? 'Editar cliente' : 'Novo cliente',
                 style: textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.onSurface,

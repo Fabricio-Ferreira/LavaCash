@@ -22,7 +22,7 @@ class RegistrationPage extends GetView<RegistrationController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  const RegistrationHeader(),
+                  RegistrationHeader(isEditMode: controller.isEditMode),
                   RegistrationFormSection(controller: controller),
                   const RegistrationInfoCard(),
                   const SizedBox(height: 24),
@@ -40,7 +40,7 @@ class RegistrationPage extends GetView<RegistrationController> {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return AppBar(
       title: Text(
-        'Novo cliente',
+        controller.isEditMode ? 'Editar cliente' : 'Novo cliente',
         style: Theme.of(
           context,
         ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),

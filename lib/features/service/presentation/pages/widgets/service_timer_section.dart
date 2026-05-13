@@ -21,21 +21,18 @@ class ServiceTimerSection extends StatelessWidget {
     final String entryLabel = DateFormat('HH:mm').format(entryTime.toLocal());
     return Column(
       children: <Widget>[
-        SizedBox(
-          height: 120,
-          child: Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              Text(
-                elapsedHoursMinutes,
-                style: textTheme.displayLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.onSurface,
-                  height: 1,
-                ),
+        Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            Text(
+              elapsedHoursMinutes,
+              style: textTheme.displayLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: AppColors.onSurface,
+                height: 1,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Container(

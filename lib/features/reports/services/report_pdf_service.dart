@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:lava_cash/core/domain/entities/attendance_history_line.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
+import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import 'package:lava_cash/core/domain/entities/vehicle_attendance_history_group.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 import 'package:pdf/pdf.dart';
@@ -18,6 +19,7 @@ class ReportPdfService {
     required Map<String, dynamic> summary,
     required List<Map<String, dynamic>> attendances,
     required List<Map<String, dynamic>> expenses,
+    List<ServiceBreakdownRow> serviceBreakdown = const <ServiceBreakdownRow>[],
     String? appVersionLabel,
   }) async {
     final pw.Font base = await PdfGoogleFonts.notoSansRegular();
@@ -35,53 +37,65 @@ class ReportPdfService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
         theme: pw.ThemeData.withFont(base: base, bold: bold),
-        build: (pw.Context ctx) => <pw.Widget>[
-          _pdfHeader(
-            title: 'Relatório diário',
-            subtitle: dayFmt.format(reportDate),
-            companyName: companyName,
-            bold: bold,
-            base: base,
-            dtFmt: dtFmt,
-          ),
-          pw.SizedBox(height: 16),
-          _summaryBlock(
-            currency: currency,
-            bold: bold,
-            base: base,
-            summary: summary,
-            title: 'Resumo do dia',
-          ),
-          pw.SizedBox(height: 16),
-          _paymentMethodsTable(
-            currency: currency,
-            bold: bold,
-            base: base,
-            summary: summary,
-          ),
-          pw.SizedBox(height: 20),
-          _sectionTitle('Atendimentos', bold),
-          pw.SizedBox(height: 8),
-          _attendanceTable(
-            attendances: attendances,
-            currency: currency,
-            bold: bold,
-            base: base,
-            timeFmt: timeFmt,
-          ),
-          pw.SizedBox(height: 20),
-          _sectionTitle('Despesas', bold),
-          pw.SizedBox(height: 8),
-          _expenseTable(
-            expenses: expenses,
-            currency: currency,
-            bold: bold,
-            base: base,
-            dtFmt: dtFmt,
-          ),
-          pw.SizedBox(height: 16),
-          _pdfFooter(appVersionLabel: appVersionLabel, base: base),
-        ],
+        build:
+            (pw.Context ctx) => <pw.Widget>[
+              _pdfHeader(
+                title: 'Relatório diário',
+                subtitle: dayFmt.format(reportDate),
+                companyName: companyName,
+                bold: bold,
+                base: base,
+                dtFmt: dtFmt,
+              ),
+              pw.SizedBox(height: 16),
+              _summaryBlock(
+                currency: currency,
+                bold: bold,
+                base: base,
+                summary: summary,
+                title: 'Resumo do dia',
+              ),
+              pw.SizedBox(height: 16),
+              _paymentMethodsTable(
+                currency: currency,
+                bold: bold,
+                base: base,
+                summary: summary,
+              ),
+              if (serviceBreakdown.isNotEmpty) ...<pw.Widget>[
+                pw.SizedBox(height: 16),
+                _sectionTitle('Por serviço', bold),
+                pw.SizedBox(height: 8),
+                _serviceBreakdownTable(
+                  rows: serviceBreakdown,
+                  currency: currency,
+                  bold: bold,
+                  base: base,
+                ),
+              ],
+              pw.SizedBox(height: 20),
+              _sectionTitle('Atendimentos', bold),
+              pw.SizedBox(height: 8),
+              _attendanceTable(
+                attendances: attendances,
+                currency: currency,
+                bold: bold,
+                base: base,
+                timeFmt: timeFmt,
+              ),
+              pw.SizedBox(height: 20),
+              _sectionTitle('Despesas', bold),
+              pw.SizedBox(height: 8),
+              _expenseTable(
+                expenses: expenses,
+                currency: currency,
+                bold: bold,
+                base: base,
+                dtFmt: dtFmt,
+              ),
+              pw.SizedBox(height: 16),
+              _pdfFooter(appVersionLabel: appVersionLabel, base: base),
+            ],
       ),
     );
     return doc.save();
@@ -93,6 +107,7 @@ class ReportPdfService {
     required Map<String, dynamic> summary,
     required List<WeeklyReport> weeklyReports,
     BestWeekdayReport? bestWeekday,
+    List<ServiceBreakdownRow> serviceBreakdown = const <ServiceBreakdownRow>[],
     String? appVersionLabel,
   }) async {
     final pw.Font base = await PdfGoogleFonts.notoSansRegular();
@@ -109,49 +124,61 @@ class ReportPdfService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
         theme: pw.ThemeData.withFont(base: base, bold: bold),
-        build: (pw.Context ctx) => <pw.Widget>[
-          _pdfHeader(
-            title: 'Relatório mensal',
-            subtitle: monthFmt.format(referenceMonth),
-            companyName: companyName,
-            bold: bold,
-            base: base,
-            dtFmt: dtFmt,
-          ),
-          pw.SizedBox(height: 16),
-          _summaryBlock(
-            currency: currency,
-            bold: bold,
-            base: base,
-            summary: summary,
-            title: 'Resumo do mês',
-          ),
-          pw.SizedBox(height: 16),
-          _paymentMethodsTable(
-            currency: currency,
-            bold: bold,
-            base: base,
-            summary: summary,
-          ),
-          pw.SizedBox(height: 16),
-          _sectionTitle('Desempenho por semana do mês', bold),
-          pw.SizedBox(height: 8),
-          _weeklyTable(
-            weeklyReports: weeklyReports,
-            currency: currency,
-            bold: bold,
-            base: base,
-          ),
-          pw.SizedBox(height: 12),
-          if (bestWeekday != null)
-            pw.Text(
-              'Melhor dia da semana: ${bestWeekday.diaSemana} '
-              '(${currency.format(bestWeekday.faturamento)})',
-              style: pw.TextStyle(font: base, fontSize: 10),
-            ),
-          pw.SizedBox(height: 16),
-          _pdfFooter(appVersionLabel: appVersionLabel, base: base),
-        ],
+        build:
+            (pw.Context ctx) => <pw.Widget>[
+              _pdfHeader(
+                title: 'Relatório mensal',
+                subtitle: monthFmt.format(referenceMonth),
+                companyName: companyName,
+                bold: bold,
+                base: base,
+                dtFmt: dtFmt,
+              ),
+              pw.SizedBox(height: 16),
+              _summaryBlock(
+                currency: currency,
+                bold: bold,
+                base: base,
+                summary: summary,
+                title: 'Resumo do mês',
+              ),
+              pw.SizedBox(height: 16),
+              _paymentMethodsTable(
+                currency: currency,
+                bold: bold,
+                base: base,
+                summary: summary,
+              ),
+              if (serviceBreakdown.isNotEmpty) ...<pw.Widget>[
+                pw.SizedBox(height: 16),
+                _sectionTitle('Por serviço', bold),
+                pw.SizedBox(height: 8),
+                _serviceBreakdownTable(
+                  rows: serviceBreakdown,
+                  currency: currency,
+                  bold: bold,
+                  base: base,
+                ),
+              ],
+              pw.SizedBox(height: 16),
+              _sectionTitle('Desempenho por semana do mês', bold),
+              pw.SizedBox(height: 8),
+              _weeklyTable(
+                weeklyReports: weeklyReports,
+                currency: currency,
+                bold: bold,
+                base: base,
+              ),
+              pw.SizedBox(height: 12),
+              if (bestWeekday != null)
+                pw.Text(
+                  'Melhor dia da semana: ${bestWeekday.diaSemana} '
+                  '(${currency.format(bestWeekday.faturamento)})',
+                  style: pw.TextStyle(font: base, fontSize: 10),
+                ),
+              pw.SizedBox(height: 16),
+              _pdfFooter(appVersionLabel: appVersionLabel, base: base),
+            ],
       ),
     );
     return doc.save();
@@ -164,6 +191,7 @@ class ReportPdfService {
     required Map<String, dynamic> summary,
     required List<Map<String, dynamic>> attendances,
     required List<Map<String, dynamic>> expenses,
+    List<ServiceBreakdownRow> serviceBreakdown = const <ServiceBreakdownRow>[],
     String? appVersionLabel,
   }) async {
     final pw.Font base = await PdfGoogleFonts.notoSansRegular();
@@ -183,55 +211,67 @@ class ReportPdfService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
         theme: pw.ThemeData.withFont(base: base, bold: bold),
-        build: (pw.Context ctx) => <pw.Widget>[
-          _pdfHeader(
-            title: 'Relatório por período',
-            subtitle: periodSubtitle,
-            companyName: companyName,
-            bold: bold,
-            base: base,
-            dtFmt: dtFmt,
-          ),
-          pw.SizedBox(height: 16),
-          _summaryBlock(
-            currency: currency,
-            bold: bold,
-            base: base,
-            summary: summary,
-            title: 'Resumo do período',
-          ),
-          pw.SizedBox(height: 16),
-          _paymentMethodsTable(
-            currency: currency,
-            bold: bold,
-            base: base,
-            summary: summary,
-          ),
-          pw.SizedBox(height: 20),
-          _sectionTitle('Atendimentos', bold),
-          pw.SizedBox(height: 8),
-          _attendanceTableInterval(
-            attendances: attendances,
-            currency: currency,
-            bold: bold,
-            base: base,
-            timeFmt: timeFmt,
-            dayFmt: dayFmt,
-          ),
-          pw.SizedBox(height: 20),
-          _sectionTitle('Despesas', bold),
-          pw.SizedBox(height: 8),
-          _expenseTableInterval(
-            expenses: expenses,
-            currency: currency,
-            bold: bold,
-            base: base,
-            dtFmt: dtFmt,
-            dayFmt: dayFmt,
-          ),
-          pw.SizedBox(height: 16),
-          _pdfFooter(appVersionLabel: appVersionLabel, base: base),
-        ],
+        build:
+            (pw.Context ctx) => <pw.Widget>[
+              _pdfHeader(
+                title: 'Relatório por período',
+                subtitle: periodSubtitle,
+                companyName: companyName,
+                bold: bold,
+                base: base,
+                dtFmt: dtFmt,
+              ),
+              pw.SizedBox(height: 16),
+              _summaryBlock(
+                currency: currency,
+                bold: bold,
+                base: base,
+                summary: summary,
+                title: 'Resumo do período',
+              ),
+              pw.SizedBox(height: 16),
+              _paymentMethodsTable(
+                currency: currency,
+                bold: bold,
+                base: base,
+                summary: summary,
+              ),
+              if (serviceBreakdown.isNotEmpty) ...<pw.Widget>[
+                pw.SizedBox(height: 16),
+                _sectionTitle('Por serviço', bold),
+                pw.SizedBox(height: 8),
+                _serviceBreakdownTable(
+                  rows: serviceBreakdown,
+                  currency: currency,
+                  bold: bold,
+                  base: base,
+                ),
+              ],
+              pw.SizedBox(height: 20),
+              _sectionTitle('Atendimentos', bold),
+              pw.SizedBox(height: 8),
+              _attendanceTableInterval(
+                attendances: attendances,
+                currency: currency,
+                bold: bold,
+                base: base,
+                timeFmt: timeFmt,
+                dayFmt: dayFmt,
+              ),
+              pw.SizedBox(height: 20),
+              _sectionTitle('Despesas', bold),
+              pw.SizedBox(height: 8),
+              _expenseTableInterval(
+                expenses: expenses,
+                currency: currency,
+                bold: bold,
+                base: base,
+                dtFmt: dtFmt,
+                dayFmt: dayFmt,
+              ),
+              pw.SizedBox(height: 16),
+              _pdfFooter(appVersionLabel: appVersionLabel, base: base),
+            ],
       ),
     );
     return doc.save();
@@ -300,10 +340,7 @@ class ReportPdfService {
           ];
           if (groups.isEmpty) {
             page.add(
-              _emptyBox(
-                'Nenhum atendimento finalizado no período.',
-                base,
-              ),
+              _emptyBox('Nenhum atendimento finalizado no período.', base),
             );
           } else {
             page.addAll(
@@ -345,27 +382,27 @@ class ReportPdfService {
         pw.Table(
           border: pw.TableBorder.all(color: PdfColors.grey400),
           columnWidths: <int, pw.TableColumnWidth>{
-            0: const pw.FlexColumnWidth(2.2),
-            1: const pw.FlexColumnWidth(1.2),
-            2: const pw.FlexColumnWidth(1.2),
+            0: const pw.FlexColumnWidth(2),
+            1: const pw.FlexColumnWidth(2.6),
+            2: const pw.FlexColumnWidth(1.1),
+            3: const pw.FlexColumnWidth(1.1),
           },
           children: <pw.TableRow>[
             _headerRow(
-              <String>['Data/hora', 'Valor', 'Pagamento'],
+              <String>['Data/hora', 'Serviço', 'Valor', 'Pagamento'],
               bold,
               base,
             ),
             ...g.lines.map(
-              (AttendanceHistoryLine line) => _dataRow(
-                <String>[
-                  dtFmt.format(line.horaEntradaLocal),
-                  line.valor != null
-                      ? currency.format(line.valor!)
-                      : '—',
-                  line.formaPagamento ?? '—',
-                ],
-                base,
-              ),
+              (AttendanceHistoryLine line) => _dataRow(<String>[
+                dtFmt.format(line.horaEntradaLocal),
+                (line.servicosResumo != null &&
+                        line.servicosResumo!.trim().isNotEmpty)
+                    ? line.servicosResumo!.trim()
+                    : '—',
+                line.valor != null ? currency.format(line.valor!) : '—',
+                line.formaPagamento ?? '—',
+              ], base),
             ),
           ],
         ),
@@ -376,7 +413,9 @@ class ReportPdfService {
   }
 
   Future<void> printPdf(Uint8List pdfBytes) async {
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdfBytes);
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdfBytes,
+    );
   }
 
   Future<void> sharePdf({
@@ -483,17 +522,9 @@ class ReportPdfService {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: <pw.Widget>[
-          pw.Text(
-            title,
-            style: pw.TextStyle(font: bold, fontSize: 13),
-          ),
+          pw.Text(title, style: pw.TextStyle(font: bold, fontSize: 13)),
           pw.SizedBox(height: 10),
-          _kvRow(
-            'Total de entradas',
-            currency.format(entradas),
-            bold,
-            base,
-          ),
+          _kvRow('Total de entradas', currency.format(entradas), bold, base),
           _kvRow('Total de saídas', currency.format(saidas), bold, base),
           _kvRow('Saldo líquido', currency.format(saldo), bold, base),
           _kvRow('Lavagens finalizadas', '$lavagens', bold, base),
@@ -503,12 +534,7 @@ class ReportPdfService {
     );
   }
 
-  pw.Widget _kvRow(
-    String k,
-    String v,
-    pw.Font bold,
-    pw.Font base,
-  ) {
+  pw.Widget _kvRow(String k, String v, pw.Font bold, pw.Font base) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 3),
       child: pw.Row(
@@ -560,42 +586,70 @@ class ReportPdfService {
   }
 
   pw.Widget _sectionTitle(String text, pw.Font bold) {
-    return pw.Text(
-      text,
-      style: pw.TextStyle(font: bold, fontSize: 12),
+    return pw.Text(text, style: pw.TextStyle(font: bold, fontSize: 12));
+  }
+
+  pw.Widget _serviceBreakdownTable({
+    required List<ServiceBreakdownRow> rows,
+    required NumberFormat currency,
+    required pw.Font bold,
+    required pw.Font base,
+  }) {
+    if (rows.isEmpty) {
+      return _emptyBox('Nenhum dado por serviço no período.', base);
+    }
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey400),
+      columnWidths: <int, pw.TableColumnWidth>{
+        0: const pw.FlexColumnWidth(3),
+        1: const pw.FlexColumnWidth(1.2),
+        2: const pw.FlexColumnWidth(2),
+      },
+      children: <pw.TableRow>[
+        _headerRow(<String>['Serviço', 'Qtd', 'Faturamento'], bold, base),
+        ...rows.map(
+          (ServiceBreakdownRow r) => _dataRow(<String>[
+            r.nomeExibicao,
+            '${r.quantidade}',
+            currency.format(r.faturamento),
+          ], base),
+        ),
+      ],
     );
   }
 
   pw.TableRow _headerRow(List<String> cells, pw.Font bold, pw.Font base) {
     return pw.TableRow(
       decoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      children: cells
-          .map(
-            (String c) => pw.Padding(
-              padding: const pw.EdgeInsets.all(6),
-              child: pw.Text(
-                c,
-                style: pw.TextStyle(font: bold, fontSize: 9),
-              ),
-            ),
-          )
-          .toList(),
+      children:
+          cells
+              .map(
+                (String c) => pw.Padding(
+                  padding: const pw.EdgeInsets.all(6),
+                  child: pw.Text(
+                    c,
+                    style: pw.TextStyle(font: bold, fontSize: 9),
+                  ),
+                ),
+              )
+              .toList(),
     );
   }
 
   pw.TableRow _dataRow(List<String> cells, pw.Font base) {
     return pw.TableRow(
-      children: cells
-          .map(
-            (String c) => pw.Padding(
-              padding: const pw.EdgeInsets.all(6),
-              child: pw.Text(
-                c,
-                style: pw.TextStyle(font: base, fontSize: 9),
-              ),
-            ),
-          )
-          .toList(),
+      children:
+          cells
+              .map(
+                (String c) => pw.Padding(
+                  padding: const pw.EdgeInsets.all(6),
+                  child: pw.Text(
+                    c,
+                    style: pw.TextStyle(font: base, fontSize: 9),
+                  ),
+                ),
+              )
+              .toList(),
     );
   }
 
@@ -621,25 +675,28 @@ class ReportPdfService {
       },
       children: <pw.TableRow>[
         _headerRow(
-          <String>['Cliente', 'Placa', 'Entrada', 'Valor', 'Pagamento', 'Status'],
+          <String>[
+            'Cliente',
+            'Placa',
+            'Entrada',
+            'Valor',
+            'Pagamento',
+            'Status',
+          ],
           bold,
           base,
         ),
         ...attendances.map((Map<String, dynamic> row) {
           final DateTime? t = _parseTs(row['hora_entrada_local']);
-          final String entrada =
-              t != null ? timeFmt.format(t.toLocal()) : '—';
-          return _dataRow(
-            <String>[
-              _str(row['cliente_nome']),
-              _str(row['placa']),
-              entrada,
-              currency.format(_toDouble(row['valor_total'])),
-              _str(row['forma_pagamento']),
-              _str(row['status']),
-            ],
-            base,
-          );
+          final String entrada = t != null ? timeFmt.format(t.toLocal()) : '—';
+          return _dataRow(<String>[
+            _str(row['cliente_nome']),
+            _str(row['placa']),
+            entrada,
+            currency.format(_toDouble(row['valor_total'])),
+            _str(row['forma_pagamento']),
+            _str(row['status']),
+          ], base);
         }),
       ],
     );
@@ -671,17 +728,13 @@ class ReportPdfService {
         ),
         ...expenses.map((Map<String, dynamic> row) {
           final DateTime? reg = _parseTs(row['registrado_em']);
-          final String when =
-              reg != null ? dtFmt.format(reg.toLocal()) : '—';
-          return _dataRow(
-            <String>[
-              _str(row['descricao']),
-              _str(row['categoria']),
-              when,
-              currency.format(_toDouble(row['valor'])),
-            ],
-            base,
-          );
+          final String when = reg != null ? dtFmt.format(reg.toLocal()) : '—';
+          return _dataRow(<String>[
+            _str(row['descricao']),
+            _str(row['categoria']),
+            when,
+            currency.format(_toDouble(row['valor'])),
+          ], base);
         }),
       ],
     );
@@ -725,20 +778,16 @@ class ReportPdfService {
         ),
         ...attendances.map((Map<String, dynamic> row) {
           final DateTime? t = _parseTs(row['hora_entrada_local']);
-          final String entrada =
-              t != null ? timeFmt.format(t.toLocal()) : '—';
-          return _dataRow(
-            <String>[
-              _formatDataRefForPdf(row['data_ref'], dayFmt),
-              _str(row['cliente_nome']),
-              _str(row['placa']),
-              entrada,
-              currency.format(_toDouble(row['valor_total'])),
-              _str(row['forma_pagamento']),
-              _str(row['status']),
-            ],
-            base,
-          );
+          final String entrada = t != null ? timeFmt.format(t.toLocal()) : '—';
+          return _dataRow(<String>[
+            _formatDataRefForPdf(row['data_ref'], dayFmt),
+            _str(row['cliente_nome']),
+            _str(row['placa']),
+            entrada,
+            currency.format(_toDouble(row['valor_total'])),
+            _str(row['forma_pagamento']),
+            _str(row['status']),
+          ], base);
         }),
       ],
     );
@@ -778,18 +827,14 @@ class ReportPdfService {
         ),
         ...expenses.map((Map<String, dynamic> row) {
           final DateTime? reg = _parseTs(row['registrado_em']);
-          final String when =
-              reg != null ? dtFmt.format(reg.toLocal()) : '—';
-          return _dataRow(
-            <String>[
-              _formatDataRefForPdf(row['data_ref'], dayFmt),
-              _str(row['descricao']),
-              _str(row['categoria']),
-              when,
-              currency.format(_toDouble(row['valor'])),
-            ],
-            base,
-          );
+          final String when = reg != null ? dtFmt.format(reg.toLocal()) : '—';
+          return _dataRow(<String>[
+            _formatDataRefForPdf(row['data_ref'], dayFmt),
+            _str(row['descricao']),
+            _str(row['categoria']),
+            when,
+            currency.format(_toDouble(row['valor'])),
+          ], base);
         }),
       ],
     );
@@ -823,16 +868,17 @@ class ReportPdfService {
         2: const pw.FlexColumnWidth(2),
       },
       children: <pw.TableRow>[
-        _headerRow(<String>['Semana', 'Atendimentos', 'Faturamento'], bold, base),
+        _headerRow(
+          <String>['Semana', 'Atendimentos', 'Faturamento'],
+          bold,
+          base,
+        ),
         ...weeklyReports.map(
-          (WeeklyReport w) => _dataRow(
-            <String>[
-              '${w.semana}ª',
-              '${w.totalAtendimentos}',
-              currency.format(w.faturamento),
-            ],
-            base,
-          ),
+          (WeeklyReport w) => _dataRow(<String>[
+            '${w.semana}ª',
+            '${w.totalAtendimentos}',
+            currency.format(w.faturamento),
+          ], base),
         ),
       ],
     );
@@ -846,17 +892,11 @@ class ReportPdfService {
         border: pw.Border.all(color: PdfColors.grey400),
         borderRadius: pw.BorderRadius.circular(8),
       ),
-      child: pw.Text(
-        text,
-        style: pw.TextStyle(font: base, fontSize: 9),
-      ),
+      child: pw.Text(text, style: pw.TextStyle(font: base, fontSize: 9)),
     );
   }
 
-  pw.Widget _pdfFooter({
-    required pw.Font base,
-    String? appVersionLabel,
-  }) {
+  pw.Widget _pdfFooter({required pw.Font base, String? appVersionLabel}) {
     final String extra =
         appVersionLabel == null || appVersionLabel.isEmpty
             ? ''

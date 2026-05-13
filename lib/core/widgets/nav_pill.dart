@@ -9,12 +9,18 @@ class NavPill extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.labelFontSize = 10,
+    this.horizontalPadding = 18,
+    this.iconSize = 26,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final double labelFontSize;
+  final double horizontalPadding;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +33,7 @@ class NavPill extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 10),
           decoration: BoxDecoration(
             color: selected ? const Color(0xFFECFDF5) : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
@@ -37,7 +43,7 @@ class NavPill extends StatelessWidget {
             children: <Widget>[
               Icon(
                 icon,
-                size: 26,
+                size: iconSize,
                 color: selected ? activeNavColor : AppColors.onSurfaceVariant,
               ),
               const SizedBox(height: 4),
@@ -45,7 +51,7 @@ class NavPill extends StatelessWidget {
                 label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  fontSize: 10,
+                  fontSize: labelFontSize,
                   letterSpacing: 0.8,
                   color: selected ? activeNavColor : AppColors.onSurfaceVariant,
                 ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/plate_or_name_search_input_formatter.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
 import 'package:lava_cash/core/domain/entities/vehicle_attendance_history_group.dart';
 import '../controllers/attendance_history_controller.dart';
@@ -78,6 +80,9 @@ class _AttendanceHistoryTopSliver extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextField(
+              inputFormatters: <TextInputFormatter>[
+                PlateOrNameSearchInputFormatter(),
+              ],
               decoration: InputDecoration(
                 hintText: 'Nome do cliente ou placa…',
                 filled: true,

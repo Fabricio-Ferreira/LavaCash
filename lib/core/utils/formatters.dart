@@ -2,6 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lava_cash/core/utils/string_utils.dart';
 
+/// Symbol + amount for stacked BRL labels (e.g. hero cards).
+class BrlCurrencyStackParts {
+  const BrlCurrencyStackParts({
+    required this.symbolText,
+    required this.amountText,
+  });
+
+  final String symbolText;
+  final String amountText;
+}
+
 abstract class AppFormatters {
   static final RegExp _plateNonAlphanumeric = RegExp(r'[^A-Z0-9]');
 
@@ -18,6 +29,20 @@ abstract class AppFormatters {
 
   static String formatCurrency(double value) {
     return currency.format(value);
+  }
+
+  /// Splits formatted BRL into a short symbol line and the numeric amount line.
+  static BrlCurrencyStackParts currencyStackParts(double value) {
+    final String raw =
+        currency.format(value).replaceAll('\u00A0', ' ').trim();
+    final Match? symbolMatch =
+        RegExp(r'^(R\$\s*)').firstMatch(raw);
+    if (symbolMatch != null) {
+      final String amount =
+          raw.substring(symbolMatch.end).trim();
+      return BrlCurrencyStackParts(symbolText: r'R$', amountText: amount);
+    }
+    return BrlCurrencyStackParts(symbolText: r'R$', amountText: raw);
   }
 
   /// Expense line on dark backgrounds: always `- R$ …` (minus before currency).

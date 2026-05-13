@@ -1,0 +1,72 @@
+/// Folds Portuguese catalog strings for accent- and case-insensitive matching.
+///
+/// Uses [String.toLowerCase] then strips common accented letters (PT-BR and
+/// near-latin european glyphs often seen in borrowed words).
+String normalizeCatalogSearchText(String value) {
+  String result = value.toLowerCase();
+  const Map<String, String> substitutions = <String, String>{
+    'à': 'a',
+    'á': 'a',
+    'â': 'a',
+    'ã': 'a',
+    'ä': 'a',
+    'å': 'a',
+    'æ': 'ae',
+    'ā': 'a',
+    'ă': 'a',
+    'ć': 'c',
+    'č': 'c',
+    'ç': 'c',
+    'ď': 'd',
+    'đ': 'd',
+    'è': 'e',
+    'é': 'e',
+    'ê': 'e',
+    'ë': 'e',
+    'ē': 'e',
+    'ě': 'e',
+    'ğ': 'g',
+    'ì': 'i',
+    'í': 'i',
+    'î': 'i',
+    'ï': 'i',
+    'ī': 'i',
+    'ĺ': 'l',
+    'ľ': 'l',
+    'ł': 'l',
+    'ń': 'n',
+    'ñ': 'n',
+    'ň': 'n',
+    'ò': 'o',
+    'ó': 'o',
+    'ô': 'o',
+    'õ': 'o',
+    'ö': 'o',
+    'ø': 'o',
+    'ō': 'o',
+    'œ': 'oe',
+    'ŕ': 'r',
+    'ř': 'r',
+    'ș': 's',
+    'ş': 's',
+    'š': 's',
+    'ß': 'ss',
+    'ț': 't',
+    'ť': 't',
+    'ù': 'u',
+    'ú': 'u',
+    'û': 'u',
+    'ü': 'u',
+    'ū': 'u',
+    'ů': 'u',
+    'ý': 'y',
+    'ÿ': 'y',
+    'ź': 'z',
+    'ż': 'z',
+    'ž': 'z',
+  };
+  for (final MapEntry<String, String> entry in substitutions.entries) {
+    result = result.replaceAll(entry.key, entry.value);
+  }
+  return result;
+}

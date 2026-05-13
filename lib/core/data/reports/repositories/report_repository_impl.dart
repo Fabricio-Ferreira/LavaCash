@@ -9,6 +9,7 @@ import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
 import 'package:lava_cash/core/domain/entities/daily_report.dart';
 import 'package:lava_cash/core/domain/entities/monthly_report.dart';
 import 'package:lava_cash/core/domain/entities/service_status.dart';
+import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import 'package:lava_cash/core/domain/entities/service_summary.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
 import 'package:lava_cash/core/domain/reports/repositories/report_repository.dart';
@@ -358,22 +359,21 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
-  Future<Either<Failure, List<Map<String, dynamic>>>>
-  getPdfDailyAttendanceRows(DateTime day) async {
+  Future<Either<Failure, List<Map<String, dynamic>>>> getPdfDailyAttendanceRows(
+    DateTime day,
+  ) async {
     if (_client == null) {
       return const Left(ServerFailure('Supabase not configured'));
     }
     try {
       final String dr = _pdfDateIso(day);
-      final List<dynamic> rows =
-          await _client
-              .from('vw_relatorio_diario_atendimentos_detalhe')
-              .select()
-              .eq('data_ref', dr)
-              .order('hora_entrada_local', ascending: false);
-      final List<Map<String, dynamic>> list = rows
-          .map((dynamic e) => Map<String, dynamic>.from(e as Map))
-          .toList();
+      final List<dynamic> rows = await _client
+          .from('vw_relatorio_diario_atendimentos_detalhe')
+          .select()
+          .eq('data_ref', dr)
+          .order('hora_entrada_local', ascending: false);
+      final List<Map<String, dynamic>> list =
+          rows.map((dynamic e) => Map<String, dynamic>.from(e as Map)).toList();
       return Right(list);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -391,15 +391,13 @@ class ReportRepositoryImpl implements ReportRepository {
     }
     try {
       final String dr = _pdfDateIso(day);
-      final List<dynamic> rows =
-          await _client
-              .from('vw_relatorio_diario_despesas_detalhe')
-              .select()
-              .eq('data_ref', dr)
-              .order('registrado_em', ascending: false);
-      final List<Map<String, dynamic>> list = rows
-          .map((dynamic e) => Map<String, dynamic>.from(e as Map))
-          .toList();
+      final List<dynamic> rows = await _client
+          .from('vw_relatorio_diario_despesas_detalhe')
+          .select()
+          .eq('data_ref', dr)
+          .order('registrado_em', ascending: false);
+      final List<Map<String, dynamic>> list =
+          rows.map((dynamic e) => Map<String, dynamic>.from(e as Map)).toList();
       return Right(list);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -446,10 +444,7 @@ class ReportRepositoryImpl implements ReportRepository {
                 .select('valor, forma_pagamento')
                 .eq('status', 'finalizado')
                 .gte('hora_entrada', start.toUtc().toIso8601String())
-                .lt(
-                  'hora_entrada',
-                  endExclusive.toUtc().toIso8601String(),
-                ),
+                .lt('hora_entrada', endExclusive.toUtc().toIso8601String()),
             _client
                 .from('despesas')
                 .select('valor')
@@ -521,8 +516,7 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
-  Future<Either<Failure, List<Map<String, dynamic>>>>
-  getIntervalAttendanceRows(
+  Future<Either<Failure, List<Map<String, dynamic>>>> getIntervalAttendanceRows(
     DateTime startInclusive,
     DateTime endInclusive,
   ) async {
@@ -551,16 +545,14 @@ class ReportRepositoryImpl implements ReportRepository {
       }
       final String s = _pdfDateIso(start);
       final String e = _pdfDateIso(end);
-      final List<dynamic> rows =
-          await _client
-              .from('vw_relatorio_diario_atendimentos_detalhe')
-              .select()
-              .gte('data_ref', s)
-              .lte('data_ref', e)
-              .order('hora_entrada_local', ascending: false);
-      final List<Map<String, dynamic>> list = rows
-          .map((dynamic r) => Map<String, dynamic>.from(r as Map))
-          .toList();
+      final List<dynamic> rows = await _client
+          .from('vw_relatorio_diario_atendimentos_detalhe')
+          .select()
+          .gte('data_ref', s)
+          .lte('data_ref', e)
+          .order('hora_entrada_local', ascending: false);
+      final List<Map<String, dynamic>> list =
+          rows.map((dynamic r) => Map<String, dynamic>.from(r as Map)).toList();
       return Right(list);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -599,16 +591,14 @@ class ReportRepositoryImpl implements ReportRepository {
       }
       final String s = _pdfDateIso(start);
       final String e = _pdfDateIso(end);
-      final List<dynamic> rows =
-          await _client
-              .from('vw_relatorio_diario_despesas_detalhe')
-              .select()
-              .gte('data_ref', s)
-              .lte('data_ref', e)
-              .order('registrado_em', ascending: false);
-      final List<Map<String, dynamic>> list = rows
-          .map((dynamic r) => Map<String, dynamic>.from(r as Map))
-          .toList();
+      final List<dynamic> rows = await _client
+          .from('vw_relatorio_diario_despesas_detalhe')
+          .select()
+          .gte('data_ref', s)
+          .lte('data_ref', e)
+          .order('registrado_em', ascending: false);
+      final List<Map<String, dynamic>> list =
+          rows.map((dynamic r) => Map<String, dynamic>.from(r as Map)).toList();
       return Right(list);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -794,10 +784,7 @@ class ReportRepositoryImpl implements ReportRepository {
         }
       }
       return Right(
-        AttendanceHistoryPageResult(
-          lines: list,
-          totalVehicles: totalVehicles,
-        ),
+        AttendanceHistoryPageResult(lines: list, totalVehicles: totalVehicles),
       );
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message));
@@ -831,7 +818,63 @@ class ReportRepositoryImpl implements ReportRepository {
       horaEntradaLocal: hora,
       valor: _toDouble(map['valor']),
       formaPagamento: map['forma_pagamento'] as String?,
+      servicosResumo: map['servicos_resumo'] as String?,
     );
+  }
+
+  @override
+  Future<Either<Failure, List<ServiceBreakdownRow>>> getServiceBreakdown(
+    DateTime startInclusive,
+    DateTime endInclusive,
+  ) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    try {
+      final DateTime start = DateTime(
+        startInclusive.year,
+        startInclusive.month,
+        startInclusive.day,
+      );
+      final DateTime end = DateTime(
+        endInclusive.year,
+        endInclusive.month,
+        endInclusive.day,
+      );
+      final String pStart = _dateKeyLocal(start);
+      final String pEnd = _dateKeyLocal(end);
+      final dynamic raw = await _client.rpc(
+        'get_service_breakdown_report',
+        params: <String, dynamic>{'p_start': pStart, 'p_end': pEnd},
+      );
+      if (raw is! List<dynamic>) {
+        return const Left(
+          ServerFailure('Resposta inválida do relatório por serviço'),
+        );
+      }
+      final List<ServiceBreakdownRow> out = <ServiceBreakdownRow>[];
+      for (final dynamic row in raw) {
+        if (row is! Map) {
+          continue;
+        }
+        final Map<String, dynamic> map = Map<String, dynamic>.from(row);
+        final String nome = map['nome_exibicao'] as String? ?? '';
+        final int q = _toInt(map['quantidade']) ?? 0;
+        final double f = _toDouble(map['faturamento']) ?? 0;
+        out.add(
+          ServiceBreakdownRow(
+            nomeExibicao: nome,
+            quantidade: q,
+            faturamento: f,
+          ),
+        );
+      }
+      return Right(out);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
   }
 }
 

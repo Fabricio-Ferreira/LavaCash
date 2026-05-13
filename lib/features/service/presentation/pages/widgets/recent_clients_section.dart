@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/domain/entities/vehicle_with_client.dart';
 import '../../../../../core/services/recent_clients_cache.dart';
 import '../../../../../core/utils/formatters.dart';
 import 'client_result_card.dart';
@@ -10,11 +11,13 @@ class RecentClientsSection extends StatefulWidget {
     required this.entries,
     required this.selectedVehicleId,
     required this.onSelectVehicle,
+    this.onEditCliente,
   });
 
   final List<RecentClientEntry> entries;
   final String? selectedVehicleId;
   final ValueChanged<String> onSelectVehicle;
+  final void Function(VehicleWithClient)? onEditCliente;
 
   @override
   State<RecentClientsSection> createState() => _RecentClientsSectionState();
@@ -84,6 +87,10 @@ class _RecentClientsSectionState extends State<RecentClientsSection>
                 plateFormatted: AppFormatters.formatPlate(e.placa),
                 isSelected: isSelected,
                 onTap: () => widget.onSelectVehicle(e.vehicleId),
+                onEditPressed:
+                    widget.onEditCliente != null
+                        ? () => widget.onEditCliente!(e.toVehicleWithClient())
+                        : null,
               ),
             ),
           ),

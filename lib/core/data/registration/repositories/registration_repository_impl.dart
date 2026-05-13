@@ -79,4 +79,59 @@ class RegistrationRepositoryImpl implements RegistrationRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, Vehicle>> updateClientAndVehicle({
+    required String clienteId,
+    required String veiculoId,
+    required String nome,
+    required String telefone,
+    required String placa,
+  }) async {
+    if (_client == null) {
+      return const Left(ServerFailure('Supabase not configured'));
+    }
+    final Session? session = _client.auth.currentSession;
+    if (session == null) {
+      return const Left(ServerFailure(_sessionRequiredMessage));
+    }
+    final SupabaseClient client = _client;
+    final String normalizedPlate = AppFormatters.formatPlate(placa);
+    try {
+      final Map<String, dynamic> updatedClient =
+          await client
+              .from('clientes')
+              .update(<String, dynamic>{
+                'nome': nome.trim(),
+                'telefone': telefone.trim(),
+                'updated_at': DateTime.now().toUtc().toIso8601String(),
+              })
+              .eq('id', clienteId)
+              .select()
+              .single();
+      final ClientModel clientModel = ClientModel.fromJson(updatedClient);
+      final Map<String, dynamic> vehicleRow =
+          await client
+              .from('veiculos')
+              .update(<String, dynamic>{
+                'placa': normalizedPlate,
+                'updated_at': DateTime.now().toUtc().toIso8601String(),
+              })
+              .eq('id', veiculoId)
+              .select()
+              .single();
+      return Right<Failure, Vehicle>(
+        Vehicle(
+          id: vehicleRow['id']! as String,
+          placa: vehicleRow['placa']! as String,
+          clienteId: vehicleRow['cliente_id']! as String,
+          client: clientModel.toDomain(),
+        ),
+      );
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on Exception catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

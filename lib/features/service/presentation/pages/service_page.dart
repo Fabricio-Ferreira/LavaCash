@@ -8,8 +8,8 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../dashboard/presentation/controllers/home_tab_controller.dart';
 import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
 import '../controllers/service_controller.dart';
+import 'widgets/service_attendance_sections.dart';
 import 'widgets/service_client_header.dart';
-import 'widgets/service_detail_form.dart';
 import 'widgets/service_timer_section.dart';
 
 class ServicePage extends GetView<ServiceController> {
@@ -71,7 +71,6 @@ class ServicePage extends GetView<ServiceController> {
                 ),
                 phone: vehicle.client.telefone,
               ),
-
               const SizedBox(height: 28),
               Obx(() {
                 final int tick = controller.elapsedSeconds.value;
@@ -87,20 +86,49 @@ class ServicePage extends GetView<ServiceController> {
                   entryTime: record.horaEntrada,
                 );
               }),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
+              SelectedServicesSection(),
+              AttendanceAddServiceHintBanner(),
+              QuickSuggestionsChipsSection(),
+              const SizedBox(height: 20),
+              DashedAddServiceButton(),
+              const SizedBox(height: 20),
               Obx(() {
-                final bool loading = controller.isAddingDetails.value;
-                return ServiceDetailForm(
-                  nomeController: controller.nomeServicoController,
-                  valorController: controller.valorController,
-                  observacaoController: controller.observacaoController,
-                  isLoading: loading,
-                  onAddToService: () async {
-                    await controller.addServiceDetails();
-                  },
+                final double total = controller.attendanceTotalValor;
+                if (total <= 0) {
+                  return const SizedBox.shrink();
+                }
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'Total do Atendimento',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        AppFormatters.formatCurrency(total),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineSmall?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }),
-              const SizedBox(height: 28),
+              const SizedBox(height: 20),
               OutlinedButton.icon(
                 onPressed: controller.openWhatsApp,
                 icon: const Icon(Icons.chat),

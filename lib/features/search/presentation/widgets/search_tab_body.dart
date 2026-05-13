@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/app_global_controller.dart';
-import '../../../../core/widgets/themed_refresh_indicator.dart';
 import '../../../../app/routes/app_routes.dart';
+import '../../../../core/utils/plate_or_name_search_input_formatter.dart';
+import '../../../../core/widgets/themed_refresh_indicator.dart';
+import '../../../../features/registration/presentation/registration_navigation.dart';
 import '../../../../core/utils/formatters.dart';
 import '../controllers/search_controller.dart';
 
@@ -34,6 +37,9 @@ class SearchTabBody extends GetView<VehicleSearchController> {
               hintText: 'Placa ou nome do cliente',
               prefixIcon: Icon(Icons.search),
             ),
+            inputFormatters: <TextInputFormatter>[
+              PlateOrNameSearchInputFormatter(),
+            ],
             textCapitalization: TextCapitalization.characters,
             onChanged: controller.onQueryChanged,
           ),
@@ -43,7 +49,7 @@ class SearchTabBody extends GetView<VehicleSearchController> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    Get.toNamed<void>(AppRoutes.registration);
+                    RegistrationNavigation.pushModal();
                   },
                   icon: const Icon(Icons.person_add_alt_1),
                   label: const Text('Novo cadastro'),

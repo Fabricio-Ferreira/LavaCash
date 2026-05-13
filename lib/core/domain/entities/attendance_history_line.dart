@@ -10,6 +10,7 @@ class AttendanceHistoryLine extends Equatable {
     required this.horaEntradaLocal,
     this.valor,
     this.formaPagamento,
+    this.servicosResumo,
   });
 
   final String atendimentoId;
@@ -20,6 +21,9 @@ class AttendanceHistoryLine extends Equatable {
   final double? valor;
   final String? formaPagamento;
 
+  /// Comma-separated line items from `atendimento_servicos`, if any.
+  final String? servicosResumo;
+
   @override
   List<Object?> get props => <Object?>[
     atendimentoId,
@@ -29,5 +33,6 @@ class AttendanceHistoryLine extends Equatable {
     horaEntradaLocal,
     valor,
     formaPagamento,
+    servicosResumo,
   ];
 }

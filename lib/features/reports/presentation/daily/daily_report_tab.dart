@@ -16,6 +16,7 @@ import '../controllers/report_controller.dart';
 import '../models/daily_report_state.dart';
 import 'widgets/daily_attendimentos_placeholder.dart';
 import 'widgets/daily_report_day_header.dart';
+import '../widgets/service_executed_breakdown_section.dart';
 
 /// Stitch "Relatório Diário — Nível Elite Final" layout.
 class DailyReportTab extends GetView<ReportController> {
@@ -39,15 +40,10 @@ class DailyReportTab extends GetView<ReportController> {
             slivers: <Widget>[
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(pad, 4, pad, 0),
-                sliver: const SliverToBoxAdapter(
-                  child: DailyReportDayHeader(),
-                ),
+                sliver: const SliverToBoxAdapter(child: DailyReportDayHeader()),
               ),
               _DailyErrorSliver(horizontalPadding: pad),
-              _DailySummarySliver(
-                horizontalPadding: pad,
-                textTheme: textTheme,
-              ),
+              _DailySummarySliver(horizontalPadding: pad, textTheme: textTheme),
               _DailyAttendimentosBlockSliver(
                 horizontalPadding: pad,
                 textTheme: textTheme,
@@ -85,7 +81,12 @@ class _DailyErrorSliver extends GetView<ReportController> {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       }
       return SliverPadding(
-        padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 8),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          0,
+          horizontalPadding,
+          8,
+        ),
         sliver: SliverToBoxAdapter(
           child: SelectableText.rich(
             TextSpan(
@@ -149,9 +150,10 @@ class _DailySummarySliver extends GetView<ReportController> {
                         icon: Icons.payments_outlined,
                         iconColor: AppColors.primary,
                         label: 'TICKET MÉDIO',
-                        value: daily.isLoading
-                            ? '—'
-                            : AppFormatters.formatCurrency(ticketMedio),
+                        value:
+                            daily.isLoading
+                                ? '—'
+                                : AppFormatters.formatCurrency(ticketMedio),
                       ),
                     ],
                   );
@@ -169,6 +171,21 @@ class _DailySummarySliver extends GetView<ReportController> {
                 entries: daily.paymentEntries,
                 isLoading: daily.isLoading,
               ),
+              const SizedBox(height: 20),
+              Obx(() {
+                return ServiceExecutedBreakdownSection(
+                  sectionTitle: 'Serviços Executados',
+                  sectionSubtitle: 'Detalhamento de produtividade diária',
+                  errorText: controller.dailyServiceBreakdownError.value,
+                  rows: controller.dailyServiceBreakdown.toList(),
+                  textTheme: textTheme,
+                  isContentHidden: daily.isLoading,
+                  statusLabel:
+                      ReportController.serviceBreakdownCompletedStatusLabel,
+                  iconForDisplayName:
+                      ReportController.iconForServiceBreakdownDisplayName,
+                );
+              }),
               const SizedBox(height: 20),
               DashboardDespesasSection(daily: daily),
             ],

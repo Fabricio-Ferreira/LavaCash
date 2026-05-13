@@ -25,10 +25,14 @@ class RegistrationSubmitButton extends StatelessWidget {
         ),
         child: Obx(
           () => AppGradientButton(
-            label: 'Salvar e iniciar atendimento',
+            label: controller.isEditMode
+                ? 'Salvar alterações'
+                : 'Salvar e iniciar atendimento',
             isLoading: controller.isSaving.value,
             onPressed: controller.submit,
-            trailingIcon: Icons.arrow_forward,
+            trailingIcon: controller.isEditMode
+                ? Icons.check_rounded
+                : Icons.arrow_forward,
             borderRadius: _pillBorderRadius,
           ),
         ),

@@ -5,6 +5,7 @@ import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/app_bottom_navigation.dart';
 import '../../../../core/widgets/home_top_bar.dart';
+import 'package:lava_cash/features/service_catalog/presentation/pages/services_catalog_tab.dart';
 import 'package:lava_cash/features/app_update/presentation/controllers/app_update_controller.dart';
 import 'package:lava_cash/features/reports/presentation/controllers/report_controller.dart';
 import 'package:lava_cash/features/reports/presentation/pages/reports_tab.dart';
@@ -20,6 +21,21 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  /// Bottom bar: 0 home, 1 reports, 2 atendimento (route), 3 services catalog.
+  /// [IndexedStack] only has [DashboardTab], [ReportsTab], [ServicesCatalogTab].
+  static int _stackIndexForTab(int tabIndex) {
+    switch (tabIndex) {
+      case 0:
+        return 0;
+      case 1:
+        return 1;
+      case 3:
+        return 2;
+      default:
+        return 0;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,8 +61,12 @@ class _HomePageState extends State<HomePage> {
             child: Obx(() {
               final int tabIndex = tabs.currentTab.value;
               return IndexedStack(
-                index: tabIndex,
-                children: const <Widget>[DashboardTab(), ReportsTab()],
+                index: _stackIndexForTab(tabIndex),
+                children: const <Widget>[
+                  DashboardTab(),
+                  ReportsTab(),
+                  ServicesCatalogTab(),
+                ],
               );
             }),
           ),
