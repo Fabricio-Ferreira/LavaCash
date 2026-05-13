@@ -46,8 +46,9 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
   }
 
   Future<void> _navigateToEditCliente(VehicleWithClient vehicle) async {
-    final VehicleWithClient? updated =
-        await RegistrationNavigation.pushModal(editInitial: vehicle);
+    final VehicleWithClient? updated = await RegistrationNavigation.pushModal(
+      editInitial: vehicle,
+    );
     if (!mounted) {
       return;
     }
@@ -225,12 +226,12 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
                             );
                           }),
 
-                        if (items.isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 24),
-                          NovoAtendimentoRegisterButton(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: NovoAtendimentoRegisterButton(
                             onPressed: _navigateToRegistration,
                           ),
-                        ],
+                        ),
                       ],
                     ),
                   );
