@@ -11,23 +11,15 @@ abstract final class ServiceAttendancePricing {
     );
   }
 
+  /// Attendance total comes only from persisted line items. With no lines,
+  /// the UI shows zero even if [ServiceRecord.valor] or money fields exist.
   static double resolveDisplayTotal({
     required List<AttendanceServiceLine> lines,
-    required bool lineItemsDriveTotal,
-    required ServiceRecord? record,
-    required String valorFieldText,
   }) {
-    if (lines.isNotEmpty) {
-      return sumLines(lines);
+    if (lines.isEmpty) {
+      return 0;
     }
-    if (lineItemsDriveTotal) {
-      return AppFormatters.parseMoneyInput(valorFieldText) ?? 0;
-    }
-    final double? fromRecord = record?.valor;
-    if (fromRecord != null && fromRecord > 0) {
-      return fromRecord;
-    }
-    return AppFormatters.parseMoneyInput(valorFieldText) ?? 0;
+    return sumLines(lines);
   }
 
   static bool isPaymentFormSatisfied({

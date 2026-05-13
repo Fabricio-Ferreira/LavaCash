@@ -88,6 +88,7 @@ class ServicePage extends GetView<ServiceController> {
               }),
               const SizedBox(height: 28),
               SelectedServicesSection(),
+              AttendanceAddServiceHintBanner(),
               QuickSuggestionsChipsSection(),
               const SizedBox(height: 20),
               DashedAddServiceButton(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:lava_cash/app/theme/app_colors.dart';
 import 'package:lava_cash/core/domain/entities/service_catalog_item.dart';
@@ -6,15 +7,10 @@ import 'package:lava_cash/core/utils/formatters.dart';
 import 'package:lava_cash/features/service_catalog/presentation/controllers/service_catalog_controller.dart';
 
 /// List tile card for one catalog row; forwards taps to [controller].
-class ServicesCatalogItemCard extends StatelessWidget {
-  const ServicesCatalogItemCard({
-    super.key,
-    required this.item,
-    required this.controller,
-  });
+class ServicesCatalogItemCard extends GetView<ServiceCatalogController> {
+  const ServicesCatalogItemCard({super.key, required this.item});
 
   final ServiceCatalogItem item;
-  final ServiceCatalogController controller;
 
   @override
   Widget build(BuildContext context) {

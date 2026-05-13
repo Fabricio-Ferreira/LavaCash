@@ -118,6 +118,9 @@ class _ServiceCatalogSelectPageState extends State<ServiceCatalogSelectPage> {
       return;
     }
     final ServiceController controller = Get.find<ServiceController>();
+    if (controller.isAddingDetails.value) {
+      return;
+    }
     await controller.addSelectedCatalogItemsToAttendance(picked);
     await controller.loadQuickSuggestions();
     Get.close(1);
@@ -281,31 +284,38 @@ class _ServiceCatalogSelectPageState extends State<ServiceCatalogSelectPage> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-          child: FilledButton(
-            onPressed: _selectedIds.isEmpty || _loading ? null : _onContinue,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  'Continuar',
-                  style: textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
+          child: Obx(() {
+            final ServiceController attendance = Get.find<ServiceController>();
+            final bool posting = attendance.isAddingDetails.value;
+            return FilledButton(
+              onPressed:
+                  _selectedIds.isEmpty || _loading || posting
+                      ? null
+                      : _onContinue,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward_rounded, color: Colors.white),
-              ],
-            ),
-          ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Continuar',
+                    style: textTheme.titleSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+                ],
+              ),
+            );
+          }),
         ),
       ),
     );

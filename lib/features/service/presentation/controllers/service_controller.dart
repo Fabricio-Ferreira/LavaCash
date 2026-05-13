@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class ServiceController extends GetxController {
   final RxList<ServiceCatalogItem> quickSuggestions =
       <ServiceCatalogItem>[].obs;
 
-  /// See [ServiceAttendancePricing.resolveDisplayTotal] (line-item mode flag).
+  /// Drives clearing the legacy nome/valor form when the last line is removed.
   final RxBool lineItemsDriveTotal = false.obs;
   final RxBool isLinesLoading = false.obs;
 
@@ -72,12 +73,8 @@ class ServiceController extends GetxController {
 
   // —— Derived totals & payment gate ——
   double get attendanceTotalValor {
-    final int _ = formFieldsRevision.value;
     return ServiceAttendancePricing.resolveDisplayTotal(
       lines: attendanceLines.toList(),
-      lineItemsDriveTotal: lineItemsDriveTotal.value,
-      record: serviceRecord.value,
-      valorFieldText: valorController.text,
     );
   }
 
@@ -225,7 +222,7 @@ class ServiceController extends GetxController {
         await _catalogRepository.listMaisUtilizados();
     result.fold(
       (Failure failure) {
-        quickSuggestions.clear();
+        AppSnackbar.showError(failure.message);
       },
       (List<ServiceCatalogItem> list) {
         quickSuggestions.assignAll(list);
@@ -242,12 +239,11 @@ class ServiceController extends GetxController {
       (Failure failure) {
         AppSnackbar.showError(failure.message);
         attendanceLines.clear();
+        lineItemsDriveTotal.value = false;
       },
       (List<AttendanceServiceLine> list) {
         attendanceLines.assignAll(list);
-        if (list.isNotEmpty) {
-          lineItemsDriveTotal.value = true;
-        }
+        lineItemsDriveTotal.value = list.isNotEmpty;
       },
     );
     isLinesLoading.value = false;
@@ -257,15 +253,20 @@ class ServiceController extends GetxController {
   Future<void> _refreshRecordAfterLinesChanged(String serviceId) async {
     final Either<Failure, ServiceRecord> refreshed = await _repository
         .getServiceById(serviceId);
-    refreshed.fold(
-      (Failure failure) => null,
-      (ServiceRecord r) => serviceRecord.value = r,
-    );
+    refreshed.fold((Failure failure) {
+      developer.log(
+        'refreshRecordAfterLinesChanged failed: ${failure.message}',
+        name: 'ServiceController',
+      );
+    }, (ServiceRecord r) => serviceRecord.value = r);
   }
 
   Future<void> addServiceDetails() async {
     final ServiceRecord? record = serviceRecord.value;
     if (record == null) {
+      return;
+    }
+    if (isAddingDetails.value) {
       return;
     }
     final double? valor = AppFormatters.parseMoneyInput(valorController.text);
@@ -280,27 +281,30 @@ class ServiceController extends GetxController {
     }
     final String obs = observacaoController.text.trim();
     isAddingDetails.value = true;
-    final Either<Failure, AttendanceServiceLine> lineResult = await _repository
-        .addAttendanceServiceLine(
-          atendimentoId: record.id,
-          nome: nome,
-          valor: valor,
-          observacao: obs.isEmpty ? null : obs,
-        );
-    isAddingDetails.value = false;
-    await lineResult.fold(
-      (Failure failure) async {
-        AppSnackbar.showError(failure.message);
-      },
-      (AttendanceServiceLine line) async {
-        await _onLineAddedSuccessfully(
-          record: record,
-          line: line,
-          clearPersonalizedForm: true,
-          successMessage: 'Serviço adicionado ao atendimento.',
-        );
-      },
-    );
+    try {
+      final Either<Failure, AttendanceServiceLine> lineResult =
+          await _repository.addAttendanceServiceLine(
+            atendimentoId: record.id,
+            nome: nome,
+            valor: valor,
+            observacao: obs.isEmpty ? null : obs,
+          );
+      await lineResult.fold(
+        (Failure failure) async {
+          AppSnackbar.showError(failure.message);
+        },
+        (AttendanceServiceLine line) async {
+          await _onLineAddedSuccessfully(
+            record: record,
+            line: line,
+            clearPersonalizedForm: true,
+            successMessage: 'Serviço adicionado ao atendimento.',
+          );
+        },
+      );
+    } finally {
+      isAddingDetails.value = false;
+    }
   }
 
   Future<void> addLineFromCatalogItem(ServiceCatalogItem item) async {
@@ -308,45 +312,11 @@ class ServiceController extends GetxController {
     if (record == null) {
       return;
     }
-    isAddingDetails.value = true;
-    final Either<Failure, AttendanceServiceLine> lineResult = await _repository
-        .addAttendanceServiceLine(
-          atendimentoId: record.id,
-          servicoCatalogoId: item.id,
-          nome: item.nome,
-          valor: item.valorPadrao,
-          observacao:
-              item.observacao != null && item.observacao!.trim().isNotEmpty
-                  ? item.observacao
-                  : null,
-        );
-    isAddingDetails.value = false;
-    await lineResult.fold(
-      (Failure failure) async {
-        AppSnackbar.showError(failure.message);
-      },
-      (AttendanceServiceLine line) async {
-        await _onLineAddedSuccessfully(
-          record: record,
-          line: line,
-          clearPersonalizedForm: false,
-          successMessage: '${item.nome} adicionado.',
-        );
-      },
-    );
-  }
-
-  Future<void> addSelectedCatalogItemsToAttendance(
-    List<ServiceCatalogItem> items,
-  ) async {
-    final ServiceRecord? record = serviceRecord.value;
-    if (record == null || items.isEmpty) {
+    if (isAddingDetails.value) {
       return;
     }
     isAddingDetails.value = true;
-    final List<AttendanceServiceLine> added = <AttendanceServiceLine>[];
-    Failure? batchFailure;
-    for (final ServiceCatalogItem item in items) {
+    try {
       final Either<Failure, AttendanceServiceLine> lineResult =
           await _repository.addAttendanceServiceLine(
             atendimentoId: record.id,
@@ -358,32 +328,78 @@ class ServiceController extends GetxController {
                     ? item.observacao
                     : null,
           );
-      lineResult.fold((Failure f) {
-        batchFailure = f;
-      }, added.add);
-      if (batchFailure != null) {
-        break;
+      await lineResult.fold(
+        (Failure failure) async {
+          AppSnackbar.showError(failure.message);
+        },
+        (AttendanceServiceLine line) async {
+          await _onLineAddedSuccessfully(
+            record: record,
+            line: line,
+            clearPersonalizedForm: false,
+            successMessage: '${item.nome} adicionado.',
+          );
+        },
+      );
+    } finally {
+      isAddingDetails.value = false;
+    }
+  }
+
+  Future<void> addSelectedCatalogItemsToAttendance(
+    List<ServiceCatalogItem> items,
+  ) async {
+    final ServiceRecord? record = serviceRecord.value;
+    if (record == null || items.isEmpty) {
+      return;
+    }
+    if (isAddingDetails.value) {
+      return;
+    }
+    isAddingDetails.value = true;
+    try {
+      final List<AttendanceServiceLine> added = <AttendanceServiceLine>[];
+      Failure? batchFailure;
+      for (final ServiceCatalogItem item in items) {
+        final Either<Failure, AttendanceServiceLine> lineResult =
+            await _repository.addAttendanceServiceLine(
+              atendimentoId: record.id,
+              servicoCatalogoId: item.id,
+              nome: item.nome,
+              valor: item.valorPadrao,
+              observacao:
+                  item.observacao != null && item.observacao!.trim().isNotEmpty
+                      ? item.observacao
+                      : null,
+            );
+        lineResult.fold((Failure f) {
+          batchFailure = f;
+        }, added.add);
+        if (batchFailure != null) {
+          break;
+        }
       }
+      if (batchFailure != null) {
+        AppSnackbar.showError(batchFailure!.message);
+        await _loadAttendanceLines(record.id);
+        return;
+      }
+      if (added.isEmpty) {
+        return;
+      }
+      lineItemsDriveTotal.value = true;
+      attendanceLines.addAll(added);
+      await _refreshRecordAfterLinesChanged(record.id);
+      AppSnackbar.showSuccess(
+        added.length == 1
+            ? '${items.first.nome} adicionado.'
+            : '${added.length} serviços adicionados ao atendimento.',
+      );
+      _syncPaymentFormValidity();
+      _refreshReportsIfRegistered();
+    } finally {
+      isAddingDetails.value = false;
     }
-    isAddingDetails.value = false;
-    if (batchFailure != null) {
-      AppSnackbar.showError(batchFailure!.message);
-      await _loadAttendanceLines(record.id);
-      return;
-    }
-    if (added.isEmpty) {
-      return;
-    }
-    lineItemsDriveTotal.value = true;
-    attendanceLines.addAll(added);
-    await _refreshRecordAfterLinesChanged(record.id);
-    AppSnackbar.showSuccess(
-      added.length == 1
-          ? '${items.first.nome} adicionado.'
-          : '${added.length} serviços adicionados ao atendimento.',
-    );
-    _syncPaymentFormValidity();
-    _refreshReportsIfRegistered();
   }
 
   Future<void> _onLineAddedSuccessfully({
@@ -431,8 +447,11 @@ class ServiceController extends GetxController {
         if (record != null) {
           await _refreshRecordAfterLinesChanged(record.id);
         }
-        if (attendanceLines.isEmpty && lineItemsDriveTotal.value) {
-          _clearPersonalizedServiceForm();
+        if (attendanceLines.isEmpty) {
+          if (lineItemsDriveTotal.value) {
+            _clearPersonalizedServiceForm();
+          }
+          lineItemsDriveTotal.value = false;
         }
         AppSnackbar.showSuccess('Item removido.');
         _syncPaymentFormValidity();

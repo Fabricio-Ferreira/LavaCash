@@ -38,6 +38,7 @@ class QuickSuggestionsChipsSection extends GetView<ServiceController> {
               runSpacing: 8,
               children:
                   items.map((ServiceCatalogItem e) {
+                    final bool busy = controller.isAddingDetails.value;
                     return ActionChip(
                       avatar: Icon(
                         Icons.bolt_rounded,
@@ -56,7 +57,10 @@ class QuickSuggestionsChipsSection extends GetView<ServiceController> {
                       ),
                       backgroundColor: Colors.white,
                       pressElevation: 2,
-                      onPressed: () => controller.addLineFromCatalogItem(e),
+                      onPressed:
+                          busy
+                              ? null
+                              : () => controller.addLineFromCatalogItem(e),
                     );
                   }).toList(),
             ),

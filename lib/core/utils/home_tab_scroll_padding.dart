@@ -10,10 +10,10 @@ double homeTabListBottomPadding(BuildContext context) {
 /// Lifts [Scaffold.floatingActionButton] above [AppBottomNavigation]
 /// when the tab uses a nested [Scaffold] under [HomePage] (extendBody).
 double homeTabFabBottomPadding(BuildContext context) {
-  const double barTopPad = 12;
-  const double barBottomPad = 12;
-  const double rowHeight = 48;
-  const double clearance = 8;
+  const double barTopPad = 2;
+  const double barBottomPad = 2;
+  const double rowHeight = 2;
+  const double clearance = 4;
   return barTopPad +
       rowHeight +
       barBottomPad +
