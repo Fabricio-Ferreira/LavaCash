@@ -6,9 +6,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
 import 'package:lava_cash/core/domain/entities/best_weekday_report.dart';
 import 'package:lava_cash/core/domain/entities/monthly_report.dart';
-import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import 'package:lava_cash/core/domain/entities/weekly_report.dart';
-import 'package:lava_cash/core/utils/formatters.dart';
 import '../../../../shared/widgets/dashboard_stats/dashboard_stat_card.dart';
 import '../../../../shared/widgets/dashboard_stats/dashboard_stat_grid.dart';
 import '../../../../shared/widgets/elite_hero_card.dart';
@@ -17,6 +15,7 @@ import 'utils/monthly_report_growth.dart';
 import 'widgets/monthly_best_weekday_card.dart';
 import 'widgets/monthly_list_card.dart';
 import 'widgets/monthly_report_header.dart';
+import '../widgets/service_executed_breakdown_section.dart';
 import 'widgets/weekly_performance_section.dart';
 
 /// Stitch-style monthly reports (hero + stats + month cards).
@@ -87,7 +86,12 @@ class _MonthlyLoadingSliver extends GetView<ReportController> {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       }
       return SliverPadding(
-        padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 120),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          8,
+          horizontalPadding,
+          120,
+        ),
         sliver: const SliverToBoxAdapter(
           child: SizedBox(
             height: 240,
@@ -114,13 +118,15 @@ class _MonthlyErrorSliver extends GetView<ReportController> {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       }
       return SliverPadding(
-        padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 120),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          8,
+          horizontalPadding,
+          120,
+        ),
         sliver: SliverToBoxAdapter(
           child: SelectableText.rich(
-            TextSpan(
-              text: err,
-              style: const TextStyle(color: Colors.red),
-            ),
+            TextSpan(text: err, style: const TextStyle(color: Colors.red)),
           ),
         ),
       );
@@ -157,7 +163,12 @@ class _MonthlyHeroAndStatsSliver extends GetView<ReportController> {
       );
       final int totalMeses = monthlyList.length;
       return SliverPadding(
-        padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 0),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          8,
+          horizontalPadding,
+          0,
+        ),
         sliver: SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -175,9 +186,10 @@ class _MonthlyHeroAndStatsSliver extends GetView<ReportController> {
                     icon: Icons.local_car_wash_outlined,
                     iconColor: AppColors.primary,
                     label: 'ATENDIMENTOS',
-                    value: highlight == null
-                        ? '0'
-                        : '${highlight.totalAtendimentos}',
+                    value:
+                        highlight == null
+                            ? '0'
+                            : '${highlight.totalAtendimentos}',
                   ),
                   DashboardStatCard(
                     icon: Icons.calendar_month_outlined,
@@ -211,8 +223,6 @@ class _MonthlyServiceBreakdownSliver extends GetView<ReportController> {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       }
       final String err = controller.monthlyServiceBreakdownError.value;
-      final List<ServiceBreakdownRow> rows =
-          controller.monthlyServiceBreakdown.toList();
       final bool loading = controller.isWeeklyLoading.value;
       if (loading) {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -225,43 +235,16 @@ class _MonthlyServiceBreakdownSliver extends GetView<ReportController> {
           0,
         ),
         sliver: SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              if (err.isNotEmpty)
-                SelectableText.rich(
-                  TextSpan(
-                    text: err,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                )
-              else if (rows.isNotEmpty) ...<Widget>[
-                Text(
-                  'Por serviço (mês)',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...rows.map((ServiceBreakdownRow r) {
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      r.nomeExibicao,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text('Qtd: ${r.quantidade}'),
-                    trailing: Text(
-                      AppFormatters.formatCurrency(r.faturamento),
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ],
+          child: ServiceExecutedBreakdownSection(
+            sectionTitle: 'Serviços Executados',
+            sectionSubtitle: 'Detalhamento agregado no mês',
+            errorText: err,
+            rows: controller.monthlyServiceBreakdown.toList(),
+            textTheme: textTheme,
+            isContentHidden: false,
+            statusLabel: ReportController.serviceBreakdownCompletedStatusLabel,
+            iconForDisplayName:
+                ReportController.iconForServiceBreakdownDisplayName,
           ),
         ),
       );
@@ -284,10 +267,14 @@ class _MonthlyWeeklyBlockSliver extends GetView<ReportController> {
       final DateTime selectedMonth = controller.monthlyReportMonth.value;
       final List<WeeklyReport> weeklyList = controller.weeklyReports.toList();
       final bool isWeeklyLoading = controller.isWeeklyLoading.value;
-      final BestWeekdayReport? bestWeekdayReport =
-          controller.bestWeekday.value;
+      final BestWeekdayReport? bestWeekdayReport = controller.bestWeekday.value;
       return SliverPadding(
-        padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 0),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          0,
+          horizontalPadding,
+          0,
+        ),
         sliver: SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -297,10 +284,11 @@ class _MonthlyWeeklyBlockSliver extends GetView<ReportController> {
                 key: ValueKey<String>(
                   '${selectedMonth.year}-${selectedMonth.month}',
                 ),
-                monthLabel: DateFormat(
-                  'MMMM',
-                  'pt_BR',
-                ).format(selectedMonth).toUpperCase(),
+                monthLabel:
+                    DateFormat(
+                      'MMMM',
+                      'pt_BR',
+                    ).format(selectedMonth).toUpperCase(),
                 weeklyData: weeklyList,
                 isLoading: isWeeklyLoading,
               ),
@@ -379,30 +367,30 @@ class _MonthlyHistorySliver extends GetView<ReportController> {
           bottomPadding,
         ),
         sliver: SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              if (index == 0) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Text(
-                      'Histórico por mês',
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+          delegate: SliverChildBuilderDelegate((
+            BuildContext context,
+            int index,
+          ) {
+            if (index == 0) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text(
+                    'Histórico por mês',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(height: 12),
-                  ],
-                );
-              }
-              final MonthlyReport item = monthlyList[index - 1];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: MonthlyListCard(item: item),
+                  ),
+                  const SizedBox(height: 12),
+                ],
               );
-            },
-            childCount: childCount,
-          ),
+            }
+            final MonthlyReport item = monthlyList[index - 1];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: MonthlyListCard(item: item),
+            );
+          }, childCount: childCount),
         ),
       );
     });

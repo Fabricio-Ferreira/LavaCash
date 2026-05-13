@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/error/failures.dart';
@@ -65,19 +66,42 @@ class ReportController extends GetxController {
       <ServiceBreakdownRow>[].obs;
   final RxString monthlyServiceBreakdownError = ''.obs;
 
+  /// Completed services badge in breakdown lists (historic aggregate data).
+  static const String serviceBreakdownCompletedStatusLabel = 'CONCLUÍDO';
+
+  /// Leading icon heuristic for executed-service cards (Portuguese catalog).
+  static IconData iconForServiceBreakdownDisplayName(String nomeExibicao) {
+    final String normalized = nomeExibicao.toLowerCase();
+    if (normalized.contains('higien') ||
+        normalized.contains('limpez') ||
+        normalized.contains('interna')) {
+      return Icons.cleaning_services_outlined;
+    }
+    if (normalized.contains('lava') ||
+        normalized.contains('lavag') ||
+        normalized.contains('simples')) {
+      return Icons.local_car_wash_outlined;
+    }
+    if (normalized.contains('encer') ||
+        normalized.contains('detalh') ||
+        normalized.contains('polim') ||
+        normalized.contains('vitrific')) {
+      return Icons.auto_fix_high_outlined;
+    }
+    return Icons.auto_awesome_outlined;
+  }
+
   /// Calendar day for daily report, PDF, and [loadDaily] / today-services list.
-  final Rx<DateTime> dailyReportDay = DateTime(
-    DateTime.now().year,
-    DateTime.now().month,
-    DateTime.now().day,
-  ).obs;
+  final Rx<DateTime> dailyReportDay =
+      DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+      ).obs;
 
   /// First day of month for monthly UI, weekly RPCs, and monthly PDF.
-  final Rx<DateTime> monthlyReportMonth = DateTime(
-    DateTime.now().year,
-    DateTime.now().month,
-    1,
-  ).obs;
+  final Rx<DateTime> monthlyReportMonth =
+      DateTime(DateTime.now().year, DateTime.now().month, 1).obs;
 
   static const Duration _reportStaleThreshold = Duration(minutes: 5);
 

@@ -57,6 +57,18 @@ class AttendanceHistoryVehicleTile extends StatelessWidget {
                 AppFormatters.formatDateTime(line.horaEntradaLocal),
                 style: textTheme.bodyMedium,
               ),
+              subtitle:
+                  line.servicosResumo != null &&
+                      line.servicosResumo!.trim().isNotEmpty
+                  ? Text(
+                      line.servicosResumo!.trim(),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  : null,
               trailing: Text(
                 line.valor != null
                     ? AppFormatters.formatCurrency(line.valor!)

@@ -5,7 +5,6 @@ import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/home_tab_scroll_padding.dart';
-import 'package:lava_cash/core/domain/entities/service_breakdown_row.dart';
 import '../../../../core/widgets/themed_refresh_indicator.dart';
 import '../../../../shared/widgets/dashboard_stats/dashboard_stat_card.dart';
 import '../../../../shared/widgets/dashboard_stats/dashboard_stat_grid.dart';
@@ -17,6 +16,7 @@ import '../controllers/report_controller.dart';
 import '../models/daily_report_state.dart';
 import 'widgets/daily_attendimentos_placeholder.dart';
 import 'widgets/daily_report_day_header.dart';
+import '../widgets/service_executed_breakdown_section.dart';
 
 /// Stitch "Relatório Diário — Nível Elite Final" layout.
 class DailyReportTab extends GetView<ReportController> {
@@ -40,15 +40,10 @@ class DailyReportTab extends GetView<ReportController> {
             slivers: <Widget>[
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(pad, 4, pad, 0),
-                sliver: const SliverToBoxAdapter(
-                  child: DailyReportDayHeader(),
-                ),
+                sliver: const SliverToBoxAdapter(child: DailyReportDayHeader()),
               ),
               _DailyErrorSliver(horizontalPadding: pad),
-              _DailySummarySliver(
-                horizontalPadding: pad,
-                textTheme: textTheme,
-              ),
+              _DailySummarySliver(horizontalPadding: pad, textTheme: textTheme),
               _DailyAttendimentosBlockSliver(
                 horizontalPadding: pad,
                 textTheme: textTheme,
@@ -86,7 +81,12 @@ class _DailyErrorSliver extends GetView<ReportController> {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       }
       return SliverPadding(
-        padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 8),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          0,
+          horizontalPadding,
+          8,
+        ),
         sliver: SliverToBoxAdapter(
           child: SelectableText.rich(
             TextSpan(
@@ -150,9 +150,10 @@ class _DailySummarySliver extends GetView<ReportController> {
                         icon: Icons.payments_outlined,
                         iconColor: AppColors.primary,
                         label: 'TICKET MÉDIO',
-                        value: daily.isLoading
-                            ? '—'
-                            : AppFormatters.formatCurrency(ticketMedio),
+                        value:
+                            daily.isLoading
+                                ? '—'
+                                : AppFormatters.formatCurrency(ticketMedio),
                       ),
                     ],
                   );
@@ -172,54 +173,17 @@ class _DailySummarySliver extends GetView<ReportController> {
               ),
               const SizedBox(height: 20),
               Obx(() {
-                final String bErr = controller.dailyServiceBreakdownError.value;
-                final List<ServiceBreakdownRow> rows =
-                    controller.dailyServiceBreakdown.toList();
-                if (daily.isLoading) {
-                  return const SizedBox.shrink();
-                }
-                if (bErr.isNotEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: SelectableText.rich(
-                      TextSpan(
-                        text: bErr,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  );
-                }
-                if (rows.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Text(
-                      'Por serviço',
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ...rows.map((ServiceBreakdownRow r) {
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          r.nomeExibicao,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        subtitle: Text('Qtd: ${r.quantidade}'),
-                        trailing: Text(
-                          AppFormatters.formatCurrency(r.faturamento),
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      );
-                    }),
-                  ],
+                return ServiceExecutedBreakdownSection(
+                  sectionTitle: 'Serviços Executados',
+                  sectionSubtitle: 'Detalhamento de produtividade diária',
+                  errorText: controller.dailyServiceBreakdownError.value,
+                  rows: controller.dailyServiceBreakdown.toList(),
+                  textTheme: textTheme,
+                  isContentHidden: daily.isLoading,
+                  statusLabel:
+                      ReportController.serviceBreakdownCompletedStatusLabel,
+                  iconForDisplayName:
+                      ReportController.iconForServiceBreakdownDisplayName,
                 );
               }),
               const SizedBox(height: 20),
